@@ -8,11 +8,14 @@ import {
   Typography,
 } from "@mui/material";
 import { useState } from "react";
-interface SettingsProps {
-  settings: string[];
-}
-const UserSettings = ({ settings }: SettingsProps) => {
+import { useLogout } from "../../hooks/useLogout";
+import { onLogout } from "../../utils/logout";
+import { snackVar } from "../../constants/snack";
+import { UNKNOWN_ERROR_SNACK_MESSAGE } from "../../constants/error";
+
+const UserSettings = () => {
   const [anchorElUser, setAnchorElUser] = useState<null | HTMLElement>(null);
+  const { logout } = useLogout();
   const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorElUser(event.currentTarget);
   };
@@ -46,14 +49,22 @@ const UserSettings = ({ settings }: SettingsProps) => {
           horizontal: "right",
         }}
         open={Boolean(anchorElUser)}
-        onClose={handleCloseUserMenu}>
-        {settings.map((setting) => (
-          <MenuItem
-            key={setting}
-            onClick={handleCloseUserMenu}>
-            <Typography sx={{ textAlign: "center" }}>{setting}</Typography>
-          </MenuItem>
-        ))}
+        onClose={async () => {
+          handleCloseUserMenu();
+        }}>
+        <MenuItem
+          key="logout"
+          onClick={async () => {
+            try {
+              await logout();
+              onLogout();
+              handleCloseUserMenu();
+            } catch (error) {
+              snackVar(UNKNOWN_ERROR_SNACK_MESSAGE);
+            }
+          }}>
+          <Typography sx={{ textAlign: "center" }}>Logout</Typography>
+        </MenuItem>
       </Menu>
     </Box>
   );

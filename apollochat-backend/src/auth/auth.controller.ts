@@ -10,10 +10,15 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
   @Post('login')
   @UseGuards(LocalAuthGuard)
-  async login(
+  login(
     @CurrentUser() user: User,
     @Res({ passthrough: true }) response: Response,
   ) {
     return this.authService.login(user, response);
+  }
+
+  @Post('logout')
+  logout(@Res({ passthrough: true }) response: Response) {
+    return this.authService.logout(response);
   }
 }
