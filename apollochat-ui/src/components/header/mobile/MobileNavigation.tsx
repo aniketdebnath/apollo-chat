@@ -5,8 +5,10 @@ import Typography from "@mui/material/Typography";
 import Menu from "@mui/material/Menu";
 import MenuIcon from "@mui/icons-material/Menu";
 import MenuItem from "@mui/material/MenuItem";
+import { Pages } from "../../../interfaces/pages.interface";
+import router from "../../Routes";
 interface MobileNavigationProps {
-  pages: string[];
+  pages: Pages[];
 }
 
 const MobileNavigation = ({ pages }: MobileNavigationProps) => {
@@ -46,9 +48,12 @@ const MobileNavigation = ({ pages }: MobileNavigationProps) => {
         sx={{ display: { xs: "block", md: "none" } }}>
         {pages.map((page) => (
           <MenuItem
-            key={page}
-            onClick={handleCloseNavMenu}>
-            <Typography sx={{ textAlign: "center" }}>{page}</Typography>
+            key={page.title}
+            onClick={() => {
+              router.navigate(page.path);
+              handleCloseNavMenu();
+            }}>
+            <Typography sx={{ textAlign: "center" }}>{page.title}</Typography>
           </MenuItem>
         ))}
       </Menu>

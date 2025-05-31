@@ -1,6 +1,6 @@
 import { Typography } from "@mui/material";
 import QuickreplyOutlinedIcon from "@mui/icons-material/QuickreplyOutlined";
-import router from "../Routes";
+import router from "../../Routes";
 const MobileLogo = () => {
   return (
     <>

@@ -1,28 +1,46 @@
 import AppBar from "@mui/material/AppBar";
-
 import Toolbar from "@mui/material/Toolbar";
-
 import Container from "@mui/material/Container";
-
 import Logo from "./Logo";
-import MobileNavigation from "./MobileNavigation";
-import MobileLogo from "./MobileLogo";
+import MobileNavigation from "./mobile/MobileNavigation";
+import MobileLogo from "./mobile/MobileLogo";
 import Navigation from "./Navigation";
 import UserSettings from "./UserSettings";
+import { useReactiveVar } from "@apollo/client";
+import { authenticatedVar } from "../../constants/authenticated";
+import { Pages } from "../../interfaces/pages.interface";
 
-const pages = ["Products", "Pricing", "Blog"];
-const settings = ["Profile", "Account", "Dashboard", "Logout"];
+const pages: Pages[] = [
+  {
+    title: "Home",
+    path: "/",
+  },
+];
+
+const unauthenticatedPages: Pages[] = [
+  {
+    title: "Login",
+    path: "/login",
+  },
+  {
+    title: "Signup",
+    path: "/signup",
+  },
+];
 
 const Header = () => {
+  const authenticated = useReactiveVar(authenticatedVar);
   return (
     <AppBar position="static">
       <Container maxWidth="xl">
         <Toolbar disableGutters>
           <Logo />
-          <MobileNavigation pages={pages} />
+          <MobileNavigation
+            pages={authenticated ? pages : unauthenticatedPages}
+          />
           <MobileLogo />
-          <Navigation pages={pages} />
-          <UserSettings settings={settings} />
+          <Navigation pages={authenticated ? pages : unauthenticatedPages} />
+          {authenticated && <UserSettings />}
         </Toolbar>
       </Container>
     </AppBar>
