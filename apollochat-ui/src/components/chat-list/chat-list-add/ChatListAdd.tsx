@@ -15,6 +15,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
+import { useCreateChat } from "../../../hooks/useCreateChat";
 
 interface ChatListAddProps {
   open: boolean;
@@ -23,6 +24,8 @@ interface ChatListAddProps {
 
 const ChatListAdd = ({ open, handleClose }: ChatListAddProps) => {
   const [isPrivate, setIsPrivate] = useState(true);
+  const [createChat] = useCreateChat();
+  const [name, setName] = useState<string | undefined>("");
   return (
     <>
       <Modal
@@ -36,11 +39,11 @@ const ChatListAdd = ({ open, handleClose }: ChatListAddProps) => {
             transform: "translate(-50%,-50%)",
             width: 400,
             bgcolor: "background.paper",
-            border: "2px solid #000",
+            border: "1px solid #000",
             boxShadow: 24,
             p: 4,
           }}>
-          <Stack spacing={3}>
+          <Stack spacing={2}>
             <Typography
               variant="h6"
               component="h2">
@@ -71,9 +74,23 @@ const ChatListAdd = ({ open, handleClose }: ChatListAddProps) => {
                 </IconButton>
               </Paper>
             ) : (
-              <TextField label="Name" />
+              <TextField
+                label="Name"
+                onChange={(e) => setName(e.target.value)}
+              />
             )}
-            <Button variant="outlined">Save</Button>
+            <Button
+              variant="outlined"
+              onClick={async () => {
+                await createChat({
+                  variables: {
+                    createChatInput: { isPrivate, name: name || undefined },
+                  },
+                });
+                handleClose();
+              }}>
+              Save
+            </Button>
           </Stack>
         </Box>
       </Modal>
