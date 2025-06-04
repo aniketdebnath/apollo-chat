@@ -3,38 +3,48 @@ import {
   Divider,
   ListItem,
   ListItemAvatar,
+  ListItemButton,
   ListItemText,
   Typography,
 } from "@mui/material";
+import router from "../Routes";
+import { Chat } from "../../gql/graphql";
 
 interface ChatListProps {
-  name?: string | null;
+  chat: Chat;
+  selected: boolean;
 }
 
-const ChatListItem = ({ name }: ChatListProps) => {
+const ChatListItem = ({ chat, selected }: ChatListProps) => {
   return (
     <>
-      <ListItem alignItems="flex-start">
-        <ListItemAvatar>
-          <Avatar
-            alt="Remy Sharp"
-            src="/static/images/avatar/1.jpg"
+      <ListItem
+        alignItems="flex-start"
+        disablePadding>
+        <ListItemButton
+          onClick={() => router.navigate(`/chats/${chat._id}`)}
+          selected={selected}>
+          <ListItemAvatar>
+            <Avatar
+              alt="Remy Sharp"
+              src="/static/images/avatar/1.jpg"
+            />
+          </ListItemAvatar>
+          <ListItemText
+            primary={chat.name}
+            secondary={
+              <>
+                <Typography
+                  component="span"
+                  variant="body2"
+                  sx={{ color: "text.primary", display: "inline" }}>
+                  Ali Connors
+                </Typography>
+                {" — I'll be in your neighborhood doing errands this…"}
+              </>
+            }
           />
-        </ListItemAvatar>
-        <ListItemText
-          primary={name}
-          secondary={
-            <>
-              <Typography
-                component="span"
-                variant="body2"
-                sx={{ color: "text.primary", display: "inline" }}>
-                Ali Connors
-              </Typography>
-              {" — I'll be in your neighborhood doing errands this…"}
-            </>
-          }
-        />
+        </ListItemButton>
       </ListItem>
       <Divider
         variant="inset"

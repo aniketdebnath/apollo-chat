@@ -13,6 +13,7 @@ export class ChatsService {
         ...createChatInput,
         userId,
         userIds: createChatInput.userIds || [],
+        messages: [],
       })
     );
   }
@@ -21,8 +22,8 @@ export class ChatsService {
     return this.chatsRepository.find({});
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} chat`;
+  async findOne(_id: string) {
+    return this.chatsRepository.findOne({ _id });
   }
 
   update(id: number, updateChatInput: UpdateChatInput) {
