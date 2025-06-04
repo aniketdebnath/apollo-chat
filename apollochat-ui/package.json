@@ -55,7 +55,7 @@
   },
   "devDependencies": {
     "@graphql-codegen/cli": "5.0.6",
-    "@graphql-codegen/client-preset": "4.8.1",
+    "@graphql-codegen/client-preset": "4.0.1",
     "@parcel/watcher": "^2.5.1",
     "concurrently": "^9.1.2"
   }

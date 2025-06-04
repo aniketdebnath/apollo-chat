@@ -26,10 +26,7 @@ const Auth = ({ submitLabel, onSubmit, children, error }: AuthProps) => {
       spacing={3}
       sx={{
         height: "100vh",
-        maxWidth: {
-          xs: "50%",
-          md: "30%",
-        },
+        maxWidth: 360,
         margin: "0 auto",
         justifyContent: "center",
       }}>
