@@ -11,9 +11,7 @@ export const getMessagesDocument = graphql(`
 `);
 
 const useGetMessages = (variables: MessagesQueryVariables) => {
-  return useQuery(getMessagesDocument, {
-    variables,
-  });
+  return useQuery(getMessagesDocument, { variables });
 };
 
 export { useGetMessages };
