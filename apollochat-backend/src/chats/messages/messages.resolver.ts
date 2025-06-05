@@ -13,10 +13,6 @@ interface MessageCreatedPayload {
   messageCreated: Message;
 }
 
-interface SubscriptionVariables {
-  chatId: string;
-}
-
 interface SubscriptionContext {
   req: {
     user: {
@@ -55,18 +51,18 @@ export class MessagesResolver {
   @Subscription(() => Message, {
     filter: (
       payload: MessageCreatedPayload,
-      variables: SubscriptionVariables,
+      variables: MessageCreatedArgs,
       context: SubscriptionContext,
     ) => {
       const userId = context.req.user._id;
       const { messageCreated } = payload;
       return (
-        messageCreated.chatId === variables.chatId &&
+        variables.chatIds.includes(messageCreated.chatId) &&
         userId !== messageCreated.user._id.toHexString()
       );
     },
   })
-  messageCreated(@Args() messageCreatedArgs: MessageCreatedArgs) {
-    return this.messagesService.messageCreated(messageCreatedArgs);
+  messageCreated(@Args() _messageCreatedArgs: MessageCreatedArgs) {
+    return this.messagesService.messageCreated();
   }
 }

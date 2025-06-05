@@ -4,6 +4,7 @@ import { UpdateChatInput } from './dto/update-chat.input';
 import { ChatsRepository } from './chats.repository';
 import { PipelineStage, Types } from 'mongoose';
 import { Chat } from './entities/chat.entity';
+import { PaginationArgs } from 'src/common/dto/pagination-args.dto';
 
 @Injectable()
 export class ChatsService {
@@ -20,12 +21,32 @@ export class ChatsService {
     });
   }
 
-  async findMany(prePipeLineStages: PipelineStage[] = []): Promise<Chat[]> {
+  async findMany(
+    prePipeLineStages: PipelineStage[] = [],
+    paginationArgs?: PaginationArgs,
+  ): Promise<Chat[]> {
     // Use type assertion for MongoDB aggregation results
 
     const chats = await this.chatsRepository.model.aggregate<any>([
       ...prePipeLineStages,
-      { $set: { latestMessage: { $arrayElemAt: ['$messages', -1] } } },
+      {
+        $set: {
+          latestMessage: {
+            $cond: [
+              '$messages',
+              { $arrayElemAt: ['$messages', -1] },
+              {
+                createdAt: new Date(),
+              },
+            ],
+          },
+        },
+      },
+      { $sort: { 'latestMessage.createdAt': -1 } },
+      { $skip: paginationArgs.skip },
+      {
+        $limit: paginationArgs.limit,
+      },
       { $unset: 'messages' },
       {
         $lookup: {
@@ -79,9 +100,7 @@ export class ChatsService {
     return `This action removes a #${id} chat`;
   }
 
-  userChatFilter(userId: string) {
-    return {
-      $or: [{ creatorId: userId }, { recipientId: userId }],
-    };
+  async countChats() {
+    return this.chatsRepository.model.countDocuments({});
   }
 }
