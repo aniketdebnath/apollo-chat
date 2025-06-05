@@ -5,8 +5,8 @@ import { updateMessages } from "../cache/messages";
 import { updateLatestMessage } from "../cache/latest-message";
 
 const messageCreatedDocument = graphql(`
-  subscription messageCreated($chatId: String!) {
-    messageCreated(chatId: $chatId) {
+  subscription messageCreated($chatIds: [String!]!) {
+    messageCreated(chatIds: $chatIds) {
       ...MessageFragment
     }
   }
@@ -18,7 +18,7 @@ export const useMessageCreated = (
   return useSubscription(messageCreatedDocument, {
     variables,
     onData: ({ client, data }) => {
-      if (data.data) {
+      if (data?.data) {
         updateMessages(client.cache, data.data.messageCreated);
         updateLatestMessage(client.cache, data.data.messageCreated);
       }
