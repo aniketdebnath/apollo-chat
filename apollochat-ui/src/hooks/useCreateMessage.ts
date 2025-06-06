@@ -14,10 +14,17 @@ const createMessageDocument = graphql(`
 const useCreateMessage = () => {
   return useMutation(createMessageDocument, {
     update(cache, { data }) {
-      if (data?.createMessage) {
-        updateMessages(cache, data.createMessage);
-        updateLatestMessage(cache, data.createMessage);
+      try {
+        if (data?.createMessage) {
+          updateMessages(cache, data.createMessage);
+          updateLatestMessage(cache, data.createMessage);
+        }
+      } catch (error) {
+        console.error("Error updating cache after message creation:", error);
       }
+    },
+    onError: (error) => {
+      console.error("Error creating message:", error);
     },
   });
 };

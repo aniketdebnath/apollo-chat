@@ -15,13 +15,24 @@ const messageCreatedDocument = graphql(`
 export const useMessageCreated = (
   variables: SubscriptionMessageCreatedArgs
 ) => {
+  // Only subscribe if we have chat IDs
+  const skip = !variables.chatIds || variables.chatIds.length === 0;
+
   return useSubscription(messageCreatedDocument, {
     variables,
+    skip,
     onData: ({ client, data }) => {
-      if (data?.data) {
-        updateMessages(client.cache, data.data.messageCreated);
-        updateLatestMessage(client.cache, data.data.messageCreated);
+      try {
+        if (data?.data) {
+          updateMessages(client.cache, data.data.messageCreated);
+          updateLatestMessage(client.cache, data.data.messageCreated);
+        }
+      } catch (error) {
+        console.error("Error in messageCreated subscription handler:", error);
       }
+    },
+    onError: (error) => {
+      console.error("Subscription error:", error);
     },
   });
 };
