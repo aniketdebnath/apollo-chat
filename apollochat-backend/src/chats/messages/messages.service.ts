@@ -7,7 +7,6 @@ import { GetMessagesArgs } from './dto/get-messages.args';
 import { PUB_SUB } from 'src/common/constants/injection-tokens';
 import { PubSub } from 'graphql-subscriptions';
 import { MESSAGE_CREATED } from './constants/pubsub-triggers';
-import { MessageCreatedArgs } from './dto/message-created.args';
 
 import { MessageDocument } from './entities/message.document';
 import { UsersService } from 'src/users/users.service';
@@ -50,7 +49,7 @@ export class MessagesService {
   }
 
   async getMessages({ chatId, skip, limit }: GetMessagesArgs) {
-    return this.chatsRepository.model.aggregate([
+    const messages = await this.chatsRepository.model.aggregate([
       { $match: { _id: new Types.ObjectId(chatId) } },
       { $unwind: '$messages' },
       { $replaceRoot: { newRoot: '$messages' } },
@@ -69,6 +68,12 @@ export class MessagesService {
       { $unset: 'userId' },
       { $set: { chatId } },
     ]);
+
+    for (const message of messages) {
+      message.user = this.usersService.toEntity(message.user);
+    }
+
+    return messages;
   }
 
   async countMessages(
