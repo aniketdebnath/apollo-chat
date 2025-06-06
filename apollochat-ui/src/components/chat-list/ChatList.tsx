@@ -1,14 +1,14 @@
-import ChatListItem from "./ChatListItem";
 import { Box, Divider, Stack } from "@mui/material";
-import ChatListHeader from "./chat-list-header/ChatListHeader";
 import { useEffect, useState } from "react";
-import ChatListAdd from "./chat-list-add/ChatListAdd";
+import InfiniteScrollComponent from "react-infinite-scroller";
 import { useGetChats } from "../../hooks/useGetChats";
 import { usePath } from "../../hooks/usePath";
 import { useMessageCreated } from "../../hooks/useMessageCreated";
 import { PAGE_SIZE } from "../../constants/page-size";
-import InfiniteScrollComponent from "react-infinite-scroller";
 import { useCountChats } from "../../hooks/useCountChats";
+import ChatListItem from "./chat-list-item/ChatListItem";
+import ChatListHeader from "./chat-list-header/ChatListHeader";
+import ChatListAdd from "./chat-list-add/ChatListAdd";
 const InfiniteScroll = InfiniteScrollComponent as any;
 
 export const ChatList = () => {
@@ -23,7 +23,9 @@ export const ChatList = () => {
   useEffect(() => {
     countChats();
   }, [countChats]);
-  useMessageCreated({ chatIds: data?.chats.map((chat) => chat._id) || [] });
+  useMessageCreated({
+    chatIds: data?.chats.map((chat: any) => chat._id) || [],
+  });
   useEffect(() => {
     const pathSplit = path.split("chats/");
     if (pathSplit.length === 2) {
@@ -42,7 +44,6 @@ export const ChatList = () => {
         <Box
           sx={{
             width: "100%",
-
             bgcolor: "background.paper",
             maxHeight: "80vh",
             overflow: "auto",
@@ -51,7 +52,7 @@ export const ChatList = () => {
             },
             // Hide scrollbar in Firefox
             scrollbarWidth: "none", // Firefox
-            "-ms-overflow-style": "none", // IE and Edge
+            msOverflowStyle: "none", // IE and Edge
           }}>
           <InfiniteScroll
             pageStart={0}
@@ -59,6 +60,7 @@ export const ChatList = () => {
               fetchMore({
                 variables: {
                   skip: data?.chats.length,
+                  limit: PAGE_SIZE,
                 },
               })
             }
@@ -66,7 +68,7 @@ export const ChatList = () => {
               data?.chats && chatsCount ? data.chats.length < chatsCount : false
             }
             useWindow={false}>
-            {data?.chats &&
+            {data?.chats ? (
               [...data.chats]
                 .sort((chatA, chatB) => {
                   if (!chatA.latestMessage) {
@@ -79,11 +81,15 @@ export const ChatList = () => {
                 })
                 .map((chat) => (
                   <ChatListItem
+                    key={chat._id}
                     chat={chat}
                     selected={chat._id === selectedChatId}
                   />
                 ))
-                .reverse()}
+                .reverse()
+            ) : (
+              <div>Loading chats...</div>
+            )}
           </InfiniteScroll>
         </Box>
       </Stack>
