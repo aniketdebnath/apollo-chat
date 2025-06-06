@@ -95,10 +95,18 @@ const Chat = () => {
                     item
                     xs={2}
                     lg={1}>
-                    <Avatar
-                      src=""
-                      sx={{ width: 52, height: 52 }}
-                    />
+                    <Stack
+                      spacing={1}
+                      alignItems="center "
+                      justifyContent="center">
+                      <Avatar
+                        src={message.user.imageUrl}
+                        sx={{ width: 52, height: 52 }}
+                      />
+                      <Typography variant="caption">
+                        {message.user.username}
+                      </Typography>
+                    </Stack>
                   </Grid>
                   <Grid
                     item
