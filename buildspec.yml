@@ -1,0 +1,22 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions: nodejs:22
+    commands:
+      - npm install -g pnpm
+
+  pre_build:
+    commands:
+      - pnpm install
+
+  build:
+    commands:
+      - pnpm build
+
+artifacts:
+  base-directory: apollochat-backend
+  files:
+    - dist/**
+    - package.json
+    - pnpm-lock.yaml
