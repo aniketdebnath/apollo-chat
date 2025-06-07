@@ -2,12 +2,14 @@ version: 0.2
 
 phases:
   install:
-    runtime-versions: nodejs:22
+    runtime-versions:
+      nodejs: 22
     commands:
       - npm install -g pnpm
 
   pre_build:
     commands:
+      - cd apollochat-backend
       - pnpm install
 
   build:
