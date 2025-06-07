@@ -20,3 +20,4 @@ artifacts:
     - dist/**
     - package.json
     - pnpm-lock.yaml
+    - Procfile
