@@ -4,8 +4,8 @@ import { UpdateChatInput } from './dto/update-chat.input';
 import { ChatsRepository } from './chats.repository';
 import { PipelineStage, Types } from 'mongoose';
 import { Chat } from './entities/chat.entity';
-import { PaginationArgs } from 'src/common/dto/pagination-args.dto';
-import { UsersService } from 'src/users/users.service';
+import { PaginationArgs } from '../common/dto/pagination-args.dto';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ChatsService {
