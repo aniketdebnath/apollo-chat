@@ -15,13 +15,15 @@ phases:
   build:
     commands:
       - pnpm build
+      - mkdir ../build-output
+      - cp -r dist ../build-output/
+      - cp package.json ../build-output/
+      - cp pnpm-lock.yaml ../build-output/
+      - cp tsconfig.json ../build-output/
+      - cp nest-cli.json ../build-output/
+      - cp Procfile ../build-output/
 
 artifacts:
-  base-directory: apollochat-backend
+  base-directory: build-output
   files:
-    - dist/**
-    - package.json
-    - pnpm-lock.yaml
-    - Procfile
-    - nest-cli.json
-    - tsconfig.json
+    - "**/*"
