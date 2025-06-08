@@ -7,7 +7,7 @@ import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
 import { UsersRepository } from './users.repository';
 import * as bcrypt from 'bcrypt';
-import { S3Service } from 'src/common/s3/s3.service';
+import { S3Service } from '@/common/s3/s3.service';
 import { USERS_BUCKET, USERS_IMAGE_FILE_EXTENSION } from './users.constants';
 import { UserDocument } from './entities/user.document';
 import { User } from './entities/user.entity';

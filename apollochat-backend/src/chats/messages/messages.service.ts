@@ -4,12 +4,12 @@ import { CreateMessageInput } from './dto/create-message.input';
 import { Message } from './entities/message.entity';
 import { Types } from 'mongoose';
 import { GetMessagesArgs } from './dto/get-messages.args';
-import { PUB_SUB } from 'src/common/constants/injection-tokens';
+import { PUB_SUB } from '@/common/constants/injection-tokens';
 import { PubSub } from 'graphql-subscriptions';
 import { MESSAGE_CREATED } from './constants/pubsub-triggers';
 
 import { MessageDocument } from './entities/message.document';
-import { UsersService } from 'src/users/users.service';
+import { UsersService } from '@/users/users.service';
 
 @Injectable()
 export class MessagesService {
