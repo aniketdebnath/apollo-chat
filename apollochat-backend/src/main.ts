@@ -11,7 +11,10 @@ async function bootstrap() {
   app.useLogger(app.get(Logger));
   app.use(cookieParser());
   const configService = app.get(ConfigService);
-  await app.listen(configService.getOrThrow('PORT'));
+  // Elastic Beanstalk sets PORT env variable by default
+  const port = process.env.PORT || configService.get<string>('PORT') || 8080;
+  console.log(`Starting application on port: ${port}`);
+  await app.listen(port);
 }
 bootstrap().catch((err) => {
   console.error('Failed to start application:', err);

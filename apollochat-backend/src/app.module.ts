@@ -19,7 +19,8 @@ import { S3Module } from './common/s3/s3.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath:
+        process.env.NODE_ENV === 'production' ? '.env.production' : '.env',
       validationSchema: Joi.object({
         MONGO_URI: Joi.string().required(),
       }),
