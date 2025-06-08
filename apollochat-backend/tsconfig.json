@@ -10,9 +10,9 @@
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "baseUrl": "./",
+    "baseUrl": "./src",
     "paths": {
-      "src/*": ["src/*"]
+      "@/*": ["*"]
     },
     "incremental": true,
     "skipLibCheck": true,

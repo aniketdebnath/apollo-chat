@@ -1,5 +1,5 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { MessagesService } from './messages.service';
 
 @Controller('messages')

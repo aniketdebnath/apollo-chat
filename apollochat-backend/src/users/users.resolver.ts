@@ -4,9 +4,9 @@ import { User } from './entities/user.entity';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
 import { UseGuards } from '@nestjs/common';
-import { GqlAuthGuard } from 'src/auth/guards/gql-auth.guard';
-import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
-import { TokenPayload } from 'src/auth/interfaces/token-payload.interface';
+import { GqlAuthGuard } from '@/auth/guards/gql-auth.guard';
+import { CurrentUser } from '@/auth/decorators/current-user.decorator';
+import { TokenPayload } from '@/auth/interfaces/token-payload.interface';
 import { Types } from 'mongoose';
 
 @Resolver(() => User)

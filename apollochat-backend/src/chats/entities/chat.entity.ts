@@ -1,6 +1,6 @@
 import { ObjectType, Field } from '@nestjs/graphql';
 
-import { AbstractEntity } from 'src/common/database/abstract.entity';
+import { AbstractEntity } from '@/common/database/abstract.entity';
 import { Message } from '../messages/entities/message.entity';
 
 @ObjectType()
