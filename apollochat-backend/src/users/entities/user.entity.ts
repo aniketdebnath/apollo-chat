@@ -1,6 +1,6 @@
 import { Field, ObjectType } from '@nestjs/graphql';
 
-import { AbstractEntity } from '@/common/database/abstract.entity';
+import { AbstractEntity } from '../../common/database/abstract.entity';
 
 @ObjectType()
 export class User extends AbstractEntity {

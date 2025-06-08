@@ -1,6 +1,6 @@
 import { Prop, Schema } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
-import { AbstractEntity } from '@/common/database/abstract.entity';
+import { AbstractEntity } from '../../../common/database/abstract.entity';
 
 @Schema()
 export class MessageDocument extends AbstractEntity {
