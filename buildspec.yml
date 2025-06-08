@@ -10,13 +10,11 @@ phases:
   pre_build:
     commands:
       - cd apollochat-backend
-      - pnpm install
+      - pnpm install --frozen-lockfile
 
   build:
     commands:
       - pnpm build
-      - echo "Setting NODE_ENV to production"
-      - export NODE_ENV=production
 
 artifacts:
   base-directory: apollochat-backend
