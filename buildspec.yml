@@ -23,5 +23,5 @@ artifacts:
     - package.json
     - pnpm-lock.yaml
     - Procfile
-    - tsconfig-paths-bootstrap.js
+    - nest-cli.json
     - tsconfig.json

@@ -4,8 +4,8 @@ import { Message } from './entities/message.entity';
 import { UseGuards } from '@nestjs/common';
 import { GqlAuthGuard } from '../../auth/guards/gql-auth.guard';
 import { CreateMessageInput } from './dto/create-message.input';
-import { CurrentUser } from '@/auth/decorators/current-user.decorator';
-import { TokenPayload } from '@/auth/interfaces/token-payload.interface';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+import { TokenPayload } from '../../auth/interfaces/token-payload.interface';
 import { GetMessagesArgs } from './dto/get-messages.args';
 import { MessageCreatedArgs } from './dto/message-created.args';
 
