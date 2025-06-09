@@ -54,15 +54,18 @@ export class MessagesResolver {
       variables: MessageCreatedArgs,
       context: SubscriptionContext,
     ) => {
-      const userId = context.req.user._id;
+      const userId = String(context.req.user._id);
       const { messageCreated } = payload;
+      const messageUserId = String(messageCreated.user._id);
+
       return (
         variables.chatIds.includes(messageCreated.chatId) &&
-        userId !== messageCreated.user._id.toHexString()
+        userId !== messageUserId
       );
     },
   })
-  messageCreated(@Args() _messageCreatedArgs: MessageCreatedArgs) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  messageCreated(@Args() args: MessageCreatedArgs) {
     return this.messagesService.messageCreated();
   }
 }
