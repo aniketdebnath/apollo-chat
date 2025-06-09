@@ -29,8 +29,10 @@ import { S3Module } from './common/s3/s3.module';
       driver: ApolloDriver,
       useFactory: (authService: AuthService) => ({
         autoSchemaFile: true,
+        path: '/api/graphql',
         subscriptions: {
           'graphql-ws': {
+            path: '/api/graphql',
             onConnect: (context: any) => {
               try {
                 // We're using 'any' type here because the actual context structure

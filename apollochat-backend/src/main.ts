@@ -10,6 +10,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.useLogger(app.get(Logger));
   app.use(cookieParser());
+  app.setGlobalPrefix('/api');
   const configService = app.get(ConfigService);
   // Elastic Beanstalk sets PORT env variable by default
   const port = process.env.PORT || configService.get<string>('PORT') || 8080;

@@ -21,8 +21,31 @@ Apollo Chat is a modern, real-time messaging application built with a full-stack
 - **API Layer**: GraphQL with Apollo Server 4.12
 - **Database**: MongoDB with Mongoose 8.14
 - **Authentication**: JWT with Passport.js
-- **Real-time Communication**: GraphQL Subscriptions
+- **Real-time Communication**: GraphQL Subscriptions with Redis PubSub
 - **Validation**: Class-validator and Joi
+
+## AWS Cloud Infrastructure
+
+### Deployment Architecture
+
+- **Backend**: AWS Elastic Beanstalk for scalable NestJS deployment
+- **Frontend**: AWS Amplify for React application hosting and CI/CD
+- **Domain Management**: Custom domain configured with Route 53
+- **Content Delivery**: CloudFront CDN for optimized global delivery
+- **Security**: ACM SSL certificates for secure HTTPS connections
+- **CI/CD Pipeline**: CodePipeline integration with GitHub
+  - **Build**: CodeBuild for automated build processes
+  - **Deployment**: CodeDeploy for reliable application deployment
+- **Cache Layer**: ElastiCache (Redis) for distributed PubSub messaging
+- **Monitoring**: CloudWatch for application and infrastructure metrics
+
+### Scalability Features
+
+- Elastic Beanstalk auto-scaling for handling traffic spikes
+- CloudFront edge caching for improved global performance
+- Redis-based PubSub enabling multi-instance real-time communication
+- Load balancing for distributed traffic management
+- Deployment strategies with zero-downtime updates
 
 ## Key Features
 
@@ -81,6 +104,7 @@ Apollo Chat is a modern, real-time messaging application built with a full-stack
 - Dependency injection for testable components
 - Comprehensive validation pipelines
 - Error handling with detailed logging
+- Distributed real-time communication with Redis PubSub
 
 ### Developer Experience
 
@@ -89,6 +113,7 @@ Apollo Chat is a modern, real-time messaging application built with a full-stack
 - Hot module replacement for rapid development
 - Concurrent development workflow with watch mode
 - Linting and formatting with ESLint and Prettier
+- Streamlined CI/CD with AWS CodePipeline
 
 ## Future Enhancements
 
@@ -98,6 +123,7 @@ Apollo Chat is a modern, real-time messaging application built with a full-stack
 - Message search functionality
 - User presence indicators
 - End-to-end encryption
+- Multi-region deployment for global optimization
 
 ## Development Approach
 
@@ -106,5 +132,6 @@ Apollo Chat is a modern, real-time messaging application built with a full-stack
 - Clean architecture with separation of concerns
 - Progressive enhancement strategy
 - Performance-focused implementation
+- Infrastructure as Code for cloud resources
 
-This modern messaging application demonstrates sophisticated full-stack engineering skills, particularly in GraphQL, real-time communication, and state management. The architecture showcases best practices in frontend and backend development, with a strong focus on performance, scalability, and user experience.
+This modern messaging application demonstrates sophisticated full-stack engineering skills, particularly in GraphQL, real-time communication, and state management. The architecture showcases best practices in frontend and backend development, with a strong focus on performance, scalability, and user experience, all deployed on a production-grade AWS infrastructure.
