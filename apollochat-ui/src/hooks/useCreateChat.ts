@@ -21,7 +21,8 @@ const useCreateChat = () => {
               fragment: ChatFragment,
               fragmentName: "ChatFragment",
             });
-            return [...existingChats, newChatRef];
+            // Always place new chats at the beginning to ensure consistent behavior across browsers
+            return [newChatRef, ...existingChats];
           },
         },
       });

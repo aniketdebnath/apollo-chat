@@ -76,17 +76,27 @@ export class MessagesService {
     return messages;
   }
 
-  async countMessages(
-    chatId: string,
-  ): Promise<{ messages: number } | undefined> {
-    const result = await this.chatsRepository.model.aggregate<{
-      messages: number;
-    }>([
-      { $match: { _id: new Types.ObjectId(chatId) } },
-      { $unwind: '$messages' },
-      { $count: 'messages' },
-    ]);
-    return result[0];
+  async countMessages(chatId: string): Promise<{ messages: number }> {
+    try {
+      const result = await this.chatsRepository.model.aggregate<{
+        messages: number;
+      }>([
+        { $match: { _id: new Types.ObjectId(chatId) } },
+        { $unwind: '$messages' },
+        { $count: 'messages' },
+      ]);
+
+      // If no results (no messages), return count of 0
+      if (!result || result.length === 0) {
+        return { messages: 0 };
+      }
+
+      return result[0];
+    } catch (error) {
+      console.error(`Error counting messages for chat ${chatId}:`, error);
+      // Return 0 in case of error
+      return { messages: 0 };
+    }
   }
 
   async messageCreated() {

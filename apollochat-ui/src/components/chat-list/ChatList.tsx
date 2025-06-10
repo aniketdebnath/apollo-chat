@@ -32,6 +32,7 @@ export const ChatList = () => {
       setSelectedChatId(pathSplit[1]);
     }
   }, [path]);
+
   return (
     <>
       <ChatListAdd
@@ -71,13 +72,24 @@ export const ChatList = () => {
             {data?.chats ? (
               [...data.chats]
                 .sort((chatA, chatB) => {
-                  if (!chatA.latestMessage) {
-                    return -1;
+                  // Explicit check: chats without messages go to the bottom
+                  if (!chatA.latestMessage && chatB.latestMessage) return 1; // A to bottom
+                  if (chatA.latestMessage && !chatB.latestMessage) return -1; // B to bottom
+
+                  // If both have messages or both don't have messages
+                  if (!chatA.latestMessage && !chatB.latestMessage) {
+                    // For chats without messages, sort by ID (oldest first)
+                    return chatA._id < chatB._id ? -1 : 1;
                   }
-                  return (
-                    new Date(chatA.latestMessage?.createdAt).getTime() -
-                    new Date(chatB.latestMessage?.createdAt).getTime()
-                  );
+
+                  // For chats with messages, newest messages first
+                  const timeA = new Date(
+                    chatA.latestMessage?.createdAt
+                  ).getTime();
+                  const timeB = new Date(
+                    chatB.latestMessage?.createdAt
+                  ).getTime();
+                  return timeB - timeA; // Newest messages at top
                 })
                 .map((chat) => (
                   <ChatListItem
@@ -86,7 +98,6 @@ export const ChatList = () => {
                     selected={chat._id === selectedChatId}
                   />
                 ))
-                .reverse()
             ) : (
               <div>Loading chats...</div>
             )}
