@@ -1,7 +1,9 @@
 import { ApolloCache } from "@apollo/client";
 import { Message } from "../gql/graphql";
 import { getChatsDocument } from "../hooks/useGetChats";
-import { PAGE_SIZE } from "../constants/page-size";
+
+// Use a large limit to effectively fetch all chats
+const FETCH_ALL_CHATS_LIMIT = 1000;
 
 export const updateLatestMessage = (
   cache: ApolloCache<any>,
@@ -10,7 +12,7 @@ export const updateLatestMessage = (
   try {
     const variables = {
       skip: 0,
-      limit: PAGE_SIZE,
+      limit: FETCH_ALL_CHATS_LIMIT,
     };
 
     const queryResult = cache.readQuery({

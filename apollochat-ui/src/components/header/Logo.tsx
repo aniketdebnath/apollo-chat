@@ -11,7 +11,7 @@ const Logo = () => {
       <Typography
         variant="h6"
         noWrap
-        component="a"
+        component="span"
         onClick={() => router.navigate("/")}
         sx={{
           mr: 2,
@@ -28,4 +28,5 @@ const Logo = () => {
     </>
   );
 };
+
 export default Logo;

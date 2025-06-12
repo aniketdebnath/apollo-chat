@@ -70,11 +70,34 @@ const client = new ApolloClient({
         fields: {
           chats: {
             keyArgs: false,
-            merge,
+            merge(existing, incoming, { args }) {
+              if (args?.limit >= 1000) {
+                return incoming;
+              }
+
+              const merged = existing ? existing.slice(0) : [];
+              if (args?.skip !== undefined) {
+                for (let i = 0; i < incoming.length; ++i) {
+                  merged[args.skip + i] = incoming[i];
+                }
+                return merged;
+              }
+
+              return incoming;
+            },
           },
           messages: {
             keyArgs: ["chatId"],
-            merge,
+            merge(existing, incoming, { args }) {
+              const merged = existing ? existing.slice(0) : [];
+              if (args?.skip !== undefined) {
+                for (let i = 0; i < incoming.length; ++i) {
+                  merged[args.skip + i] = incoming[i];
+                }
+                return merged;
+              }
+              return incoming;
+            },
           },
         },
       },
@@ -82,13 +105,5 @@ const client = new ApolloClient({
   }),
   link: debugLink.concat(logoutLink.concat(splitLink)),
 });
-
-function merge(existing: any, incoming: any, { args }: any) {
-  const merged = existing ? existing.slice(0) : [];
-  for (let i = 0; i < incoming.length; ++i) {
-    merged[args.skip + i] = incoming[i];
-  }
-  return merged;
-}
 
 export default client;

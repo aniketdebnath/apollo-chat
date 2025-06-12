@@ -10,31 +10,23 @@ export const getChatsDocument = graphql(`
   }
 `);
 
-const useGetChats = (variables: QueryChatsArgs) => {
-  // Skip the query if any required variables are missing or undefined
-  const skipQuery = variables.skip === undefined || !variables.limit;
+// Set a very large limit to effectively fetch all chats at once
+const FETCH_ALL_CHATS_LIMIT = 1000;
 
+// Set polling interval (in ms) to regularly check for new chats
+const POLLING_INTERVAL = 5000; // 5 seconds
+
+const useGetChats = () => {
   const result = useQuery(getChatsDocument, {
-    variables,
-    skip: skipQuery,
+    variables: {
+      skip: 0,
+      limit: FETCH_ALL_CHATS_LIMIT,
+    },
+    fetchPolicy: "cache-and-network",
+    pollInterval: POLLING_INTERVAL, // Automatically refetch every 5 seconds
   });
 
-  // Add protection to fetchMore to ensure valid variables
-  const safeFetchMore = (options: any) => {
-    if (!options.variables)
-      return Promise.reject(new Error("No variables provided"));
-    if (options.variables.skip === undefined)
-      return Promise.reject(new Error("Skip is required"));
-    if (!options.variables.limit)
-      return Promise.reject(new Error("Limit is required"));
-
-    return result.fetchMore(options);
-  };
-
-  return {
-    ...result,
-    fetchMore: safeFetchMore,
-  };
+  return result;
 };
 
 export { useGetChats };

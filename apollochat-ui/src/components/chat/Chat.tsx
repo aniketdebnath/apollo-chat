@@ -13,7 +13,7 @@ import {
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import { useCreateMessage } from "../../hooks/useCreateMessage";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useGetMessages } from "../../hooks/useGetMessages";
 import { PAGE_SIZE } from "../../constants/page-size";
 import { useCountMessages } from "../../hooks/useCountMessages";
@@ -25,12 +25,17 @@ const Chat = () => {
   const chatId = params._id!;
   const { data } = useGetChat({ _id: chatId });
   const [createMessage] = useCreateMessage();
-  const { data: messages, fetchMore } = useGetMessages({
+  const {
+    data: messages,
+    fetchMore,
+    loading,
+  } = useGetMessages({
     chatId,
     skip: 0,
     limit: PAGE_SIZE,
   });
   const divRef = useRef<HTMLDivElement | null>(null);
+  const messagesContainerRef = useRef<HTMLDivElement | null>(null);
   const location = useLocation();
   const { messagesCount, countMessages } = useCountMessages(chatId);
 
@@ -55,29 +60,47 @@ const Chat = () => {
     scrollToBottom();
   };
 
+  const handleLoadMore = useCallback(() => {
+    if (!messages?.messages?.length || loading) return;
+
+    if (
+      messagesCount !== undefined &&
+      messages.messages.length >= messagesCount
+    )
+      return;
+
+    setTimeout(() => {
+      fetchMore({
+        variables: {
+          chatId,
+          skip: messages.messages.length,
+          limit: PAGE_SIZE,
+        },
+      }).catch((error) => {
+        console.error("Error loading more messages:", error);
+      });
+    }, 0);
+  }, [messages?.messages, loading, messagesCount, fetchMore, chatId]);
+
   return (
     <Stack sx={{ height: "100%", justifyContent: "space-between" }}>
       <h1>{data?.chat.name}</h1>
-      <Box sx={{ maxHeight: "70vh", overflow: "auto" }}>
+      <Box
+        sx={{ maxHeight: "70vh", overflow: "auto" }}
+        id="messages-container"
+        ref={messagesContainerRef}>
         <InfiniteScroll
           pageStart={0}
           isReverse={true}
-          loadMore={() => {
-            if (!messages?.messages?.length) return;
-
-            fetchMore({
-              variables: {
-                skip: messages.messages.length,
-                limit: PAGE_SIZE,
-              },
-            });
-          }}
+          loadMore={handleLoadMore}
           hasMore={
             messages && messagesCount
               ? messages.messages.length < messagesCount
               : false
           }
-          useWindow={false}>
+          useWindow={false}
+          getScrollParent={() => document.getElementById("messages-container")}
+          threshold={100}>
           {messages &&
             [...messages.messages]
               .sort(

@@ -10,7 +10,7 @@ const MobileLogo = () => {
       <Typography
         variant="h5"
         noWrap
-        component="a"
+        component="span"
         onClick={() => router.navigate("/")}
         sx={{
           mr: 2,

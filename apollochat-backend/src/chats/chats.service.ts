@@ -30,8 +30,7 @@ export class ChatsService {
     paginationArgs?: PaginationArgs,
   ): Promise<Chat[]> {
     // Use type assertion for MongoDB aggregation results
-
-    const chats = await this.chatsRepository.model.aggregate<any>([
+    const pipeline: PipelineStage[] = [
       ...prePipeLineStages,
       {
         $set: {
@@ -47,10 +46,21 @@ export class ChatsService {
         },
       },
       { $sort: { 'latestMessage.createdAt': -1 } },
-      { $skip: paginationArgs.skip },
-      {
-        $limit: paginationArgs.limit,
-      },
+    ];
+
+    // Only add pagination if args are provided
+    if (
+      paginationArgs?.skip !== undefined &&
+      paginationArgs?.limit !== undefined
+    ) {
+      pipeline.push(
+        { $skip: paginationArgs.skip },
+        { $limit: paginationArgs.limit },
+      );
+    }
+
+    // Add remaining stages
+    pipeline.push(
       { $unset: 'messages' },
       {
         $lookup: {
@@ -60,7 +70,9 @@ export class ChatsService {
           as: 'latestMessage.user',
         },
       },
-    ]);
+    );
+
+    const chats = await this.chatsRepository.model.aggregate<any>(pipeline);
 
     // Process the chats to ensure proper structure
     // Suppress typescript errors for any type in this block since we're working with MongoDB aggregation results
@@ -86,9 +98,11 @@ export class ChatsService {
   }
 
   async findOne(_id: string): Promise<Chat> {
+    // Pass an empty PaginationArgs object to findMany
     const chats = await this.findMany([
       { $match: { _id: new Types.ObjectId(_id) } },
     ]);
+
     if (!chats[0]) {
       throw new NotFoundException(`No chat was found with ID ${_id}`);
     }

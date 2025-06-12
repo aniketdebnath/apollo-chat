@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Link as MUILink, TextField } from "@mui/material";
+import { TextField } from "@mui/material";
 import Auth from "./Auth";
 import { useCreateUser } from "../../hooks/useCreateUser";
 import { useState } from "react";
@@ -51,10 +51,15 @@ const Signup = () => {
       }}>
       <Link
         to={"/login"}
-        style={{ alignSelf: "center" }}>
-        <MUILink>Login</MUILink>
+        style={{
+          alignSelf: "center",
+          color: "#90caf9", // MUI default link color in dark mode
+          textDecoration: "underline",
+        }}>
+        Login
       </Link>
     </Auth>
   );
 };
+
 export default Signup;

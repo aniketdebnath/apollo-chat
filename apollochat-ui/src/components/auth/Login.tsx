@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { Link as MUILink } from "@mui/material";
 import Auth from "./Auth";
 import { useLogin } from "../../hooks/useLogin";
 
@@ -13,8 +12,12 @@ const Login = () => {
         error={error}>
         <Link
           to={"/signup"}
-          style={{ alignSelf: "center" }}>
-          <MUILink>Signup</MUILink>
+          style={{
+            alignSelf: "center",
+            color: "#90caf9", // MUI default link color in dark mode
+            textDecoration: "underline",
+          }}>
+          Signup
         </Link>
       </Auth>
     </>
