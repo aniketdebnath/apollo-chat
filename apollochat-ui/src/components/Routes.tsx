@@ -4,6 +4,7 @@ import Signup from "./auth/Signup";
 import Home from "./home/Home";
 import Chat from "./chat/Chat";
 import { Profile } from "./profile/Profile";
+import Demo from "./demo/Demo";
 import {
   Box,
   Typography,
@@ -104,6 +105,10 @@ const router = createBrowserRouter([
   {
     path: "/favorites",
     element: <Favorites />,
+  },
+  {
+    path: "/demo",
+    element: <Demo />,
   },
 ]);
 

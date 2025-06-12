@@ -47,7 +47,7 @@ const App = () => {
                 display: "flex",
                 overflow: "hidden",
                 pt: isAuthPage ? 0 : 2,
-                pb: isAuthPage ? 0 : 2,
+                pb: isAuthPage ? 0 : 1,
               }}>
               <Container
                 maxWidth="xl"
@@ -70,7 +70,7 @@ const App = () => {
                       xl={3}
                       sx={{
                         display: { xs: "none", md: "block" },
-                        height: { md: "calc(100vh - 130px)" },
+                        height: { md: "calc(100vh - 100px)" },
                       }}>
                       <ChatList />
                     </Grid>
@@ -82,8 +82,8 @@ const App = () => {
                       xl={9}
                       sx={{
                         height: {
-                          xs: "calc(100vh - 130px)",
-                          md: "calc(100vh - 130px)",
+                          xs: "calc(100vh - 100px)",
+                          md: "calc(100vh - 100px)",
                         },
                       }}>
                       <Routes />
