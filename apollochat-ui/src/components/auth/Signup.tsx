@@ -1,30 +1,52 @@
 import { Link } from "react-router-dom";
-import { TextField } from "@mui/material";
+import {
+  Button,
+  TextField,
+  Typography,
+  Box,
+  InputAdornment,
+} from "@mui/material";
 import Auth from "./Auth";
 import { useCreateUser } from "../../hooks/useCreateUser";
 import { useState } from "react";
 import { extractErrorMessage } from "../../utils/errors";
 import { useLogin } from "../../hooks/useLogin";
 import { UNKNOWN_ERROR_MESSAGE } from "../../constants/error";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 
 const Signup = () => {
   const [createUser] = useCreateUser();
   const [error, setError] = useState("");
   const [username, setUsername] = useState("");
   const { login } = useLogin();
+
   return (
     <Auth
-      submitLabel="Signup"
+      submitLabel="Sign Up"
       error={error}
       extraFields={[
         <TextField
+          key="username-field"
           type="text"
           label="Username"
           variant="outlined"
           value={username}
           onChange={(event) => setUsername(event.target.value)}
           error={!!error}
-          helperText={error}
+          required
+          fullWidth
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <PersonOutlineIcon color="action" />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 2,
+            },
+          }}
         />,
       ]}
       onSubmit={async ({ email, password }) => {
@@ -49,15 +71,32 @@ const Signup = () => {
           setError(UNKNOWN_ERROR_MESSAGE);
         }
       }}>
-      <Link
-        to={"/login"}
-        style={{
-          alignSelf: "center",
-          color: "#90caf9", // MUI default link color in dark mode
-          textDecoration: "underline",
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 1,
         }}>
-        Login
-      </Link>
+        <Typography
+          variant="body2"
+          color="text.secondary">
+          Already have an account?
+        </Typography>
+        <Button
+          component={Link}
+          to="/login"
+          color="primary"
+          variant="text"
+          size="small"
+          sx={{
+            fontWeight: 600,
+            textTransform: "none",
+            fontSize: "0.875rem",
+          }}>
+          Log in
+        </Button>
+      </Box>
     </Auth>
   );
 };

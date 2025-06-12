@@ -1,6 +1,6 @@
 import {
+  Box,
   Container,
-  createTheme,
   CssBaseline,
   Grid,
   ThemeProvider,
@@ -15,52 +15,88 @@ import Header from "./components/header/Header";
 import Snackbar from "./components/snackbar/Snackbar";
 import { ChatList } from "./components/chat-list/ChatList";
 import { usePath } from "./hooks/usePath";
-
-const darkTheme = createTheme({
-  palette: {
-    mode: "dark",
-  },
-});
+import darkTheme from "./theme/theme";
+import "@fontsource/poppins/300.css";
+import "@fontsource/poppins/400.css";
+import "@fontsource/poppins/500.css";
+import "@fontsource/poppins/600.css";
+import "@fontsource/poppins/700.css";
 
 const App = () => {
   const { path } = usePath();
   const showChatList = path === "/" || path.includes("chats");
+  const isAuthPage = path.includes("login") || path.includes("signup");
+
   return (
     <ApolloProvider client={client}>
       <ThemeProvider theme={darkTheme}>
         <CssBaseline />
-        <Header />
-        <Guard>
-          <Container
-            maxWidth="xl"
-            sx={{ marginTop: "1rem" }}>
-            {showChatList ? (
-              <Grid
-                container
-                spacing={5}>
-                <Grid
-                  item
-                  xs={12}
-                  md={5}
-                  lg={4}
-                  xl={3}>
-                  <ChatList />
-                </Grid>
-                <Grid
-                  item
-                  xs={12}
-                  md={7}
-                  lg={8}
-                  xl={9}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            minHeight: "100vh",
+            bgcolor: "background.default",
+          }}>
+          {!isAuthPage && <Header />}
+          <Guard>
+            <Box
+              component="main"
+              sx={{
+                flex: 1,
+                display: "flex",
+                overflow: "hidden",
+                pt: isAuthPage ? 0 : 2,
+                pb: isAuthPage ? 0 : 2,
+              }}>
+              <Container
+                maxWidth="xl"
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  height: "100%",
+                  p: isAuthPage ? 0 : undefined,
+                }}>
+                {showChatList && !isAuthPage ? (
+                  <Grid
+                    container
+                    spacing={3}
+                    sx={{ height: "100%" }}>
+                    <Grid
+                      item
+                      xs={12}
+                      md={4}
+                      lg={3}
+                      xl={3}
+                      sx={{
+                        display: { xs: "none", md: "block" },
+                        height: { md: "calc(100vh - 130px)" },
+                      }}>
+                      <ChatList />
+                    </Grid>
+                    <Grid
+                      item
+                      xs={12}
+                      md={8}
+                      lg={9}
+                      xl={9}
+                      sx={{
+                        height: {
+                          xs: "calc(100vh - 130px)",
+                          md: "calc(100vh - 130px)",
+                        },
+                      }}>
+                      <Routes />
+                    </Grid>
+                  </Grid>
+                ) : (
                   <Routes />
-                </Grid>
-              </Grid>
-            ) : (
-              <Routes />
-            )}
-          </Container>
-        </Guard>
-        <Snackbar />
+                )}
+              </Container>
+            </Box>
+          </Guard>
+          <Snackbar />
+        </Box>
       </ThemeProvider>
     </ApolloProvider>
   );

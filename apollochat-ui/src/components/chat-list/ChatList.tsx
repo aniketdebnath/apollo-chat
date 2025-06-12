@@ -1,4 +1,11 @@
-import { Box, Divider, Stack } from "@mui/material";
+import {
+  Box,
+  Divider,
+  Paper,
+  Typography,
+  alpha,
+  useTheme,
+} from "@mui/material";
 import { useEffect, useState } from "react";
 import { useGetChats } from "../../hooks/useGetChats";
 import { usePath } from "../../hooks/usePath";
@@ -12,6 +19,7 @@ export const ChatList = () => {
   const [selectedChatId, setSelectedChatId] = useState("");
   const { data, loading } = useGetChats();
   const { path } = usePath();
+  const theme = useTheme();
 
   useMessageCreated({
     chatIds: data?.chats.map((chat: any) => chat._id) || [],
@@ -30,27 +38,46 @@ export const ChatList = () => {
         open={chatListAddVisible}
         handleClose={() => setChatListAddVisible(false)}
       />
-      <Stack>
+      <Paper
+        elevation={0}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          borderRadius: 3,
+          overflow: "hidden",
+          backgroundColor: alpha(theme.palette.background.paper, 0.8),
+          border: "1px solid",
+          borderColor: "divider",
+        }}>
         <ChatListHeader handleAddChat={() => setChatListAddVisible(true)} />
         <Divider />
         <Box
           sx={{
-            width: "100%",
-            bgcolor: "background.paper",
-            maxHeight: "80vh",
+            flex: 1,
             overflow: "auto",
+            p: 1,
             "&::-webkit-scrollbar": {
-              display: "none",
+              width: "6px",
             },
-            // Hide scrollbar in Firefox
-            scrollbarWidth: "none", // Firefox
-            msOverflowStyle: "none", // IE and Edge
+            "&::-webkit-scrollbar-thumb": {
+              backgroundColor: alpha(theme.palette.primary.main, 0.2),
+              borderRadius: "3px",
+            },
+            "&::-webkit-scrollbar-track": {
+              backgroundColor: "transparent",
+            },
           }}
           id="chat-list-container">
           {loading ? (
-            <div>Loading chats...</div>
-          ) : (
-            data?.chats &&
+            <Box sx={{ p: 3, textAlign: "center" }}>
+              <Typography
+                variant="body2"
+                color="text.secondary">
+                Loading conversations...
+              </Typography>
+            </Box>
+          ) : data?.chats && data.chats.length > 0 ? (
             [...data.chats]
               .sort((chatA, chatB) => {
                 // Explicit check: chats without messages go to the bottom
@@ -79,9 +106,24 @@ export const ChatList = () => {
                   selected={chat._id === selectedChatId}
                 />
               ))
+          ) : (
+            <Box sx={{ p: 3, textAlign: "center" }}>
+              <Typography
+                variant="body2"
+                color="text.secondary">
+                No conversations yet
+              </Typography>
+              <Typography
+                variant="body2"
+                color="primary"
+                sx={{ mt: 1, cursor: "pointer" }}
+                onClick={() => setChatListAddVisible(true)}>
+                Start a new chat
+              </Typography>
+            </Box>
           )}
         </Box>
-      </Stack>
+      </Paper>
     </>
   );
 };

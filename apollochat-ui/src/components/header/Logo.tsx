@@ -1,31 +1,51 @@
-import { Typography } from "@mui/material";
-import QuickreplyOutlinedIcon from "@mui/icons-material/QuickreplyOutlined";
+import { Box, Typography, useTheme } from "@mui/material";
+import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
 import router from "../Routes";
 
 const Logo = () => {
+  const theme = useTheme();
+
   return (
-    <>
-      <QuickreplyOutlinedIcon
-        sx={{ display: { xs: "none", md: "flex" }, mr: 1 }}
+    <Box
+      sx={{
+        display: { xs: "none", md: "flex" },
+        alignItems: "center",
+        cursor: "pointer",
+        gap: 1,
+      }}
+      onClick={() => router.navigate("/")}>
+      <ChatBubbleOutlineRoundedIcon
+        sx={{
+          color: theme.palette.primary.main,
+          fontSize: 28,
+        }}
       />
       <Typography
-        variant="h6"
-        noWrap
+        variant="h5"
         component="span"
-        onClick={() => router.navigate("/")}
         sx={{
-          mr: 2,
-          display: { xs: "none", md: "flex" },
-          fontFamily: "monospace",
-          cursor: "pointer",
+          fontFamily: "'Poppins', sans-serif",
           fontWeight: 700,
-          letterSpacing: ".3rem",
+          letterSpacing: ".05rem",
           color: "inherit",
           textDecoration: "none",
+          background: `linear-gradient(120deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
         }}>
-        APOLLO CHAT
+        APOLLO
+        <Box
+          component="span"
+          sx={{
+            color: theme.palette.text.secondary,
+            WebkitTextFillColor: theme.palette.text.secondary,
+            fontWeight: 300,
+            ml: 0.5,
+          }}>
+          CHAT
+        </Box>
       </Typography>
-    </>
+    </Box>
   );
 };
 

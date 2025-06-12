@@ -1,30 +1,42 @@
-import { Typography } from "@mui/material";
-import QuickreplyOutlinedIcon from "@mui/icons-material/QuickreplyOutlined";
+import { Box, Typography, useTheme } from "@mui/material";
+import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
 import router from "../../Routes";
+
 const MobileLogo = () => {
+  const theme = useTheme();
+
   return (
-    <>
-      <QuickreplyOutlinedIcon
-        sx={{ display: { xs: "flex", md: "none" }, mr: 1 }}
+    <Box
+      sx={{
+        display: { xs: "flex", md: "none" },
+        alignItems: "center",
+        cursor: "pointer",
+        gap: 0.5,
+      }}
+      onClick={() => router.navigate("/")}>
+      <ChatBubbleOutlineRoundedIcon
+        sx={{
+          color: theme.palette.primary.main,
+          fontSize: 24,
+        }}
       />
       <Typography
-        variant="h5"
-        noWrap
+        variant="h6"
         component="span"
-        onClick={() => router.navigate("/")}
         sx={{
-          mr: 2,
-          display: { xs: "flex", md: "none" },
-          flexGrow: 1,
-          fontFamily: "monospace",
+          fontFamily: "'Poppins', sans-serif",
           fontWeight: 700,
-          letterSpacing: ".3rem",
+          letterSpacing: ".05rem",
           color: "inherit",
           textDecoration: "none",
+          background: `linear-gradient(120deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
         }}>
-        APOLLO CHAT
+        APOLLO
       </Typography>
-    </>
+    </Box>
   );
 };
+
 export default MobileLogo;
