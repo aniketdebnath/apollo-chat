@@ -35,6 +35,8 @@ import { authenticatedVar } from "../../constants/authenticated";
 import { Pages } from "../../interfaces/pages.interface";
 import { ChatList } from "../chat-list/ChatList";
 import router from "../Routes";
+import { usePath } from "../../hooks/usePath";
+import DemoChatList from "../demo/DemoChatList";
 
 const pages: Pages[] = [
   {
@@ -72,6 +74,8 @@ const Header = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [chatDrawerOpen, setChatDrawerOpen] = useState(false);
   const [navDrawerOpen, setNavDrawerOpen] = useState(false);
+  const { path } = usePath();
+  const isDemoPage = path === "/demo";
 
   const toggleChatDrawer = () => {
     setChatDrawerOpen(!chatDrawerOpen);
@@ -111,7 +115,7 @@ const Header = () => {
             <Box sx={{ display: "flex", alignItems: "center" }}>
               {isMobile ? (
                 <Box sx={{ display: "flex", alignItems: "center" }}>
-                  {authenticated && (
+                  {(authenticated || isDemoPage) && (
                     <Tooltip title="Chats">
                       <IconButton
                         onClick={toggleChatDrawer}
@@ -176,7 +180,7 @@ const Header = () => {
       {/* Mobile drawer for chats */}
       <Drawer
         anchor="left"
-        open={chatDrawerOpen && authenticated}
+        open={chatDrawerOpen && (authenticated || isDemoPage)}
         onClose={toggleChatDrawer}
         sx={{
           "& .MuiDrawer-paper": {
@@ -216,7 +220,7 @@ const Header = () => {
           </IconButton>
         </Toolbar>
         <Box sx={{ overflow: "auto", height: "calc(100% - 64px)" }}>
-          <ChatList />
+          {isDemoPage ? <DemoChatList /> : <ChatList />}
         </Box>
       </Drawer>
 

@@ -48,14 +48,14 @@ const Demo = () => {
           flex: 1,
           display: "flex",
           overflow: "hidden",
-          pb: 3,
+          pb: 4,
         }}>
         <Container
           maxWidth="xl"
           sx={{
             display: "flex",
             flexDirection: "column",
-            height: "calc(100% - 20px)",
+            height: "calc(100% - 32px)",
           }}>
           <Grid
             container
@@ -70,7 +70,8 @@ const Demo = () => {
               xl={3}
               sx={{
                 display: { xs: "none", md: "block" },
-                height: { md: "calc(100% - 20px)" },
+                height: { md: "calc(100% - 32px)" },
+                mb: 4,
               }}>
               <DemoChatList />
             </Grid>
@@ -83,7 +84,8 @@ const Demo = () => {
               lg={9}
               xl={9}
               sx={{
-                height: "calc(100% - 20px)",
+                height: "calc(100% - 32px)",
+                mb: 4,
               }}>
               <DemoChatArea />
             </Grid>

@@ -16,6 +16,9 @@ const Login = () => {
   const theme = useTheme();
   const navigate = useNavigate();
 
+  // Custom success color for the demo button
+  const successColor = "#00B8A9"; // Using the success color from the theme
+
   return (
     <Auth
       submitLabel="Login"
@@ -52,7 +55,7 @@ const Login = () => {
             variant="body2"
             color="text.secondary"
             sx={{ px: 1 }}>
-            Recruiter? Try it out
+            Want to see it in action?
           </Typography>
         </Divider>
       </Box>
@@ -60,7 +63,6 @@ const Login = () => {
       <Button
         onClick={() => navigate("/demo")}
         variant="outlined"
-        color="secondary"
         fullWidth
         startIcon={<RocketLaunch />}
         sx={{
@@ -70,19 +72,22 @@ const Login = () => {
           textTransform: "none",
           fontWeight: 600,
           borderWidth: 2,
+          borderColor: successColor,
+          color: successColor,
           backgroundImage: `linear-gradient(to right, ${alpha(
-            theme.palette.secondary.main,
+            successColor,
             0.05
-          )}, ${alpha(theme.palette.secondary.main, 0.1)})`,
+          )}, ${alpha(successColor, 0.1)})`,
           "&:hover": {
             backgroundImage: `linear-gradient(to right, ${alpha(
-              theme.palette.secondary.main,
+              successColor,
               0.1
-            )}, ${alpha(theme.palette.secondary.main, 0.15)})`,
+            )}, ${alpha(successColor, 0.15)})`,
+            borderColor: successColor,
             borderWidth: 2,
           },
         }}>
-        Try Demo
+        Explore Demo
       </Button>
     </Auth>
   );

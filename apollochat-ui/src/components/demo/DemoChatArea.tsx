@@ -63,55 +63,91 @@ interface MessageProps {
       imageUrl: string;
     };
   };
+  showTimeDivider?: boolean;
 }
 
-const DemoMessage = ({ message }: MessageProps) => {
+const DemoMessage = ({ message, showTimeDivider }: MessageProps) => {
   const theme = useTheme();
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "flex-start",
-        mb: 2,
-        px: 1,
-      }}>
-      {/* Avatar */}
-      <Box sx={{ mr: 2, mt: 0.5 }}>
-        <Avatar
-          {...getAvatarProps(message.user.username)}
-          sx={{ width: 40, height: 40 }}
-        />
-      </Box>
-
-      {/* Message content */}
-      <Box sx={{ maxWidth: "80%" }}>
-        <Typography
-          variant="subtitle2"
-          color="text.secondary"
-          sx={{ mb: 0.5 }}>
-          {message.user.username}
-        </Typography>
-
-        <Paper
-          elevation={0}
+    <>
+      {showTimeDivider && (
+        <Box
           sx={{
-            p: 2,
-            borderRadius: 2.5,
-            backgroundColor: alpha(theme.palette.primary.main, 0.1),
-            color: "text.primary",
+            display: "flex",
+            justifyContent: "center",
+            my: 2,
+            position: "relative",
           }}>
-          <Typography variant="body1">{message.content}</Typography>
-        </Paper>
+          <Divider
+            sx={{
+              position: "absolute",
+              width: "100%",
+              top: "50%",
+            }}
+          />
+          <Typography
+            variant="caption"
+            sx={{
+              bgcolor: "background.paper",
+              px: 2,
+              py: 0.5,
+              borderRadius: 1,
+              position: "relative",
+              zIndex: 1,
+            }}>
+            Today at{" "}
+            {new Date(Date.now() - 10 * 60000).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </Typography>
+        </Box>
+      )}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "flex-start",
+          mb: 2,
+          px: 1,
+        }}>
+        {/* Avatar */}
+        <Box sx={{ mr: 2, mt: 0.5 }}>
+          <Avatar
+            {...getAvatarProps(message.user.username)}
+            sx={{ width: 40, height: 40 }}
+          />
+        </Box>
 
-        <Typography
-          variant="caption"
-          color="text.secondary"
-          sx={{ display: "block", mt: 0.5, ml: 1 }}>
-          {formatMessageTime(message.createdAt)}
-        </Typography>
+        {/* Message content */}
+        <Box sx={{ maxWidth: "80%" }}>
+          <Typography
+            variant="subtitle2"
+            color="text.secondary"
+            sx={{ mb: 0.5 }}>
+            {message.user.username}
+          </Typography>
+
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              borderRadius: 2.5,
+              backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              color: "text.primary",
+            }}>
+            <Typography variant="body1">{message.content}</Typography>
+          </Paper>
+
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ display: "block", mt: 0.5, ml: 1 }}>
+            {formatMessageTime(message.createdAt)}
+          </Typography>
+        </Box>
       </Box>
-    </Box>
+    </>
   );
 };
 
@@ -210,10 +246,11 @@ const DemoChatArea = () => {
           </Typography>
         </Box>
 
-        {mockMessages.map((message) => (
+        {mockMessages.map((message, index) => (
           <DemoMessage
             key={message._id}
             message={message}
+            showTimeDivider={message._id === "demo-msg-6"}
           />
         ))}
       </Box>

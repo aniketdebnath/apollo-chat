@@ -64,6 +64,54 @@ export const mockChats = [
       },
     },
   },
+  {
+    _id: "demo-chat-5",
+    name: "Frontend Team",
+    latestMessage: {
+      _id: "demo-message-5",
+      content: "Has anyone tested the new components on mobile yet?",
+      createdAt: new Date(Date.now() - 1.5 * 3600000).toISOString(),
+      chatId: "demo-chat-5",
+      user: {
+        _id: "demo-user-6",
+        username: "Alex",
+        email: "alex@example.com",
+        imageUrl: "",
+      },
+    },
+  },
+  {
+    _id: "demo-chat-6",
+    name: "Backend Discussions",
+    latestMessage: {
+      _id: "demo-message-6",
+      content: "The new API endpoints are ready for integration testing.",
+      createdAt: new Date(Date.now() - 5 * 3600000).toISOString(),
+      chatId: "demo-chat-6",
+      user: {
+        _id: "demo-user-7",
+        username: "Jessica",
+        email: "jessica@example.com",
+        imageUrl: "",
+      },
+    },
+  },
+  {
+    _id: "demo-chat-7",
+    name: "Client Feedback",
+    latestMessage: {
+      _id: "demo-message-7",
+      content: "The client is very happy with the progress so far!",
+      createdAt: new Date(Date.now() - 12 * 3600000).toISOString(),
+      chatId: "demo-chat-7",
+      user: {
+        _id: "demo-user-8",
+        username: "Robert",
+        email: "robert@example.com",
+        imageUrl: "",
+      },
+    },
+  },
 ];
 
 export const mockMessages = [
@@ -106,8 +154,45 @@ export const mockMessages = [
   },
   {
     _id: "demo-msg-4",
-    content: "When will the new feature be ready?",
+    content: "Great! Also, do we have any updates from the design team?",
     createdAt: new Date(Date.now() - 22 * 60000).toISOString(),
+    chatId: "demo-chat-1",
+    user: {
+      _id: "demo-user-2",
+      username: "Sarah",
+      email: "sarah@example.com",
+      imageUrl: "",
+    },
+  },
+  {
+    _id: "demo-msg-5",
+    content:
+      "They've shared the latest mockups in the Design Workshop channel.",
+    createdAt: new Date(Date.now() - 21 * 60000).toISOString(),
+    chatId: "demo-chat-1",
+    user: {
+      _id: "demo-user-1",
+      username: "DemoUser",
+      email: "demo@example.com",
+      imageUrl: "",
+    },
+  },
+  {
+    _id: "demo-msg-6",
+    content: "Perfect, I'll check them out.",
+    createdAt: new Date(Date.now() - 10 * 60000).toISOString(), // Time gap for second divider
+    chatId: "demo-chat-1",
+    user: {
+      _id: "demo-user-2",
+      username: "Sarah",
+      email: "sarah@example.com",
+      imageUrl: "",
+    },
+  },
+  {
+    _id: "demo-msg-7",
+    content: "When will the new feature be ready?",
+    createdAt: new Date(Date.now() - 5 * 60000).toISOString(),
     chatId: "demo-chat-1",
     user: {
       _id: "demo-user-2",
