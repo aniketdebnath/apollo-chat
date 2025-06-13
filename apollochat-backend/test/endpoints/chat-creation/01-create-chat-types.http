@@ -1,0 +1,60 @@
+# @name createChatTypesTest
+# This file tests creation of chats with different privacy types
+
+# Test data:
+# User 1 (Aniket): 6846fdb7747f76e67361e045
+# User 2 (Roy): 68470bf594f3bd426267b577
+
+# ===== CHAT CREATION BY PRIVACY TYPE =====
+
+# Test 1: Create a Private Chat
+# @name createPrivateChat
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "mutation CreatePrivateChat($input: CreateChatInput!) { createChat(createChatInput: $input) { _id name type members { _id username } creator { _id username } } }",
+  "variables": {
+    "input": {
+      "name": "Test Private Chat",
+      "type": "private"
+    }
+  }
+}
+
+###
+
+# Test 2: Create a Public Chat
+# @name createPublicChat
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "mutation CreatePublicChat($input: CreateChatInput!) { createChat(createChatInput: $input) { _id name type members { _id username } creator { _id username } } }",
+  "variables": {
+    "input": {
+      "name": "Test Public Chat",
+      "type": "public"
+    }
+  }
+}
+
+###
+
+# Test 3: Create an Open Chat
+# @name createOpenChat
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "mutation CreateOpenChat($input: CreateChatInput!) { createChat(createChatInput: $input) { _id name type members { _id username } creator { _id username } } }",
+  "variables": {
+    "input": {
+      "name": "Test Open Chat",
+      "type": "open"
+    }
+  }
+} 

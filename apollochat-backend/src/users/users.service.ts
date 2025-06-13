@@ -11,6 +11,7 @@ import { S3Service } from '../common/s3/s3.service';
 import { USERS_BUCKET, USERS_IMAGE_FILE_EXTENSION } from './users.constants';
 import { UserDocument } from './entities/user.document';
 import { User } from './entities/user.entity';
+import { FilterQuery } from 'mongoose';
 
 @Injectable()
 export class UsersService {
@@ -27,8 +28,8 @@ export class UsersService {
           password: await this.hashPassword(createUserInput.password),
         }),
       );
-    } catch (error) {
-      if (error.message.includes('E11000')) {
+    } catch (error: any) {
+      if (error.message?.includes('E11000')) {
         throw new UnprocessableEntityException('Email already exits.');
       }
       throw error;
@@ -90,6 +91,38 @@ export class UsersService {
       key: this.getUserImage(userId),
       file,
     });
+  }
+
+  /**
+   * Search users by email
+   * @param searchTerm - Email search term (partial match)
+   * @param currentUserId - ID of the current user (to exclude from results)
+   * @param limit - Maximum number of results to return
+   * @returns Array of User entities matching the search criteria
+   */
+  async searchByEmail(
+    searchTerm: string,
+    currentUserId?: string,
+    limit = 10,
+  ): Promise<User[]> {
+    // Create a filter that matches email with case-insensitive regex
+    const filter: FilterQuery<UserDocument> = {
+      email: { $regex: searchTerm, $options: 'i' },
+    };
+
+    // Exclude the current user from search results if provided
+    if (currentUserId) {
+      filter._id = { $ne: currentUserId };
+    }
+
+    // Find users matching the filter
+    const users = await this.usersRepository.find(filter);
+
+    // Apply limit to results (take the first 'limit' items)
+    const limitedUsers = users.slice(0, limit);
+
+    // Convert to User entities and return
+    return limitedUsers.map((userDocument) => this.toEntity(userDocument));
   }
 
   toEntity(userDocument: UserDocument): User {

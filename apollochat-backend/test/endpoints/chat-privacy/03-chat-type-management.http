@@ -1,0 +1,113 @@
+# @name chatTypeManagementTest
+# This file tests chat type management functionality (changing privacy settings)
+
+# Test data:
+# User 1 (Aniket): 6846fdb7747f76e67361e045
+# User 2 (Roy): 68470bf594f3bd426267b577
+
+# ===== SECTION 1: CHAT TYPE MANAGEMENT =====
+
+# Test 1.1: Create a Test Chat for Type Management
+# @name createTestChat
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "mutation CreateTestChat($input: CreateChatInput!) { createChat(createChatInput: $input) { _id name type } }",
+  "variables": {
+    "input": {
+      "name": "Type Management Test Chat",
+      "type": "private"
+    }
+  }
+}
+
+###
+
+# Test 1.2: Change Chat Type from Private to Public (Creator Only)
+# @name changeToPublic
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "mutation ChangeToPublic($input: ChatTypeInput!) { updateChatType(chatTypeInput: $input) { _id name type } }",
+  "variables": {
+    "input": {
+      "chatId": "{{createTestChat.response.body.data.createChat._id}}",
+      "type": "public"
+    }
+  }
+}
+
+###
+
+# Test 1.3: Change Chat Type from Public to Open (Creator Only)
+# @name changeToOpen
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "mutation ChangeToOpen($input: ChatTypeInput!) { updateChatType(chatTypeInput: $input) { _id name type } }",
+  "variables": {
+    "input": {
+      "chatId": "{{createTestChat.response.body.data.createChat._id}}",
+      "type": "open"
+    }
+  }
+}
+
+###
+
+# Test 1.4: Change Chat Type Back to Private (Creator Only)
+# @name changeBackToPrivate
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "mutation ChangeBackToPrivate($input: ChatTypeInput!) { updateChatType(chatTypeInput: $input) { _id name type } }",
+  "variables": {
+    "input": {
+      "chatId": "{{createTestChat.response.body.data.createChat._id}}",
+      "type": "private"
+    }
+  }
+}
+
+###
+
+# ===== SECTION 2: PERMISSION TESTS =====
+
+# Test 2.1: Non-Creator Attempting to Change Chat Type (Should Fail)
+# @name nonCreatorChangeChatType
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzciLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzcuanBnIiwiaWF0IjoxNzQ5ODE4MTI1LCJleHAiOjE3NDk4NTQxMjV9.lJIWQ6SenEFeO1Zeo9mXEtY8PkNeKCInZaHwk4P-KtM
+
+{
+  "query": "mutation NonCreatorChangeChatType($input: ChatTypeInput!) { updateChatType(chatTypeInput: $input) { _id name type } }",
+  "variables": {
+    "input": {
+      "chatId": "{{createTestChat.response.body.data.createChat._id}}",
+      "type": "open"
+    }
+  }
+}
+
+###
+
+# Test 2.2: Verify Chat Type After Changes
+# @name verifyChatType
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "query VerifyChatType($id: String!) { chat(_id: $id) { _id name type } }",
+  "variables": {
+    "id": "{{createTestChat.response.body.data.createChat._id}}"
+  }
+} 

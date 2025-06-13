@@ -1,0 +1,98 @@
+# @name joinChatsTest
+# This file tests joining public/open chats and verifying membership operations
+
+# Test data:
+# User 1 (Aniket): 6846fdb7747f76e67361e045
+# User 2 (Roy): 68470bf594f3bd426267b577
+# Private Chat: 684b0bafc27d4d33a078d16d
+# Public Chat: 684b0bb6c27d4d33a078d171
+# Open Chat: 684b0bb9c27d4d33a078d175
+
+# ===== SECTION 1: CHAT JOIN PERMISSIONS =====
+
+# Test 1.1: Attempt to Join Private Chat (should fail)
+# @name joinPrivateChatFail
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzciLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzcuanBnIiwiaWF0IjoxNzQ5ODE4MTI1LCJleHAiOjE3NDk4NTQxMjV9.lJIWQ6SenEFeO1Zeo9mXEtY8PkNeKCInZaHwk4P-KtM
+
+{
+  "query": "mutation JoinPrivateChat($chatId: String!) { joinChat(chatId: $chatId) { _id name type } }",
+  "variables": {
+    "chatId": "684b0bafc27d4d33a078d16d"
+  }
+}
+
+###
+
+# Test 1.2: Join Public Chat Successfully
+# @name joinPublicChat
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzciLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzcuanBnIiwiaWF0IjoxNzQ5ODE4MTI1LCJleHAiOjE3NDk4NTQxMjV9.lJIWQ6SenEFeO1Zeo9mXEtY8PkNeKCInZaHwk4P-KtM
+
+{
+  "query": "mutation JoinPublicChat($chatId: String!) { joinChat(chatId: $chatId) { _id name type } }",
+  "variables": {
+    "chatId": "684b0bb6c27d4d33a078d171"
+  }
+}
+
+###
+
+# Test 1.3: Join Open Chat Successfully
+# @name joinOpenChat
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzciLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzcuanBnIiwiaWF0IjoxNzQ5ODE4MTI1LCJleHAiOjE3NDk4NTQxMjV9.lJIWQ6SenEFeO1Zeo9mXEtY8PkNeKCInZaHwk4P-KtM
+
+{
+  "query": "mutation JoinOpenChat($chatId: String!) { joinChat(chatId: $chatId) { _id name type } }",
+  "variables": {
+    "chatId": "684b0bb9c27d4d33a078d175"
+  }
+}
+
+###
+
+# ===== SECTION 2: CHAT VISIBILITY AFTER JOINING =====
+
+# Test 2.1: User's Chats After Joining (should see the joined chats)
+# @name userChatsAfterJoining
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzciLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzcuanBnIiwiaWF0IjoxNzQ5ODE4MTI1LCJleHAiOjE3NDk4NTQxMjV9.lJIWQ6SenEFeO1Zeo9mXEtY8PkNeKCInZaHwk4P-KtM
+
+{
+  "query": "query ChatsAfterJoining { chats(skip: 0, limit: 20) { _id name type } }"
+}
+
+###
+
+# Test 2.2: Verify Member List After Joining
+# @name verifyMemberList
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "query VerifyMemberList($id: String!) { chat(_id: $id) { _id name members { _id username } } }",
+  "variables": {
+    "id": "684b0bb6c27d4d33a078d171"
+  }
+}
+
+###
+
+# Test 2.3: Attempt to Join a Chat Already Joined (should handle gracefully)
+# @name joinChatAgain
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzciLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzcuanBnIiwiaWF0IjoxNzQ5ODE4MTI1LCJleHAiOjE3NDk4NTQxMjV9.lJIWQ6SenEFeO1Zeo9mXEtY8PkNeKCInZaHwk4P-KtM
+
+{
+  "query": "mutation JoinChatAgain($chatId: String!) { joinChat(chatId: $chatId) { _id name type } }",
+  "variables": {
+    "chatId": "684b0bb6c27d4d33a078d171"
+  }
+} 

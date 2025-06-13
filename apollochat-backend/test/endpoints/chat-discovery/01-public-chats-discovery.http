@@ -1,0 +1,98 @@
+# @name publicChatsDiscoveryTest
+# This file tests the discovery of public and open chats
+
+# Test data:
+# User 1 (Aniket): 6846fdb7747f76e67361e045
+# User 2 (Roy): 68470bf594f3bd426267b577
+
+# ===== SECTION 1: CREATE TEST CHATS =====
+
+# Test 1.1: Create a Private Chat (should not be discoverable)
+# @name createPrivateChat
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "mutation CreatePrivateChat($input: CreateChatInput!) { createChat(createChatInput: $input) { _id name type } }",
+  "variables": {
+    "input": {
+      "name": "Private Discovery Test",
+      "type": "private"
+    }
+  }
+}
+
+###
+
+# Test 1.2: Create a Public Chat (should be discoverable)
+# @name createPublicChat
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "mutation CreatePublicChat($input: CreateChatInput!) { createChat(createChatInput: $input) { _id name type } }",
+  "variables": {
+    "input": {
+      "name": "Public Discovery Test",
+      "type": "public"
+    }
+  }
+}
+
+###
+
+# Test 1.3: Create an Open Chat (should be discoverable)
+# @name createOpenChat
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "mutation CreateOpenChat($input: CreateChatInput!) { createChat(createChatInput: $input) { _id name type } }",
+  "variables": {
+    "input": {
+      "name": "Open Discovery Test",
+      "type": "open"
+    }
+  }
+}
+
+###
+
+# ===== SECTION 2: DISCOVERY TESTS =====
+
+# Test 2.1: Discover Public Chats as Creator
+# @name discoverAsCreator
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "query DiscoverAsCreator { publicChats { _id name type } }"
+}
+
+###
+
+# Test 2.2: Discover Public Chats as Non-Creator
+# @name discoverAsNonCreator
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzciLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzcuanBnIiwiaWF0IjoxNzQ5ODE4MTI1LCJleHAiOjE3NDk4NTQxMjV9.lJIWQ6SenEFeO1Zeo9mXEtY8PkNeKCInZaHwk4P-KtM
+
+{
+  "query": "query DiscoverAsNonCreator { publicChats { _id name type } }"
+}
+
+###
+
+# Test 2.3: Verify Private Chats Not Included in Discovery
+# @name verifyPrivateNotDiscoverable
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzciLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzcuanBnIiwiaWF0IjoxNzQ5ODE4MTI1LCJleHAiOjE3NDk4NTQxMjV9.lJIWQ6SenEFeO1Zeo9mXEtY8PkNeKCInZaHwk4P-KtM
+
+{
+  "query": "query VerifyPrivateNotDiscoverable { publicChats { _id name type } chat(_id: \"{{createPrivateChat.response.body.data.createChat._id}}\") { _id name type } }"
+} 

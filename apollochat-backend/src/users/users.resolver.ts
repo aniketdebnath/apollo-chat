@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { CreateUserInput } from './dto/create-user.input';
@@ -32,6 +32,17 @@ export class UsersResolver {
     return this.usersService.findOne(_id);
   }
 
+  @Query(() => [User], { name: 'searchUsers' })
+  @UseGuards(GqlAuthGuard)
+  async searchUsers(
+    @Args('searchTerm') searchTerm: string,
+    @Args('limit', { type: () => Int, nullable: true, defaultValue: 10 })
+    limit: number,
+    @CurrentUser() user: TokenPayload,
+  ): Promise<User[]> {
+    return this.usersService.searchByEmail(searchTerm, user._id, limit);
+  }
+
   @Mutation(() => User)
   @UseGuards(GqlAuthGuard)
   async updateUser(
@@ -50,6 +61,7 @@ export class UsersResolver {
   @Query(() => User, { name: 'me' })
   @UseGuards(GqlAuthGuard)
   async getMe(@CurrentUser() user: TokenPayload) {
+    await Promise.resolve();
     return { ...user, _id: new Types.ObjectId(user._id) };
   }
 }

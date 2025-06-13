@@ -1,0 +1,84 @@
+# @name userSearchTest
+# This file tests user search functionality for chat member management
+
+# Test data:
+# User 1 (Aniket): 6846fdb7747f76e67361e045
+# User 2 (Roy): 68470bf594f3bd426267b577
+
+# ===== SECTION 1: USER SEARCH TESTS =====
+
+# Test 1.1: Search Users by Username Partial Match
+# @name searchByUsername
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "query SearchByUsername($searchTerm: String!, $limit: Int) { searchUsers(searchTerm: $searchTerm, limit: $limit) { _id username email imageUrl } }",
+  "variables": {
+    "searchTerm": "R",
+    "limit": 5
+  }
+}
+
+###
+
+# Test 1.2: Search Users by Email Partial Match
+# @name searchByEmail
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "query SearchByEmail($searchTerm: String!, $limit: Int) { searchUsers(searchTerm: $searchTerm, limit: $limit) { _id username email imageUrl } }",
+  "variables": {
+    "searchTerm": "@test",
+    "limit": 5
+  }
+}
+
+###
+
+# Test 1.3: Search with Empty String (should return limited results)
+# @name searchWithEmptyString
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "query SearchWithEmptyString($searchTerm: String!, $limit: Int) { searchUsers(searchTerm: $searchTerm, limit: $limit) { _id username email imageUrl } }",
+  "variables": {
+    "searchTerm": "",
+    "limit": 3
+  }
+}
+
+###
+
+# Test 1.4: Search with Exact Match
+# @name searchExactMatch
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "query SearchExactMatch($searchTerm: String!, $limit: Int) { searchUsers(searchTerm: $searchTerm, limit: $limit) { _id username email imageUrl } }",
+  "variables": {
+    "searchTerm": "Roy",
+    "limit": 5
+  }
+}
+
+###
+
+# ===== SECTION 2: USER PROFILE TESTS =====
+
+# Test 2.1: Get Current User Profile
+# @name getCurrentUser
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "query GetCurrentUser { me { _id username email imageUrl } }"
+} 

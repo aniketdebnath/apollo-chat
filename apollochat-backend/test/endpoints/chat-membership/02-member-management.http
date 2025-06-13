@@ -1,0 +1,131 @@
+# @name memberManagementTest
+# This file tests chat member management functionality (adding/removing members)
+
+# Test data:
+# User 1 (Aniket): 6846fdb7747f76e67361e045
+# User 2 (Roy): 68470bf594f3bd426267b577
+
+# ===== SECTION 1: USER SEARCH =====
+
+# Test 1.1: User Search Functionality
+# @name searchUsers
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "query SearchUsers($searchTerm: String!, $limit: Int) { searchUsers(searchTerm: $searchTerm, limit: $limit) { _id username email imageUrl } }",
+  "variables": {
+    "searchTerm": "t",
+    "limit": 5
+  }
+}
+
+###
+
+# ===== SECTION 2: CREATE TEST CHAT =====
+
+# Test 2.1: Create a Test Chat for Member Management
+# @name createTestChat
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "mutation CreateTestChat($input: CreateChatInput!) { createChat(createChatInput: $input) { _id name type } }",
+  "variables": {
+    "input": {
+      "name": "Member Management Test Chat",
+      "type": "private"
+    }
+  }
+}
+
+###
+
+# ===== SECTION 3: MEMBER MANAGEMENT =====
+
+# Test 3.1: Add Member to Chat (Creator Only)
+# @name addMember
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "mutation AddMember($input: ChatMemberInput!) { addChatMember(chatMemberInput: $input) { _id name type members { _id username } } }",
+  "variables": {
+    "input": {
+      "chatId": "{{createTestChat.response.body.data.createChat._id}}",
+      "userId": "68470bf594f3bd426267b577"
+    }
+  }
+}
+
+###
+
+# Test 3.2: Verify Member Was Added
+# @name verifyMemberAdded
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "query VerifyMemberAdded($id: String!) { chat(_id: $id) { _id name members { _id username } } }",
+  "variables": {
+    "id": "{{createTestChat.response.body.data.createChat._id}}"
+  }
+}
+
+###
+
+# Test 3.3: Remove Member from Chat (Creator Only)
+# @name removeMember
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "mutation RemoveMember($input: ChatMemberInput!) { removeChatMember(chatMemberInput: $input) { _id name type members { _id username } } }",
+  "variables": {
+    "input": {
+      "chatId": "{{createTestChat.response.body.data.createChat._id}}",
+      "userId": "68470bf594f3bd426267b577"
+    }
+  }
+}
+
+###
+
+# Test 3.4: Add Member Again for Self-Remove Test
+# @name addMemberAgain
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "mutation AddMemberAgain($input: ChatMemberInput!) { addChatMember(chatMemberInput: $input) { _id name type members { _id username } } }",
+  "variables": {
+    "input": {
+      "chatId": "{{createTestChat.response.body.data.createChat._id}}",
+      "userId": "68470bf594f3bd426267b577"
+    }
+  }
+}
+
+###
+
+# Test 3.5: Self-Remove from Chat (Member can remove self)
+# @name selfRemoveFromChat
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzciLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzcuanBnIiwiaWF0IjoxNzQ5ODE4MTI1LCJleHAiOjE3NDk4NTQxMjV9.lJIWQ6SenEFeO1Zeo9mXEtY8PkNeKCInZaHwk4P-KtM
+
+{
+  "query": "mutation SelfRemove($input: ChatMemberInput!) { removeChatMember(chatMemberInput: $input) { _id name type } }",
+  "variables": {
+    "input": {
+      "chatId": "{{createTestChat.response.body.data.createChat._id}}",
+      "userId": "68470bf594f3bd426267b577"
+    }
+  }
+} 

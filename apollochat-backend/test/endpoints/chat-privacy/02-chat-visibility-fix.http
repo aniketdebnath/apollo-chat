@@ -1,0 +1,83 @@
+# @name chatVisibilityFixTest
+# This file tests the fix for the chat membership bug and visibility rules
+
+# Test data:
+# User 1 (Aniket): 6846fdb7747f76e67361e045
+# User 2 (Roy): 68470bf594f3bd426267b577
+# Private Chat: 684b0bafc27d4d33a078d16d
+# Public Chat: 684b0bb6c27d4d33a078d171
+# Open Chat: 684b0bb9c27d4d33a078d175
+
+# ===== SECTION 1: FIXED CHAT VISIBILITY BEHAVIOR =====
+
+# Test 1.1: Non-Member Regular Chats Query - Should NOT see public/open chats (fixed behavior)
+# @name fixedRegularChatsQuery
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzciLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzcuanBnIiwiaWF0IjoxNzQ5ODE4MTI1LCJleHAiOjE3NDk4NTQxMjV9.lJIWQ6SenEFeO1Zeo9mXEtY8PkNeKCInZaHwk4P-KtM
+
+{
+  "query": "query FixedRegularChatsQuery { chats(skip: 0, limit: 20) { _id name type } }"
+}
+
+###
+
+# Test 1.2: Public Chats Discovery - Should still see public/open chats via publicChats query
+# @name publicChatsDiscovery
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzciLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzcuanBnIiwiaWF0IjoxNzQ5ODE4MTI1LCJleHAiOjE3NDk4NTQxMjV9.lJIWQ6SenEFeO1Zeo9mXEtY8PkNeKCInZaHwk4P-KtM
+
+{
+  "query": "query PublicChatsDiscovery { publicChats { _id name type } }"
+}
+
+###
+
+# ===== SECTION 2: VISIBILITY AFTER JOINING =====
+
+# Test 2.1: Join a Public Chat
+# @name joinPublicChat
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzciLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzcuanBnIiwiaWF0IjoxNzQ5ODE4MTI1LCJleHAiOjE3NDk4NTQxMjV9.lJIWQ6SenEFeO1Zeo9mXEtY8PkNeKCInZaHwk4P-KtM
+
+{
+  "query": "mutation JoinPublicChat($chatId: String!) { joinChat(chatId: $chatId) { _id name type } }",
+  "variables": {
+    "chatId": "684b0bb6c27d4d33a078d171"
+  }
+}
+
+###
+
+# Test 2.2: After Joining, User Should See the Joined Chat in Regular Chats Query
+# @name regularChatsAfterJoining
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzciLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ3MGJmNTk0ZjNiZDQyNjI2N2I1NzcuanBnIiwiaWF0IjoxNzQ5ODE4MTI1LCJleHAiOjE3NDk4NTQxMjV9.lJIWQ6SenEFeO1Zeo9mXEtY8PkNeKCInZaHwk4P-KtM
+
+{
+  "query": "query RegularChatsAfterJoining { chats(skip: 0, limit: 20) { _id name type } }"
+}
+
+###
+
+# Test 2.3: Creator User Should Still See All Their Chats
+# @name creatorChatsVisibility
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "query CreatorChatsVisibility { chats(skip: 0, limit: 20) { _id name type } }"
+}
+
+# The fix: We removed the following two lines from the accessFilter in ChatsService.findMany:
+# { type: 'open' }, // Chat is open to everyone
+# { type: 'public' }, // Chat is publicly visible
+#
+# This ensures that:
+# 1. The 'chats' query only returns chats where the user is a member or creator
+# 2. The 'publicChats' query is used exclusively for discovering public/open chats
+# 3. After joining a public/open chat, it appears in the user's 'chats' query results 

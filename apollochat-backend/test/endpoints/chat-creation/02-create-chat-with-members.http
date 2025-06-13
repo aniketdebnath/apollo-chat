@@ -1,0 +1,62 @@
+# @name createChatWithMembersTest
+# This file tests creation of chats with initial members
+
+# Test data:
+# User 1 (Aniket): 6846fdb7747f76e67361e045
+# User 2 (Roy): 68470bf594f3bd426267b577
+
+# ===== CHAT CREATION WITH MEMBERS =====
+
+# Test 1: Create a Private Chat with Initial Members
+# @name createPrivateChatWithMembers
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "mutation CreateChatWithMembers($input: CreateChatInput!) { createChat(createChatInput: $input) { _id name type members { _id username } creator { _id username } } }",
+  "variables": {
+    "input": {
+      "name": "Group Chat with Members",
+      "type": "private",
+      "memberIds": ["68470bf594f3bd426267b577"]
+    }
+  }
+}
+
+###
+
+# Test 2: Create a Public Chat with Initial Members
+# @name createPublicChatWithMembers
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "mutation CreatePublicChatWithMembers($input: CreateChatInput!) { createChat(createChatInput: $input) { _id name type members { _id username } creator { _id username } } }",
+  "variables": {
+    "input": {
+      "name": "Public Group Chat",
+      "type": "public",
+      "memberIds": ["68470bf594f3bd426267b577"]
+    }
+  }
+}
+
+###
+
+# Test 3: Verify Creator is Automatically Added as Member
+# @name verifyCreatorAsMember
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+
+{
+  "query": "mutation VerifyCreatorAsMember($input: CreateChatInput!) { createChat(createChatInput: $input) { _id name type members { _id username } creator { _id username } } }",
+  "variables": {
+    "input": {
+      "name": "Creator Member Test",
+      "type": "private"
+    }
+  }
+} 

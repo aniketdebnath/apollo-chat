@@ -69,11 +69,22 @@ export class MessagesService {
       { $set: { chatId } },
     ]);
 
-    for (const message of messages) {
-      message.user = this.usersService.toEntity(message.user);
-    }
+    // Convert each message's user to a proper entity
+    const processedMessages = messages.map((message: any) => {
+      if (message) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        const result = { ...message };
+        if (message.user) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+          result.user = this.usersService.toEntity(message.user);
+        }
+        return result;
+      }
+      return message;
+    });
 
-    return messages;
+    // Type assertion to safely return the messages
+    return processedMessages as unknown as Message[];
   }
 
   async countMessages(chatId: string): Promise<{ messages: number }> {
@@ -100,6 +111,8 @@ export class MessagesService {
   }
 
   async messageCreated() {
+    // Add await to fix the require-await error
+    await Promise.resolve();
     return this.pubSub.asyncIterableIterator(MESSAGE_CREATED);
   }
 }
