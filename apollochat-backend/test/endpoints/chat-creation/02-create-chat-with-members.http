@@ -2,8 +2,8 @@
 # This file tests creation of chats with initial members
 
 # Test data:
-# User 1 (Aniket): 6846fdb7747f76e67361e045
-# User 2 (Roy): 68470bf594f3bd426267b577
+# User 1 (Aniket): 684ce1bd2e55ba9e88594159
+# User 2 (Roy): 684ce1d82e55ba9e8859415c
 
 # ===== CHAT CREATION WITH MEMBERS =====
 
@@ -11,7 +11,7 @@
 # @name createPrivateChatWithMembers
 POST http://localhost:3001/api/graphql
 Content-Type: application/json
-Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFiZDJlNTViYTllODg1OTQxNTkiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0Iiwic3RhdHVzIjoib2ZmbGluZSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxYmQyZTU1YmE5ZTg4NTk0MTU5LmpwZyIsImlhdCI6MTc0OTg2ODk5MywiZXhwIjoxNzQ5OTA0OTkzfQ.gP7mCE5A0FhO12ncPdJ606M4DKZJ2Wr2uUadmExj-wg
 
 {
   "query": "mutation CreateChatWithMembers($input: CreateChatInput!) { createChat(createChatInput: $input) { _id name type members { _id username } creator { _id username } } }",
@@ -19,7 +19,7 @@ Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRi
     "input": {
       "name": "Group Chat with Members",
       "type": "private",
-      "memberIds": ["68470bf594f3bd426267b577"]
+      "memberIds": ["684ce1d82e55ba9e8859415c"]
     }
   }
 }
@@ -30,7 +30,7 @@ Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRi
 # @name createPublicChatWithMembers
 POST http://localhost:3001/api/graphql
 Content-Type: application/json
-Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFiZDJlNTViYTllODg1OTQxNTkiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0Iiwic3RhdHVzIjoib2ZmbGluZSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxYmQyZTU1YmE5ZTg4NTk0MTU5LmpwZyIsImlhdCI6MTc0OTg2ODk5MywiZXhwIjoxNzQ5OTA0OTkzfQ.gP7mCE5A0FhO12ncPdJ606M4DKZJ2Wr2uUadmExj-wg
 
 {
   "query": "mutation CreatePublicChatWithMembers($input: CreateChatInput!) { createChat(createChatInput: $input) { _id name type members { _id username } creator { _id username } } }",
@@ -38,7 +38,7 @@ Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRi
     "input": {
       "name": "Public Group Chat",
       "type": "public",
-      "memberIds": ["68470bf594f3bd426267b577"]
+      "memberIds": ["684ce1d82e55ba9e8859415c"]
     }
   }
 }
@@ -49,7 +49,7 @@ Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRi
 # @name verifyCreatorAsMember
 POST http://localhost:3001/api/graphql
 Content-Type: application/json
-Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiQW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODQ2ZmRiNzc0N2Y3NmU2NzM2MWUwNDUuanBnIiwiaWF0IjoxNzQ5ODE4MTAwLCJleHAiOjE3NDk4NTQxMDB9.tEAGFDxrGDgdBu6bDIeKgGfXzLSo38QRJURipMAna9c
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFiZDJlNTViYTllODg1OTQxNTkiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0Iiwic3RhdHVzIjoib2ZmbGluZSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxYmQyZTU1YmE5ZTg4NTk0MTU5LmpwZyIsImlhdCI6MTc0OTg2ODk5MywiZXhwIjoxNzQ5OTA0OTkzfQ.gP7mCE5A0FhO12ncPdJ606M4DKZJ2Wr2uUadmExj-wg
 
 {
   "query": "mutation VerifyCreatorAsMember($input: CreateChatInput!) { createChat(createChatInput: $input) { _id name type members { _id username } creator { _id username } } }",

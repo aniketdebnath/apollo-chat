@@ -14,6 +14,7 @@ import { ChatsModule } from './chats/chats.module';
 import { PubSubModule } from './common/pubsub/pubsub.module';
 import { AuthService } from './auth/auth.service';
 import { S3Module } from './common/s3/s3.module';
+import { UsersService } from './users/users.service';
 
 @Module({
   imports: [
@@ -27,13 +28,13 @@ import { S3Module } from './common/s3/s3.module';
     }),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       driver: ApolloDriver,
-      useFactory: (authService: AuthService) => ({
+      useFactory: (authService: AuthService, usersService: UsersService) => ({
         autoSchemaFile: true,
         path: '/api/graphql',
         subscriptions: {
           'graphql-ws': {
             path: '/api/graphql',
-            onConnect: (context: any) => {
+            onConnect: async (context: any) => {
               try {
                 // We're using 'any' type here because the actual context structure
                 // comes from graphql-ws and we know its shape at runtime
@@ -49,16 +50,32 @@ import { S3Module } from './common/s3/s3.module';
                 const user = authService.verifyWs(request);
                 // Assign to the context object
                 context.user = user;
+
+                // Track the connection and update status if it's the first connection
+                // The trackConnection method now handles status updates internally
+                await usersService.trackConnection(user._id);
               } catch (error) {
                 new Logger().error(error);
                 throw new UnauthorizedException();
               }
             },
+            onDisconnect: async (context: any) => {
+              try {
+                const user = context.user;
+                if (user && user._id) {
+                  // Track the disconnection and update status if it's the last connection
+                  // The trackDisconnection method now handles status updates internally
+                  await usersService.trackDisconnection(user._id);
+                }
+              } catch (error) {
+                new Logger().error(error);
+              }
+            },
           },
         },
       }),
-      imports: [AuthModule],
-      inject: [AuthService],
+      imports: [AuthModule, UsersModule],
+      inject: [AuthService, UsersService],
     }),
     DatabaseModule,
     UsersModule,

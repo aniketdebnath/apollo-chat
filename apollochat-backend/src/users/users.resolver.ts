@@ -1,17 +1,36 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Args,
+  Int,
+  Subscription,
+} from '@nestjs/graphql';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
-import { UseGuards } from '@nestjs/common';
+import { UseGuards, Inject } from '@nestjs/common';
 import { GqlAuthGuard } from '../auth/guards/gql-auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { TokenPayload } from '../auth/interfaces/token-payload.interface';
+import { UpdateStatusInput } from './dto/update-status.input';
+import { PUB_SUB } from '../common/constants/injection-tokens';
+import { PubSub } from 'graphql-subscriptions';
+import { USER_STATUS_CHANGED } from './constants/pubsub-triggers';
 import { Types } from 'mongoose';
+import { UserStatus } from './constants/user-status.enum';
+
+interface UserStatusChangedPayload {
+  userStatusChanged: User;
+}
 
 @Resolver(() => User)
 export class UsersResolver {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    @Inject(PUB_SUB) private readonly pubSub: PubSub,
+  ) {}
 
   @Mutation(() => User)
   async createUser(
@@ -62,6 +81,47 @@ export class UsersResolver {
   @UseGuards(GqlAuthGuard)
   async getMe(@CurrentUser() user: TokenPayload) {
     await Promise.resolve();
+    // Ensure status is a valid UserStatus enum value
+    if (user.status && typeof user.status === 'string') {
+      user.status = user.status.toUpperCase() as UserStatus;
+    } else {
+      user.status = UserStatus.OFFLINE;
+    }
     return { ...user, _id: new Types.ObjectId(user._id) };
+  }
+
+  @Mutation(() => User)
+  @UseGuards(GqlAuthGuard)
+  async updateUserStatus(
+    @Args('updateStatusInput') updateStatusInput: UpdateStatusInput,
+    @CurrentUser() user: TokenPayload,
+  ): Promise<User> {
+    const updatedUser = await this.usersService.updateStatus(
+      user._id,
+      updateStatusInput.status,
+    );
+
+    // Publish the status change
+    this.pubSub.publish(USER_STATUS_CHANGED, {
+      userStatusChanged: updatedUser,
+    });
+
+    return updatedUser;
+  }
+
+  @Subscription(() => User, {
+    filter: (
+      payload: UserStatusChangedPayload,
+      variables: { userIds: string[] },
+    ) => {
+      return variables.userIds.includes(
+        payload.userStatusChanged._id.toString(),
+      );
+    },
+  })
+  userStatusChanged(
+    @Args('userIds', { type: () => [String] }) userIds: string[],
+  ) {
+    return this.pubSub.asyncIterableIterator(USER_STATUS_CHANGED);
   }
 }

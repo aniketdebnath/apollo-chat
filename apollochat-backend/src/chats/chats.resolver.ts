@@ -10,6 +10,7 @@ import { TokenPayload } from '../auth/interfaces/token-payload.interface';
 import { PaginationArgs } from '../common/dto/pagination-args.dto';
 import { ChatMemberInput } from './dto/chat-member.input';
 import { ChatTypeInput } from './dto/chat-type.input';
+import { ChatPinInput } from './dto/chat-pin.input';
 
 @Resolver(() => Chat)
 export class ChatsResolver {
@@ -82,6 +83,24 @@ export class ChatsResolver {
     @CurrentUser() user: TokenPayload,
   ): Promise<Chat> {
     return this.chatsService.updateChatType(chatTypeInput, user._id);
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Chat)
+  async pinChat(
+    @Args('chatPinInput') chatPinInput: ChatPinInput,
+    @CurrentUser() user: TokenPayload,
+  ): Promise<Chat> {
+    return this.chatsService.pinChat(chatPinInput.chatId, user._id);
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Chat)
+  async unpinChat(
+    @Args('chatPinInput') chatPinInput: ChatPinInput,
+    @CurrentUser() user: TokenPayload,
+  ): Promise<Chat> {
+    return this.chatsService.unpinChat(chatPinInput.chatId, user._id);
   }
 
   @Mutation(() => Chat)

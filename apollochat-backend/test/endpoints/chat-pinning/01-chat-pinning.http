@@ -1,0 +1,177 @@
+# @name chatPinningTest
+# This file tests chat pinning functionality
+
+# Test data:
+# User 1 (Roy): _id=684c52e03131111e211eb11b, email="roy@test.com"
+# User 2 (Aniket): _id=684c53023131111e211eb11e, email="aniket@test.com"
+# Chat 1 (Private): _id=684ccbfcadf052c2b549f4de, name="Test Chat for Pinning", type="private"
+# Chat 2 (Public): _id=684ccc78adf052c2b549f4e9, name="Test Chat for Pinning 2", type="public"
+
+# ===== SECTION 1: CHAT VISIBILITY TESTS =====
+
+# Test 1.1: Get chats for User 1 (Roy) - should see both chats as creator
+# @name getChatsUser1Initial
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjNTJlMDMxMzExMTFlMjExZWIxMWIiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoicm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODRjNTJlMDMxMzExMTFlMjExZWIxMWIuanBnIiwiaWF0IjoxNzQ5ODYzMzc3LCJleHAiOjE3NDk4OTkzNzd9.Ae29W_pU5_wT1OYG7vYZ6CYQP3QcDYq_iZsRu0C2ZY0
+
+{
+  "query": "query GetChatsUser1Initial { chats(skip: 0, limit: 10) { _id name type isPinned } }"
+}
+
+###
+
+# Test 1.2: Get chats for User 2 (Aniket) - should only see chats they're a member of
+# @name getChatsUser2Initial
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjNTMwMjMxMzExMTFlMjExZWIxMWUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODRjNTMwMjMxMzExMTFlMjExZWIxMWUuanBnIiwiaWF0IjoxNzQ5ODYzMzUwLCJleHAiOjE3NDk4OTkzNTB9.TPbpA0Ht4L3Cf8gy4W2V3RL-xnaguEC7zLuj5_cdhEo
+
+{
+  "query": "query GetChatsUser2Initial { chats(skip: 0, limit: 10) { _id name type isPinned } }"
+}
+
+###
+
+# Test 1.3: User 2 (Aniket) joins the public chat
+# @name user2JoinsPublicChat
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjNTMwMjMxMzExMTFlMjExZWIxMWUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODRjNTMwMjMxMzExMTFlMjExZWIxMWUuanBnIiwiaWF0IjoxNzQ5ODYzMzUwLCJleHAiOjE3NDk4OTkzNTB9.TPbpA0Ht4L3Cf8gy4W2V3RL-xnaguEC7zLuj5_cdhEo
+
+{
+  "query": "mutation JoinPublicChat($chatId: String!) { joinChat(chatId: $chatId) { _id name type } }",
+  "variables": {
+    "chatId": "684ccc78adf052c2b549f4e9"
+  }
+}
+
+###
+
+# Test 1.4: Get chats for User 2 (Aniket) after joining - should now see the public chat
+# @name getChatsUser2AfterJoining
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjNTMwMjMxMzExMTFlMjExZWIxMWUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODRjNTMwMjMxMzExMTFlMjExZWIxMWUuanBnIiwiaWF0IjoxNzQ5ODYzMzUwLCJleHAiOjE3NDk4OTkzNTB9.TPbpA0Ht4L3Cf8gy4W2V3RL-xnaguEC7zLuj5_cdhEo
+
+{
+  "query": "query GetChatsUser2AfterJoining { chats(skip: 0, limit: 10) { _id name type isPinned } }"
+}
+
+###
+
+# ===== SECTION 2: PIN/UNPIN TESTS =====
+
+# Test 2.1: Pin private chat as User 1 (Roy)
+# @name pinPrivateChatAsUser1
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjNTJlMDMxMzExMTFlMjExZWIxMWIiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoicm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODRjNTJlMDMxMzExMTFlMjExZWIxMWIuanBnIiwiaWF0IjoxNzQ5ODYzMzc3LCJleHAiOjE3NDk4OTkzNzd9.Ae29W_pU5_wT1OYG7vYZ6CYQP3QcDYq_iZsRu0C2ZY0
+
+{
+  "query": "mutation PinPrivateChat($chatPinInput: ChatPinInput!) { pinChat(chatPinInput: $chatPinInput) { _id name isPinned } }",
+  "variables": {
+    "chatPinInput": {
+      "chatId": "684ccbfcadf052c2b549f4de"
+    }
+  }
+}
+
+###
+
+# Test 2.2: Get chats for User 1 (Roy) to verify pinned status
+# @name getChatsUser1AfterPin
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjNTJlMDMxMzExMTFlMjExZWIxMWIiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoicm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODRjNTJlMDMxMzExMTFlMjExZWIxMWIuanBnIiwiaWF0IjoxNzQ5ODYzMzc3LCJleHAiOjE3NDk4OTkzNzd9.Ae29W_pU5_wT1OYG7vYZ6CYQP3QcDYq_iZsRu0C2ZY0
+
+{
+  "query": "query GetChatsUser1AfterPin { chats(skip: 0, limit: 10) { _id name type isPinned } }"
+}
+
+###
+
+# Test 2.3: Pin public chat as User 2 (Aniket)
+# @name pinPublicChatAsUser2
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjNTMwMjMxMzExMTFlMjExZWIxMWUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODRjNTMwMjMxMzExMTFlMjExZWIxMWUuanBnIiwiaWF0IjoxNzQ5ODYzMzUwLCJleHAiOjE3NDk4OTkzNTB9.TPbpA0Ht4L3Cf8gy4W2V3RL-xnaguEC7zLuj5_cdhEo
+
+{
+  "query": "mutation PinPublicChat($chatPinInput: ChatPinInput!) { pinChat(chatPinInput: $chatPinInput) { _id name isPinned } }",
+  "variables": {
+    "chatPinInput": {
+      "chatId": "684ccc78adf052c2b549f4e9"
+    }
+  }
+}
+
+###
+
+# Test 2.4: Get chats for User 2 (Aniket) to verify pinned status
+# @name getChatsUser2AfterPin
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjNTMwMjMxMzExMTFlMjExZWIxMWUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODRjNTMwMjMxMzExMTFlMjExZWIxMWUuanBnIiwiaWF0IjoxNzQ5ODYzMzUwLCJleHAiOjE3NDk4OTkzNTB9.TPbpA0Ht4L3Cf8gy4W2V3RL-xnaguEC7zLuj5_cdhEo
+
+{
+  "query": "query GetChatsUser2AfterPin { chats(skip: 0, limit: 10) { _id name type isPinned } }"
+}
+
+###
+
+# Test 2.5: Unpin private chat as User 1 (Roy)
+# @name unpinPrivateChatAsUser1
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjNTJlMDMxMzExMTFlMjExZWIxMWIiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoicm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODRjNTJlMDMxMzExMTFlMjExZWIxMWIuanBnIiwiaWF0IjoxNzQ5ODYzMzc3LCJleHAiOjE3NDk4OTkzNzd9.Ae29W_pU5_wT1OYG7vYZ6CYQP3QcDYq_iZsRu0C2ZY0
+
+{
+  "query": "mutation UnpinPrivateChat($chatPinInput: ChatPinInput!) { unpinChat(chatPinInput: $chatPinInput) { _id name isPinned } }",
+  "variables": {
+    "chatPinInput": {
+      "chatId": "684ccbfcadf052c2b549f4de"
+    }
+  }
+}
+
+###
+
+# Test 2.6: Get chats for User 1 (Roy) to verify unpinned status
+# @name getChatsUser1AfterUnpin
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjNTJlMDMxMzExMTFlMjExZWIxMWIiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoicm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODRjNTJlMDMxMzExMTFlMjExZWIxMWIuanBnIiwiaWF0IjoxNzQ5ODYzMzc3LCJleHAiOjE3NDk4OTkzNzd9.Ae29W_pU5_wT1OYG7vYZ6CYQP3QcDYq_iZsRu0C2ZY0
+
+{
+  "query": "query GetChatsUser1AfterUnpin { chats(skip: 0, limit: 10) { _id name type isPinned } }"
+}
+
+###
+
+# Test 2.7: Get chats for User 2 (Aniket) to verify their pin status is unchanged
+# @name getChatsUser2Final
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjNTMwMjMxMzExMTFlMjExZWIxMWUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODRjNTMwMjMxMzExMTFlMjExZWIxMWUuanBnIiwiaWF0IjoxNzQ5ODYzMzUwLCJleHAiOjE3NDk4OTkzNTB9.TPbpA0Ht4L3Cf8gy4W2V3RL-xnaguEC7zLuj5_cdhEo
+
+{
+  "query": "query GetChatsUser2Final { chats(skip: 0, limit: 10) { _id name type isPinned } }"
+}
+
+###
+
+# Test 2.8: Attempt to pin private chat as User 2 (Aniket) - should fail as they're not a member
+# @name attemptPinPrivateChatAsUser2
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjNTMwMjMxMzExMTFlMjExZWIxMWUiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODRjNTMwMjMxMzExMTFlMjExZWIxMWUuanBnIiwiaWF0IjoxNzQ5ODYzMzUwLCJleHAiOjE3NDk4OTkzNTB9.TPbpA0Ht4L3Cf8gy4W2V3RL-xnaguEC7zLuj5_cdhEo
+
+{
+  "query": "mutation AttemptPinPrivateChat($chatPinInput: ChatPinInput!) { pinChat(chatPinInput: $chatPinInput) { _id name isPinned } }",
+  "variables": {
+    "chatPinInput": {
+      "chatId": "684ccbfcadf052c2b549f4de"
+    }
+  }
+} 

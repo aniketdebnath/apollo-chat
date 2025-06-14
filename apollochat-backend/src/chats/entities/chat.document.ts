@@ -23,6 +23,9 @@ export class ChatDocument extends AbstractEntity {
 
   @Prop([{ type: Types.ObjectId, ref: 'UserDocument' }])
   members: Types.ObjectId[];
+
+  @Prop({ type: Map, of: Boolean, default: {} })
+  pinnedBy: Map<string, boolean>;
 }
 
 export const ChatSchema = SchemaFactory.createForClass(ChatDocument);

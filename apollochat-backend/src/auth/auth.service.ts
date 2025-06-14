@@ -4,6 +4,7 @@ import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { TokenPayload } from './interfaces/token-payload.interface';
 import { JwtService } from '@nestjs/jwt';
+import { UserStatus } from '../users/constants/user-status.enum';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,7 @@ export class AuthService {
     const tokenPayload: TokenPayload = {
       ...user,
       _id: user._id.toHexString(),
+      status: user.status ? user.status : UserStatus.OFFLINE,
     };
 
     const token = this.jwtService.sign(tokenPayload);
@@ -46,7 +48,16 @@ export class AuthService {
     }
 
     const jwt = authCookie.split('Authentication=')[1];
-    return this.jwtService.verify(jwt);
+    const payload = this.jwtService.verify(jwt);
+
+    // Ensure status is a valid UserStatus enum value
+    if (payload && payload.status && typeof payload.status === 'string') {
+      payload.status = payload.status.toUpperCase() as UserStatus;
+    } else if (payload) {
+      payload.status = UserStatus.OFFLINE;
+    }
+
+    return payload as TokenPayload;
   }
 
   logout(response: Response) {

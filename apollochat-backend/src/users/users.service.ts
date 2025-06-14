@@ -12,9 +12,13 @@ import { USERS_BUCKET, USERS_IMAGE_FILE_EXTENSION } from './users.constants';
 import { UserDocument } from './entities/user.document';
 import { User } from './entities/user.entity';
 import { FilterQuery } from 'mongoose';
+import { UserStatus } from './constants/user-status.enum';
 
 @Injectable()
 export class UsersService {
+  // Map to track active connections per user
+  private activeConnections = new Map<string, number>();
+
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly s3Service: S3Service,
@@ -26,18 +30,27 @@ export class UsersService {
         await this.usersRepository.create({
           ...createUserInput,
           password: await this.hashPassword(createUserInput.password),
+          status: UserStatus.OFFLINE,
         }),
       );
-    } catch (error: any) {
-      if (error.message?.includes('E11000')) {
-        throw new UnprocessableEntityException('Email already exits.');
+    } catch (error) {
+      if (
+        typeof error === 'object' &&
+        error !== null &&
+        'message' in error &&
+        typeof error.message === 'string'
+      ) {
+        const errorMessage = error.message;
+        if (errorMessage.includes('E11000')) {
+          throw new UnprocessableEntityException('Email already exits.');
+        }
       }
       throw error;
     }
   }
 
-  private async hashPassword(password: string) {
-    return await bcrypt.hash(password, 10);
+  private async hashPassword(password: string): Promise<string> {
+    return bcrypt.hash(password, 10);
   }
 
   async findAll() {
@@ -51,21 +64,14 @@ export class UsersService {
   }
 
   async update(_id: string, updateUserInput: UpdateUserInput) {
-    // Create a copy of the input data
-    const updateData = { ...updateUserInput };
-
-    // Check if password exists and is not undefined
-    if (updateData.password !== undefined) {
-      updateData.password = await this.hashPassword(updateData.password);
-    } else {
-      // Remove password property if undefined to avoid overwriting with null
-      delete updateData.password;
-    }
-
     return this.toEntity(
       await this.usersRepository.findOneAndUpdate(
         { _id },
-        { $set: updateData },
+        {
+          $set: {
+            ...updateUserInput,
+          },
+        },
       ),
     );
   }
@@ -91,6 +97,62 @@ export class UsersService {
       key: this.getUserImage(userId),
       file,
     });
+  }
+
+  /**
+   * Update a user's status
+   * @param userId - User ID
+   * @param status - New status
+   * @returns Updated user entity
+   */
+  async updateStatus(userId: string, status: UserStatus): Promise<User> {
+    const updatedUser = await this.usersRepository.findOneAndUpdate(
+      { _id: userId },
+      { $set: { status } },
+    );
+
+    return this.toEntity(updatedUser);
+  }
+
+  /**
+   * Track a new WebSocket connection for a user
+   * @param userId - User ID
+   * @returns True if this is the first connection for the user
+   */
+  async trackConnection(userId: string): Promise<boolean> {
+    const count = this.activeConnections.get(userId) || 0;
+    this.activeConnections.set(userId, count + 1);
+
+    // If this is the first connection, update status to ONLINE
+    if (count === 0) {
+      // Get current user to check if they have a manually set status
+      const user = await this.usersRepository.findOne({ _id: userId });
+      // Only update to ONLINE if not already in AWAY or DND (manually set statuses)
+      const currentStatus = user.status;
+      if (currentStatus !== 'AWAY' && currentStatus !== 'DND') {
+        await this.updateStatus(userId, UserStatus.ONLINE);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Track a WebSocket disconnection for a user
+   * @param userId - User ID
+   * @returns True if this was the last connection for the user
+   */
+  async trackDisconnection(userId: string): Promise<boolean> {
+    const count = this.activeConnections.get(userId) || 1;
+    if (count <= 1) {
+      this.activeConnections.delete(userId);
+      // Update status to OFFLINE only if this was the last connection
+      await this.updateStatus(userId, UserStatus.OFFLINE);
+      return true;
+    } else {
+      this.activeConnections.set(userId, count - 1);
+      return false;
+    }
   }
 
   /**
@@ -128,13 +190,17 @@ export class UsersService {
   toEntity(userDocument: UserDocument): User {
     const user = {
       ...userDocument,
+      // Convert status string to proper enum value
+      status:
+        (userDocument.status?.toUpperCase() as UserStatus) ||
+        UserStatus.OFFLINE,
       imageUrl: this.s3Service.getObjectUrl(
         USERS_BUCKET,
         this.getUserImage(userDocument._id.toHexString()),
       ),
     };
     delete user.password;
-    return user;
+    return user as User;
   }
 
   private getUserImage(userId: string) {

@@ -45,6 +45,7 @@ export class ChatsService {
       members, // Add members array
       type: createChatInput.type || 'private', // Set type with default
       messages: [],
+      pinnedBy: new Map<string, boolean>(), // Initialize empty pinnedBy map
     });
 
     // After creation, find and return the chat with populated fields
@@ -85,9 +86,29 @@ export class ChatsService {
               },
             ],
           },
+          // Add isPinned field based on userId if available
+          isPinned: userId
+            ? {
+                $eq: [
+                  {
+                    $ifNull: [
+                      { $getField: { field: userId, input: '$pinnedBy' } },
+                      false,
+                    ],
+                  },
+                  true,
+                ],
+              }
+            : false,
         },
       },
-      { $sort: { 'latestMessage.createdAt': -1 } },
+      // Sort by isPinned first (true first), then by latestMessage.createdAt
+      {
+        $sort: {
+          isPinned: -1, // Sort by isPinned first (true values come first)
+          'latestMessage.createdAt': -1, // Then by message date
+        },
+      },
     ];
 
     // Only add pagination if args are provided
@@ -379,6 +400,64 @@ export class ChatsService {
     return this.findOne(chatId, currentUserId);
   }
 
+  /**
+   * Pin a chat for a specific user
+   * @param chatId - ID of the chat to pin
+   * @param userId - ID of the user pinning the chat
+   * @returns The updated chat with isPinned set to true
+   */
+  async pinChat(chatId: string, userId: string): Promise<Chat> {
+    // First check if the chat exists and the user has access to it
+    const chat = await this.chatsRepository.model.findOne({
+      _id: new Types.ObjectId(chatId),
+      $or: [{ members: new Types.ObjectId(userId) }, { creatorId: userId }],
+    });
+
+    if (!chat) {
+      throw new NotFoundException(
+        `Chat not found or you don't have permission to pin it`,
+      );
+    }
+
+    // Update the pinnedBy map to set this user's pinned status to true
+    await this.chatsRepository.model.updateOne(
+      { _id: new Types.ObjectId(chatId) },
+      { $set: { [`pinnedBy.${userId}`]: true } },
+    );
+
+    // Return the updated chat
+    return this.findOne(chatId, userId);
+  }
+
+  /**
+   * Unpin a chat for a specific user
+   * @param chatId - ID of the chat to unpin
+   * @param userId - ID of the user unpinning the chat
+   * @returns The updated chat with isPinned set to false
+   */
+  async unpinChat(chatId: string, userId: string): Promise<Chat> {
+    // First check if the chat exists and the user has access to it
+    const chat = await this.chatsRepository.model.findOne({
+      _id: new Types.ObjectId(chatId),
+      $or: [{ members: new Types.ObjectId(userId) }, { creatorId: userId }],
+    });
+
+    if (!chat) {
+      throw new NotFoundException(
+        `Chat not found or you don't have permission to unpin it`,
+      );
+    }
+
+    // Update the pinnedBy map to set this user's pinned status to false
+    await this.chatsRepository.model.updateOne(
+      { _id: new Types.ObjectId(chatId) },
+      { $set: { [`pinnedBy.${userId}`]: false } },
+    );
+
+    // Return the updated chat
+    return this.findOne(chatId, userId);
+  }
+
   // TODO: Implement proper chat update
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   update(id: number, updateChatInput: UpdateChatInput): string {
@@ -418,6 +497,8 @@ export class ChatsService {
               },
             ],
           },
+          // Public chats are never pinned in the public listing
+          isPinned: false,
         },
       },
       { $sort: { 'latestMessage.createdAt': -1 } },

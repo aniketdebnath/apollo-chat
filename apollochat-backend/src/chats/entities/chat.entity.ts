@@ -16,4 +16,6 @@ export class Chat extends AbstractEntity {
   members: User[];
   @Field(() => User)
   creator: User;
+  @Field(() => Boolean, { defaultValue: false })
+  isPinned: boolean;
 }

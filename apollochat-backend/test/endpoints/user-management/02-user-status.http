@@ -1,0 +1,240 @@
+# @name userStatusTest
+# This file tests the user status functionality (online/away/dnd/offline)
+
+# Test data:
+# User 1 (Aniket): 684ce1bd2e55ba9e88594159
+# User 2 (Roy): 684ce1d82e55ba9e8859415c
+
+# ===== SECTION 1: STATUS UPDATE TESTS =====
+
+# Test 1.1: Update User 1's Status to AWAY
+# @name updateUser1StatusToAway
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFiZDJlNTViYTllODg1OTQxNTkiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0Iiwic3RhdHVzIjoib2ZmbGluZSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxYmQyZTU1YmE5ZTg4NTk0MTU5LmpwZyIsImlhdCI6MTc0OTg2ODk5MywiZXhwIjoxNzQ5OTA0OTkzfQ.gP7mCE5A0FhO12ncPdJ606M4DKZJ2Wr2uUadmExj-wg
+
+{
+  "query": "mutation UpdateUser1StatusToAway($updateStatusInput: UpdateStatusInput!) { updateUserStatus(updateStatusInput: $updateStatusInput) { _id username status } }",
+  "variables": {
+    "updateStatusInput": {
+      "status": "AWAY"
+    }
+  }
+}
+
+###
+
+# Test 1.2: Update User 2's Status to DND
+# @name updateUser2StatusToDND
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFkODJlNTViYTllODg1OTQxNWMiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoicm95Iiwic3RhdHVzIjoib2ZmbGluZSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxZDgyZTU1YmE5ZTg4NTk0MTVjLmpwZyIsImlhdCI6MTc0OTg2OTAxOSwiZXhwIjoxNzQ5OTA1MDE5fQ.slav9inQrI2LNy0zIBRYZiUSDQ_zi2Wk0fmWyaErnBw
+
+{
+  "query": "mutation UpdateUser2StatusToDND($updateStatusInput: UpdateStatusInput!) { updateUserStatus(updateStatusInput: $updateStatusInput) { _id username status } }",
+  "variables": {
+    "updateStatusInput": {
+      "status": "DND"
+    }
+  }
+}
+
+###
+
+# ===== SECTION 2: STATUS VERIFICATION TESTS =====
+
+# Test 2.1: Verify User 1's Status
+# @name verifyUser1Status
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFiZDJlNTViYTllODg1OTQxNTkiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0Iiwic3RhdHVzIjoib2ZmbGluZSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxYmQyZTU1YmE5ZTg4NTk0MTU5LmpwZyIsImlhdCI6MTc0OTg2ODk5MywiZXhwIjoxNzQ5OTA0OTkzfQ.gP7mCE5A0FhO12ncPdJ606M4DKZJ2Wr2uUadmExj-wg
+
+{
+  "query": "query VerifyUser1Status { me { _id username status } }"
+}
+
+###
+
+# Test 2.2: Verify User 2's Status
+# @name verifyUser2Status
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFkODJlNTViYTllODg1OTQxNWMiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoicm95Iiwic3RhdHVzIjoib2ZmbGluZSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxZDgyZTU1YmE5ZTg4NTk0MTVjLmpwZyIsImlhdCI6MTc0OTg2OTAxOSwiZXhwIjoxNzQ5OTA1MDE5fQ.slav9inQrI2LNy0zIBRYZiUSDQ_zi2Wk0fmWyaErnBw
+
+{
+  "query": "query VerifyUser2Status { me { _id username status } }"
+}
+
+###
+
+# Test 2.3: Get User Status via User Query
+# @name getUserStatusViaUserQuery
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFiZDJlNTViYTllODg1OTQxNTkiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0Iiwic3RhdHVzIjoib2ZmbGluZSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxYmQyZTU1YmE5ZTg4NTk0MTU5LmpwZyIsImlhdCI6MTc0OTg2ODk5MywiZXhwIjoxNzQ5OTA0OTkzfQ.gP7mCE5A0FhO12ncPdJ606M4DKZJ2Wr2uUadmExj-wg
+
+{
+  "query": "query GetUserStatusViaUserQuery($id: String!) { user(_id: $id) { _id username status } }",
+  "variables": {
+    "id": "684ce1d82e55ba9e8859415c"
+  }
+}
+
+###
+
+# Test 2.4: Update User 1's Status to ONLINE
+# @name updateUser1StatusToOnline
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFiZDJlNTViYTllODg1OTQxNTkiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0Iiwic3RhdHVzIjoib2ZmbGluZSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxYmQyZTU1YmE5ZTg4NTk0MTU5LmpwZyIsImlhdCI6MTc0OTg2ODk5MywiZXhwIjoxNzQ5OTA0OTkzfQ.gP7mCE5A0FhO12ncPdJ606M4DKZJ2Wr2uUadmExj-wg
+
+{
+  "query": "mutation UpdateUser1StatusToOnline($updateStatusInput: UpdateStatusInput!) { updateUserStatus(updateStatusInput: $updateStatusInput) { _id username status } }",
+  "variables": {
+    "updateStatusInput": {
+      "status": "ONLINE"
+    }
+  }
+}
+
+###
+
+# Test 2.5: Update User 2's Status to OFFLINE
+# @name updateUser2StatusToOffline
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFkODJlNTViYTllODg1OTQxNWMiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoicm95Iiwic3RhdHVzIjoib2ZmbGluZSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxZDgyZTU1YmE5ZTg4NTk0MTVjLmpwZyIsImlhdCI6MTc0OTg2OTAxOSwiZXhwIjoxNzQ5OTA1MDE5fQ.slav9inQrI2LNy0zIBRYZiUSDQ_zi2Wk0fmWyaErnBw
+
+{
+  "query": "mutation UpdateUser2StatusToOffline($updateStatusInput: UpdateStatusInput!) { updateUserStatus(updateStatusInput: $updateStatusInput) { _id username status } }",
+  "variables": {
+    "updateStatusInput": {
+      "status": "OFFLINE"
+    }
+  }
+}
+
+###
+
+# Test 2.6: Search Users and Check Status
+# @name searchUsersAndCheckStatus
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFiZDJlNTViYTllODg1OTQxNTkiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0Iiwic3RhdHVzIjoib2ZmbGluZSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxYmQyZTU1YmE5ZTg4NTk0MTU5LmpwZyIsImlhdCI6MTc0OTg2ODk5MywiZXhwIjoxNzQ5OTA0OTkzfQ.gP7mCE5A0FhO12ncPdJ606M4DKZJ2Wr2uUadmExj-wg
+
+{
+  "query": "query SearchUsersAndCheckStatus($searchTerm: String!) { searchUsers(searchTerm: $searchTerm) { _id username status } }",
+  "variables": {
+    "searchTerm": "@test"
+  }
+}
+
+###
+
+# ===== SECTION 3: EDGE CASES AND VALIDATION TESTS =====
+
+# Test 3.1: Try to set an invalid status value
+# @name tryInvalidStatus
+# Expected: Should fail with validation error
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFiZDJlNTViYTllODg1OTQxNTkiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0Iiwic3RhdHVzIjoib2ZmbGluZSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxYmQyZTU1YmE5ZTg4NTk0MTU5LmpwZyIsImlhdCI6MTc0OTg2ODk5MywiZXhwIjoxNzQ5OTA0OTkzfQ.gP7mCE5A0FhO12ncPdJ606M4DKZJ2Wr2uUadmExj-wg
+
+{
+  "query": "mutation TryInvalidStatus($updateStatusInput: UpdateStatusInput!) { updateUserStatus(updateStatusInput: $updateStatusInput) { _id username status } }",
+  "variables": {
+    "updateStatusInput": {
+      "status": "INVALID_STATUS"
+    }
+  }
+}
+
+###
+
+# Test 3.2: Test status persistence after multiple requests
+# @name testStatusPersistence
+# First set status to AWAY
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFiZDJlNTViYTllODg1OTQxNTkiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0Iiwic3RhdHVzIjoib2ZmbGluZSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxYmQyZTU1YmE5ZTg4NTk0MTU5LmpwZyIsImlhdCI6MTc0OTg2ODk5MywiZXhwIjoxNzQ5OTA0OTkzfQ.gP7mCE5A0FhO12ncPdJ606M4DKZJ2Wr2uUadmExj-wg
+
+{
+  "query": "mutation SetStatusAway($updateStatusInput: UpdateStatusInput!) { updateUserStatus(updateStatusInput: $updateStatusInput) { _id username status } }",
+  "variables": {
+    "updateStatusInput": {
+      "status": "AWAY"
+    }
+  }
+}
+
+###
+
+# Then check if it persisted in database (should be AWAY)
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFiZDJlNTViYTllODg1OTQxNTkiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0Iiwic3RhdHVzIjoib2ZmbGluZSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxYmQyZTU1YmE5ZTg4NTk0MTU5LmpwZyIsImlhdCI6MTc0OTg2ODk5MywiZXhwIjoxNzQ5OTA0OTkzfQ.gP7mCE5A0FhO12ncPdJ606M4DKZJ2Wr2uUadmExj-wg
+
+{
+  "query": "query GetUserById($id: String!) { user(_id: $id) { _id username status } }",
+  "variables": {
+    "id": "684ce1bd2e55ba9e88594159"
+  }
+}
+
+###
+
+# Test 3.3: Check status in chat members list
+# @name checkStatusInChatMembers
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFiZDJlNTViYTllODg1OTQxNTkiLCJlbWFpbCI6ImFuaWtldEB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiYW5pa2V0Iiwic3RhdHVzIjoib2ZmbGluZSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxYmQyZTU1YmE5ZTg4NTk0MTU5LmpwZyIsImlhdCI6MTc0OTg2ODk5MywiZXhwIjoxNzQ5OTA0OTkzfQ.gP7mCE5A0FhO12ncPdJ606M4DKZJ2Wr2uUadmExj-wg
+
+{
+  "query": "query GetChatWithMembers($id: String!) { chat(_id: $id) { _id name members { _id username status } } }",
+  "variables": {
+    "id": "684d0a0c91410380a68cecd2"
+  }
+}
+
+# Note: The subscription functionality cannot be directly tested with HTTP requests,
+# as it requires a WebSocket connection. In a real application, you would test this
+# with a WebSocket client or through the frontend application. 
+
+# ===== SECTION 4: TESTING NOTES =====
+
+# IMPORTANT: Testing Considerations for HTTP vs WebSocket Tests
+#
+# When testing the user status feature with HTTP requests (as in this file), 
+# you should be aware of the following behaviors:
+#
+# 1. Status Update Persistence:
+#    - Manual status updates (via updateUserStatus mutation) will be saved to the database
+#    - These updates will be visible in subsequent queries that fetch from the database
+#    - However, without a WebSocket connection, users will appear as OFFLINE in the UI
+#
+# 2. Potential Test Failures:
+#    - Test 2.1 and 2.2 (verifyUser1Status and verifyUser2Status) may show OFFLINE instead of 
+#      the manually set status if the getMe resolver uses token data instead of database data
+#    - This is because the JWT token contains the status at the time it was generated
+#    - If the token contains lowercase status values, you may see errors like:
+#      "Enum UserStatus cannot represent value: offline"
+#
+# 3. Database vs Token Status:
+#    - Test 2.3 (getUserStatusViaUserQuery) should always show the correct status from the database
+#    - This is because it directly queries the database rather than using token data
+#
+# 4. Expected Behavior During WebSocket Connection:
+#    - When a WebSocket connection is established, status should automatically update to ONLINE
+#    - Manual AWAY/DND statuses should be preserved during connections
+#    - When all WebSocket connections close, status should revert to OFFLINE
+#
+# 5. Testing WebSocket Behavior:
+#    - To properly test WebSocket behavior, you need a client that maintains a WebSocket connection
+#    - The frontend application would be the best place to test this functionality
+#    - Alternatively, you could use a WebSocket client library to connect and observe status changes
+
+# 6. Chat Member Status Issues:
+#    - In Test 3.3, if the chat has members that don't exist in the database (like 68470bf594f3bd426267b577),
+#      the status for those members won't be correctly displayed
+#    - This can happen if chat members were added with IDs that don't correspond to actual users
+#    - Make sure all member IDs in chats correspond to valid users in the database 
