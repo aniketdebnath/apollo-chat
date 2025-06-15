@@ -2,6 +2,7 @@ import {
   Injectable,
   UnauthorizedException,
   UnprocessableEntityException,
+  Logger,
 } from '@nestjs/common';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
@@ -18,6 +19,7 @@ import { UserStatus } from './constants/user-status.enum';
 export class UsersService {
   // Map to track active connections per user
   private activeConnections = new Map<string, number>();
+  private readonly logger = new Logger(UsersService.name);
 
   constructor(
     private readonly usersRepository: UsersRepository,
@@ -34,16 +36,9 @@ export class UsersService {
         }),
       );
     } catch (error) {
-      if (
-        typeof error === 'object' &&
-        error !== null &&
-        'message' in error &&
-        typeof error.message === 'string'
-      ) {
-        const errorMessage = error.message;
-        if (errorMessage.includes('E11000')) {
-          throw new UnprocessableEntityException('Email already exits.');
-        }
+      // Check if error is a MongoDB duplicate key error
+      if (error instanceof Error && error.message.includes('E11000')) {
+        throw new UnprocessableEntityException('Email already exits.');
       }
       throw error;
     }
@@ -86,7 +81,7 @@ export class UsersService {
     const passwordIsValid = await bcrypt.compare(password, user.password);
 
     if (!passwordIsValid)
-      throw new UnauthorizedException('Credentails are not valid');
+      throw new UnauthorizedException('Credentials are not valid');
 
     return this.toEntity(user);
   }
@@ -106,12 +101,17 @@ export class UsersService {
    * @returns Updated user entity
    */
   async updateStatus(userId: string, status: UserStatus): Promise<User> {
-    const updatedUser = await this.usersRepository.findOneAndUpdate(
-      { _id: userId },
-      { $set: { status } },
-    );
+    try {
+      const updatedUser = await this.usersRepository.findOneAndUpdate(
+        { _id: userId },
+        { $set: { status } },
+      );
 
-    return this.toEntity(updatedUser);
+      return this.toEntity(updatedUser);
+    } catch (error) {
+      this.logger.error(`Failed to update status for user ${userId}:`, error);
+      throw error;
+    }
   }
 
   /**
@@ -120,21 +120,35 @@ export class UsersService {
    * @returns True if this is the first connection for the user
    */
   async trackConnection(userId: string): Promise<boolean> {
-    const count = this.activeConnections.get(userId) || 0;
-    this.activeConnections.set(userId, count + 1);
+    try {
+      const count = this.activeConnections.get(userId) || 0;
+      this.activeConnections.set(userId, count + 1);
 
-    // If this is the first connection, update status to ONLINE
-    if (count === 0) {
-      // Get current user to check if they have a manually set status
-      const user = await this.usersRepository.findOne({ _id: userId });
-      // Only update to ONLINE if not already in AWAY or DND (manually set statuses)
-      const currentStatus = user.status;
-      if (currentStatus !== 'AWAY' && currentStatus !== 'DND') {
-        await this.updateStatus(userId, UserStatus.ONLINE);
+      // If this is the first connection, update status to ONLINE
+      if (count === 0) {
+        // Get current user to check if they have a manually set status
+        const user = await this.usersRepository.findOne({ _id: userId });
+        // Only update to ONLINE if not already in AWAY or DND (manually set statuses)
+        const currentStatus = user.status?.toUpperCase();
+        if (
+          currentStatus !== UserStatus.AWAY.toString() &&
+          currentStatus !== UserStatus.DND.toString()
+        ) {
+          await this.updateStatus(userId, UserStatus.ONLINE);
+        }
+        return true;
       }
-      return true;
+      return false;
+    } catch (error) {
+      this.logger.error(
+        `Failed to track connection for user ${userId}:`,
+        error,
+      );
+      // Still increment the connection count even if status update fails
+      const count = this.activeConnections.get(userId) || 0;
+      this.activeConnections.set(userId, count + 1);
+      return false;
     }
-    return false;
   }
 
   /**
@@ -143,15 +157,31 @@ export class UsersService {
    * @returns True if this was the last connection for the user
    */
   async trackDisconnection(userId: string): Promise<boolean> {
-    const count = this.activeConnections.get(userId) || 1;
-    if (count <= 1) {
-      this.activeConnections.delete(userId);
-      // Update status to OFFLINE only if this was the last connection
-      await this.updateStatus(userId, UserStatus.OFFLINE);
-      return true;
-    } else {
-      this.activeConnections.set(userId, count - 1);
-      return false;
+    try {
+      const count = this.activeConnections.get(userId) || 1;
+      if (count <= 1) {
+        this.activeConnections.delete(userId);
+        // Update status to OFFLINE only if this was the last connection
+        await this.updateStatus(userId, UserStatus.OFFLINE);
+        return true;
+      } else {
+        this.activeConnections.set(userId, count - 1);
+        return false;
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to track disconnection for user ${userId}:`,
+        error,
+      );
+      // Still decrement the connection count even if status update fails
+      const count = this.activeConnections.get(userId) || 1;
+      if (count <= 1) {
+        this.activeConnections.delete(userId);
+        return true;
+      } else {
+        this.activeConnections.set(userId, count - 1);
+        return false;
+      }
     }
   }
 

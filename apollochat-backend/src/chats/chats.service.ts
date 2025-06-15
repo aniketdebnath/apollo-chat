@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { CreateChatInput } from './dto/create-chat.input';
 import { UpdateChatInput } from './dto/update-chat.input';
@@ -13,9 +14,29 @@ import { UsersService } from '../users/users.service';
 import { ChatMemberInput } from './dto/chat-member.input';
 import { ChatTypeInput } from './dto/chat-type.input';
 import { ChatDocument } from './entities/chat.document';
+// User entity is used in the interface type definition
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { User } from '../users/entities/user.entity';
+
+// Define interface for chat with latest message
+interface ChatWithLatestMessage extends Omit<ChatDocument, 'messages'> {
+  latestMessage?: {
+    _id: string;
+    content: string;
+    createdAt: Date;
+    user?: any; // This will be replaced with a User entity
+    chatId?: string;
+    userId?: string;
+  };
+  creator?: any;
+  messages?: any[]; // Make messages optional since we're unsetting it
+  isPinned?: boolean;
+}
 
 @Injectable()
 export class ChatsService {
+  private readonly logger = new Logger(ChatsService.name);
+
   constructor(
     private readonly chatsRepository: ChatsRepository,
     private readonly usersService: UsersService,
@@ -25,32 +46,37 @@ export class ChatsService {
     createChatInput: CreateChatInput,
     userId: string,
   ): Promise<Chat> {
-    // Initialize the members array with creator
-    const members = [new Types.ObjectId(userId)];
+    try {
+      // Initialize the members array with creator
+      const members = [new Types.ObjectId(userId)];
 
-    // Add additional members if specified
-    if (createChatInput.memberIds?.length) {
-      createChatInput.memberIds.forEach((memberId) => {
-        if (memberId !== userId) {
-          members.push(new Types.ObjectId(memberId));
-        }
+      // Add additional members if specified
+      if (createChatInput.memberIds?.length) {
+        createChatInput.memberIds.forEach((memberId) => {
+          if (memberId !== userId) {
+            members.push(new Types.ObjectId(memberId));
+          }
+        });
+      }
+
+      // We need to use type assertion here because the document model
+      // doesn't match the GraphQL entity exactly (members are ObjectIds in document, Users in entity)
+      const chatDocument = await this.chatsRepository.create({
+        ...createChatInput,
+        creatorId: userId, // Use creatorId instead of userId
+        members, // Add members array
+        type: createChatInput.type || 'private', // Set type with default
+        messages: [],
+        pinnedBy: new Map<string, boolean>(), // Initialize empty pinnedBy map
       });
+
+      // After creation, find and return the chat with populated fields
+      // Make sure we're passing the string representation of the ID
+      return this.findOne(chatDocument._id.toString(), userId);
+    } catch (error) {
+      this.logger.error(`Failed to create chat for user ${userId}:`, error);
+      throw error;
     }
-
-    // We need to use type assertion here because the document model
-    // doesn't match the GraphQL entity exactly (members are ObjectIds in document, Users in entity)
-    const chatDocument = await this.chatsRepository.create({
-      ...createChatInput,
-      creatorId: userId, // Use creatorId instead of userId
-      members, // Add members array
-      type: createChatInput.type || 'private', // Set type with default
-      messages: [],
-      pinnedBy: new Map<string, boolean>(), // Initialize empty pinnedBy map
-    });
-
-    // After creation, find and return the chat with populated fields
-    // Make sure we're passing the string representation of the ID
-    return this.findOne(chatDocument._id.toString(), userId);
   }
 
   async findMany(
@@ -58,162 +84,171 @@ export class ChatsService {
     paginationArgs?: PaginationArgs,
     userId?: string,
   ): Promise<Chat[]> {
-    // Filter accessible chats based on user
-    const accessFilter = userId
-      ? {
-          $or: [
-            { members: new Types.ObjectId(userId) }, // User is a member
-            { creatorId: userId }, // User is the creator
-            // Removed the following two lines to fix the chat privacy bug:
-            // { type: 'open' }, // Chat is open to everyone
-            // { type: 'public' }, // Chat is publicly visible
-          ],
-        }
-      : {};
-
-    // Use type assertion for MongoDB aggregation results
-    const pipeline: PipelineStage[] = [
-      { $match: accessFilter },
-      ...prePipeLineStages,
-      {
-        $set: {
-          latestMessage: {
-            $cond: [
-              '$messages',
-              { $arrayElemAt: ['$messages', -1] },
-              {
-                createdAt: new Date(),
-              },
+    try {
+      // Filter accessible chats based on user
+      const accessFilter = userId
+        ? {
+            $or: [
+              { members: new Types.ObjectId(userId) }, // User is a member
+              { creatorId: userId }, // User is the creator
+              // Removed the following two lines to fix the chat privacy bug:
+              // { type: 'open' }, // Chat is open to everyone
+              // { type: 'public' }, // Chat is publicly visible
             ],
+          }
+        : {};
+
+      // Use type assertion for MongoDB aggregation results
+      const pipeline: PipelineStage[] = [
+        { $match: accessFilter },
+        ...prePipeLineStages,
+        {
+          $set: {
+            latestMessage: {
+              $cond: [
+                '$messages',
+                { $arrayElemAt: ['$messages', -1] },
+                {
+                  createdAt: new Date(),
+                },
+              ],
+            },
+            // Add isPinned field based on userId if available
+            isPinned: userId
+              ? {
+                  $eq: [
+                    {
+                      $ifNull: [
+                        { $getField: { field: userId, input: '$pinnedBy' } },
+                        false,
+                      ],
+                    },
+                    true,
+                  ],
+                }
+              : false,
           },
-          // Add isPinned field based on userId if available
-          isPinned: userId
-            ? {
-                $eq: [
-                  {
-                    $ifNull: [
-                      { $getField: { field: userId, input: '$pinnedBy' } },
-                      false,
-                    ],
-                  },
-                  true,
-                ],
-              }
-            : false,
         },
-      },
-      // Sort by isPinned first (true first), then by latestMessage.createdAt
-      {
-        $sort: {
-          isPinned: -1, // Sort by isPinned first (true values come first)
-          'latestMessage.createdAt': -1, // Then by message date
+        // Sort by isPinned first (true first), then by latestMessage.createdAt
+        {
+          $sort: {
+            isPinned: -1, // Sort by isPinned first (true values come first)
+            'latestMessage.createdAt': -1, // Then by message date
+          },
         },
-      },
-    ];
+      ];
 
-    // Only add pagination if args are provided
-    if (
-      paginationArgs?.skip !== undefined &&
-      paginationArgs?.limit !== undefined
-    ) {
-      pipeline.push(
-        { $skip: paginationArgs.skip },
-        { $limit: paginationArgs.limit },
-      );
-    }
-
-    // Add remaining stages
-    pipeline.push(
-      { $unset: 'messages' },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'latestMessage.userId',
-          foreignField: '_id',
-          as: 'latestMessage.user',
-        },
-      },
-      // Add lookup for creator
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'creatorId',
-          foreignField: '_id',
-          as: 'creator',
-          pipeline: [
-            { $project: { _id: 1, username: 1, imageUrl: 1, email: 1 } },
-          ],
-        },
-      },
-      // Add lookup for members
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'members',
-          foreignField: '_id',
-          as: 'members',
-          pipeline: [
-            { $project: { _id: 1, username: 1, imageUrl: 1, email: 1 } },
-          ],
-        },
-      },
-      // Unwind and set creator
-      {
-        $set: {
-          creator: { $arrayElemAt: ['$creator', 0] },
-        },
-      },
-    );
-
-    const chats = await this.chatsRepository.model.aggregate<any>(pipeline);
-
-    // Process the chats to ensure proper structure
-    chats.forEach((chat: any) => {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (!chat.latestMessage?._id) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        delete chat.latestMessage;
-        return;
-      }
-
-      // Make sure user exists before trying to access it
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      if (chat.latestMessage?.user?.[0]) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        chat.latestMessage.user = this.usersService.toEntity(
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-          chat.latestMessage.user[0],
+      // Only add pagination if args are provided
+      if (
+        paginationArgs?.skip !== undefined &&
+        paginationArgs?.limit !== undefined
+      ) {
+        pipeline.push(
+          { $skip: paginationArgs.skip },
+          { $limit: paginationArgs.limit },
         );
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      delete chat.latestMessage.userId;
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
-      chat.latestMessage.chatId = chat._id;
+      // Add remaining stages
+      pipeline.push(
+        { $unset: 'messages' },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'latestMessage.userId',
+            foreignField: '_id',
+            as: 'latestMessage.user',
+          },
+        },
+        // Add lookup for creator
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'creatorId',
+            foreignField: '_id',
+            as: 'creator',
+            pipeline: [
+              { $project: { _id: 1, username: 1, imageUrl: 1, email: 1 } },
+            ],
+          },
+        },
+        // Add lookup for members
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'members',
+            foreignField: '_id',
+            as: 'members',
+            pipeline: [
+              { $project: { _id: 1, username: 1, imageUrl: 1, email: 1 } },
+            ],
+          },
+        },
+        // Unwind and set creator
+        {
+          $set: {
+            creator: { $arrayElemAt: ['$creator', 0] },
+          },
+        },
+      );
 
-      // Make sure creator is properly transformed
-      // This is critical since creator is non-nullable in the GraphQL schema
-      if (!chat.creator) {
-        // If creator lookup fails, try to get the user directly
-        // We need to access creatorId from the raw MongoDB result
-        const creatorId = chat.creatorId as string;
-        if (creatorId) {
-          this.usersService
-            .findOne(creatorId)
-            .then((user) => {
-              chat.creator = user;
-            })
-            .catch((err) => {
-              console.error(
-                `Failed to fetch creator for chat ${chat._id}:`,
-                err,
-              );
-            });
+      const chats =
+        await this.chatsRepository.model.aggregate<ChatWithLatestMessage>(
+          pipeline,
+        );
+
+      // Process the chats to ensure proper structure
+      for (const chat of chats) {
+        if (!chat.latestMessage?._id) {
+          delete chat.latestMessage;
+          continue;
+        }
+
+        // Make sure user exists before trying to access it
+
+        if (
+          chat.latestMessage?.user &&
+          Array.isArray(chat.latestMessage.user) &&
+          chat.latestMessage.user[0]
+        ) {
+          // Convert the user document to a User entity
+
+          chat.latestMessage.user = this.usersService.toEntity(
+            chat.latestMessage.user[0],
+          );
+        }
+
+        if (chat.latestMessage) {
+          delete chat.latestMessage.userId;
+
+          chat.latestMessage.chatId = chat._id.toString();
+        }
+
+        // Make sure creator is properly transformed
+        // This is critical since creator is non-nullable in the GraphQL schema
+
+        if (!chat.creator && chat.creatorId) {
+          try {
+            // If creator lookup fails, try to get the user directly
+
+            const creatorId = chat.creatorId.toString();
+            const user = await this.usersService.findOne(creatorId);
+
+            chat.creator = user;
+          } catch (err) {
+            this.logger.error(
+              `Failed to fetch creator for chat ${chat._id.toString()}:`,
+              err,
+            );
+          }
         }
       }
-    });
 
-    return chats as unknown as Chat[];
+      return chats as unknown as Chat[];
+    } catch (error) {
+      this.logger.error(`Failed to find chats:`, error);
+      throw error;
+    }
   }
 
   async findOne(_id: string, userId?: string): Promise<Chat> {

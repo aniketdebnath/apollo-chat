@@ -22,7 +22,10 @@ export class AuthService {
     const tokenPayload: TokenPayload = {
       ...user,
       _id: user._id.toHexString(),
-      status: user.status ? user.status : UserStatus.OFFLINE,
+      status:
+        user.status && typeof user.status === 'string'
+          ? (user.status.toUpperCase() as UserStatus)
+          : UserStatus.OFFLINE,
     };
 
     const token = this.jwtService.sign(tokenPayload);
@@ -48,16 +51,35 @@ export class AuthService {
     }
 
     const jwt = authCookie.split('Authentication=')[1];
-    const payload = this.jwtService.verify(jwt);
 
-    // Ensure status is a valid UserStatus enum value
-    if (payload && payload.status && typeof payload.status === 'string') {
-      payload.status = payload.status.toUpperCase() as UserStatus;
-    } else if (payload) {
-      payload.status = UserStatus.OFFLINE;
+    interface JwtPayload {
+      _id: string;
+      email: string;
+      username: string;
+      status?: string;
+      imageUrl?: string;
+      iat: number;
+      exp: number;
     }
 
-    return payload as TokenPayload;
+    const payload = this.jwtService.verify(jwt);
+
+    const tokenPayload: TokenPayload = {
+      _id: payload._id,
+      email: payload.email,
+      username: payload.username,
+      imageUrl: payload.imageUrl || '',
+      status: UserStatus.OFFLINE,
+    };
+
+    if (payload.status && typeof payload.status === 'string') {
+      const upperStatus = payload.status.toUpperCase();
+      if (Object.values(UserStatus).includes(upperStatus as UserStatus)) {
+        tokenPayload.status = upperStatus as UserStatus;
+      }
+    }
+
+    return tokenPayload;
   }
 
   logout(response: Response) {

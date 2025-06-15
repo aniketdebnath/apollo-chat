@@ -18,8 +18,8 @@ import { UpdateStatusInput } from './dto/update-status.input';
 import { PUB_SUB } from '../common/constants/injection-tokens';
 import { PubSub } from 'graphql-subscriptions';
 import { USER_STATUS_CHANGED } from './constants/pubsub-triggers';
-import { Types } from 'mongoose';
 import { UserStatus } from './constants/user-status.enum';
+import { Types } from 'mongoose';
 
 interface UserStatusChangedPayload {
   userStatusChanged: User;
@@ -81,6 +81,11 @@ export class UsersResolver {
   @UseGuards(GqlAuthGuard)
   async getMe(@CurrentUser() user: TokenPayload) {
     await Promise.resolve();
+    // Currently using token data, but this can lead to stale status information
+    // The token status isn't updated when status changes via WebSocket or manual update
+    // Better implementation would be:
+    // return this.usersService.findOne(user._id);
+
     // Ensure status is a valid UserStatus enum value
     if (user.status && typeof user.status === 'string') {
       user.status = user.status.toUpperCase() as UserStatus;
@@ -120,6 +125,9 @@ export class UsersResolver {
     },
   })
   userStatusChanged(
+    // The userIds parameter is used in the filter function above
+    // It's required for the GraphQL schema even though we don't use it directly in the method body
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Args('userIds', { type: () => [String] }) userIds: string[],
   ) {
     return this.pubSub.asyncIterableIterator(USER_STATUS_CHANGED);
