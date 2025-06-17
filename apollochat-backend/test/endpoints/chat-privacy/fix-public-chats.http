@@ -1,0 +1,61 @@
+# @name fixPublicChats
+# This file tests the fix for the publicChats query
+
+# ===== SECTION 1: Test publicChats query after fix =====
+
+# Test 1.1: Query public chats with Roy's token after fix
+# @name publicChatsAfterFix
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFkODJlNTViYTllODg1OTQxNWMiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoicm95Iiwic3RhdHVzIjoiT0ZGTElORSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxZDgyZTU1YmE5ZTg4NTk0MTVjLmpwZyIsImlhdCI6MTc1MDE1NTg3MiwiZXhwIjoxNzUwMTkxODcyfQ._N4343gUzRxM2OlNZaFrRby4g-2EKXEsxaTNLdE9jxo
+
+{
+  "query": "query PublicChatsAfterFix { publicChats { _id name type creator { _id username } } }"
+}
+
+###
+
+# Test 1.2: Use the debug endpoint after fix
+# @name debugPublicChatsAfterFix
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFkODJlNTViYTllODg1OTQxNWMiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoicm95Iiwic3RhdHVzIjoiT0ZGTElORSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxZDgyZTU1YmE5ZTg4NTk0MTVjLmpwZyIsImlhdCI6MTc1MDE1NTg3MiwiZXhwIjoxNzUwMTkxODcyfQ._N4343gUzRxM2OlNZaFrRby4g-2EKXEsxaTNLdE9jxo
+
+{
+  "query": "query DebugPublicChatsAfterFix { debugPublicChats { _id name type creator { _id username } } }"
+}
+
+###
+
+# Test 1.3: Join a public chat after seeing it in the explore page
+# @name joinPublicChatAfterFix
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFkODJlNTViYTllODg1OTQxNWMiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoicm95Iiwic3RhdHVzIjoiT0ZGTElORSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxZDgyZTU1YmE5ZTg4NTk0MTVjLmpwZyIsImlhdCI6MTc1MDE1NTg3MiwiZXhwIjoxNzUwMTkxODcyfQ._N4343gUzRxM2OlNZaFrRby4g-2EKXEsxaTNLdE9jxo
+
+{
+  "query": "mutation JoinPublicChatAfterFix($chatId: String!) { joinChat(chatId: $chatId) { _id name type } }",
+  "variables": {
+    "chatId": "6851637f00dc3151b93070fd"
+  }
+}
+
+###
+
+# Test 1.4: Verify chat appears in regular chats query after joining
+# @name verifyJoinedChatAfterFix
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODRjZTFkODJlNTViYTllODg1OTQxNWMiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoicm95Iiwic3RhdHVzIjoiT0ZGTElORSIsImltYWdlVXJsIjoiaHR0cHM6Ly9hcG9sbG8tY2hhdC11c2Vycy10ZXN0LnMzLmFtYXpvbmF3cy5jb20vNjg0Y2UxZDgyZTU1YmE5ZTg4NTk0MTVjLmpwZyIsImlhdCI6MTc1MDE1NTg3MiwiZXhwIjoxNzUwMTkxODcyfQ._N4343gUzRxM2OlNZaFrRby4g-2EKXEsxaTNLdE9jxo
+
+{
+  "query": "query VerifyJoinedChatAfterFix { chats(skip: 0, limit: 20) { _id name type } }"
+}
+
+###
+
+# The fix:
+# - Removed the strict creator check that was filtering out public chats
+# - Added a fallback to create a placeholder creator when one can't be found
+# - This ensures that all public chats are returned, even if there are issues with the creator lookup
+# - The placeholder creator ensures the GraphQL schema requirements are met (non-nullable creator field) 

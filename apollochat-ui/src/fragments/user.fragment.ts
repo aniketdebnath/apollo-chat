@@ -6,5 +6,6 @@ export const UserFragment = graphql(`
     email
     username
     imageUrl
+    status
   }
 `);

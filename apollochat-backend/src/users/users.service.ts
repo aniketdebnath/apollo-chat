@@ -218,19 +218,46 @@ export class UsersService {
   }
 
   toEntity(userDocument: UserDocument): User {
-    const user = {
-      ...userDocument,
-      // Convert status string to proper enum value
-      status:
-        (userDocument.status?.toUpperCase() as UserStatus) ||
-        UserStatus.OFFLINE,
-      imageUrl: this.s3Service.getObjectUrl(
-        USERS_BUCKET,
-        this.getUserImage(userDocument._id.toHexString()),
-      ),
-    };
-    delete user.password;
-    return user as User;
+    if (!userDocument) {
+      return null;
+    }
+
+    try {
+      // Create a user object with required fields
+      const user: any = {
+        ...userDocument,
+        // Convert status string to proper enum value
+        status:
+          (userDocument.status?.toUpperCase() as UserStatus) ||
+          UserStatus.OFFLINE,
+      };
+
+      // Try to get the image URL, but don't fail if it's not available
+      try {
+        user.imageUrl = this.s3Service.getObjectUrl(
+          USERS_BUCKET,
+          this.getUserImage(userDocument._id.toHexString()),
+        );
+      } catch (_) {
+        // Leave imageUrl as undefined/null
+      }
+
+      delete user.password;
+      return user as unknown as User;
+    } catch (error) {
+      this.logger.error(
+        `Error converting user document to entity: ${error instanceof Error ? error.message : String(error)}`,
+      );
+
+      // Return user with default values for required fields
+      const safeUser: any = {
+        ...userDocument,
+        status: UserStatus.OFFLINE,
+      };
+
+      delete safeUser.password;
+      return safeUser as unknown as User;
+    }
   }
 
   private getUserImage(userId: string) {

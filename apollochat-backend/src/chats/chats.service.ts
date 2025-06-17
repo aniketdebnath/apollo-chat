@@ -15,7 +15,7 @@ import { ChatMemberInput } from './dto/chat-member.input';
 import { ChatTypeInput } from './dto/chat-type.input';
 import { ChatDocument } from './entities/chat.document';
 // User entity is used in the interface type definition
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 import { User } from '../users/entities/user.entity';
 
 // Define interface for chat with latest message
@@ -91,9 +91,6 @@ export class ChatsService {
             $or: [
               { members: new Types.ObjectId(userId) }, // User is a member
               { creatorId: userId }, // User is the creator
-              // Removed the following two lines to fix the chat privacy bug:
-              // { type: 'open' }, // Chat is open to everyone
-              // { type: 'public' }, // Chat is publicly visible
             ],
           }
         : {};
@@ -168,7 +165,15 @@ export class ChatsService {
             foreignField: '_id',
             as: 'creator',
             pipeline: [
-              { $project: { _id: 1, username: 1, imageUrl: 1, email: 1 } },
+              {
+                $project: {
+                  _id: 1,
+                  username: 1,
+                  imageUrl: 1,
+                  email: 1,
+                  status: 1,
+                },
+              },
             ],
           },
         },
@@ -180,7 +185,15 @@ export class ChatsService {
             foreignField: '_id',
             as: 'members',
             pipeline: [
-              { $project: { _id: 1, username: 1, imageUrl: 1, email: 1 } },
+              {
+                $project: {
+                  _id: 1,
+                  username: 1,
+                  imageUrl: 1,
+                  email: 1,
+                  status: 1,
+                },
+              },
             ],
           },
         },
@@ -198,21 +211,21 @@ export class ChatsService {
         );
 
       // Process the chats to ensure proper structure
+      const validChats = [];
+
       for (const chat of chats) {
+        // Handle latestMessage
         if (!chat.latestMessage?._id) {
           delete chat.latestMessage;
-          continue;
         }
 
         // Make sure user exists before trying to access it
-
         if (
           chat.latestMessage?.user &&
           Array.isArray(chat.latestMessage.user) &&
           chat.latestMessage.user[0]
         ) {
           // Convert the user document to a User entity
-
           chat.latestMessage.user = this.usersService.toEntity(
             chat.latestMessage.user[0],
           );
@@ -220,31 +233,89 @@ export class ChatsService {
 
         if (chat.latestMessage) {
           delete chat.latestMessage.userId;
-
           chat.latestMessage.chatId = chat._id.toString();
         }
 
         // Make sure creator is properly transformed
         // This is critical since creator is non-nullable in the GraphQL schema
-
         if (!chat.creator && chat.creatorId) {
           try {
             // If creator lookup fails, try to get the user directly
-
             const creatorId = chat.creatorId.toString();
             const user = await this.usersService.findOne(creatorId);
-
             chat.creator = user;
+
+            // If we still don't have a creator, skip this chat
+            if (!chat.creator) {
+              this.logger.warn(
+                `Skipping chat ${chat._id.toString()} - could not find creator`,
+              );
+              continue;
+            }
           } catch (err) {
             this.logger.error(
               `Failed to fetch creator for chat ${chat._id.toString()}:`,
               err,
             );
+            // Skip this chat since we couldn't get a creator
+            continue;
           }
+        } else if (!chat.creator) {
+          // If there's no creator and no creatorId, skip this chat
+          this.logger.warn(
+            `Skipping chat ${chat._id.toString()} with null creator`,
+          );
+          continue;
         }
+
+        // Process members to ensure they have valid imageUrl fields
+        if (Array.isArray(chat.members)) {
+          const processedMembers: User[] = [];
+
+          for (const member of chat.members) {
+            if (member) {
+              try {
+                // Check if member is an ObjectId or has an _id property
+                const memberId =
+                  member instanceof Types.ObjectId
+                    ? member.toString()
+                    : (member as any)._id?.toString();
+
+                if (memberId) {
+                  const userDoc = await this.usersService.findOne(memberId);
+                  if (userDoc) {
+                    processedMembers.push(userDoc);
+                  }
+                } else {
+                  // It's already a user document, just process it
+                  const processedMember = this.usersService.toEntity(
+                    member as any,
+                  );
+                  if (processedMember) {
+                    processedMembers.push(processedMember);
+                  }
+                }
+              } catch (err) {
+                this.logger.warn(
+                  `Failed to process member: ${err instanceof Error ? err.message : String(err)}`,
+                );
+              }
+            }
+          }
+
+          chat.members = processedMembers as any;
+        }
+
+        // Ensure creator imageUrl is never null
+        if (chat.creator && !chat.creator.imageUrl) {
+          chat.creator.imageUrl =
+            'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+        }
+
+        validChats.push(chat);
       }
 
-      return chats as unknown as Chat[];
+      return validChats as unknown as Chat[];
     } catch (error) {
       this.logger.error(`Failed to find chats:`, error);
       throw error;
@@ -252,26 +323,63 @@ export class ChatsService {
   }
 
   async findOne(_id: string, userId?: string): Promise<Chat> {
-    // Pass an empty PaginationArgs object to findMany
-    const chats = await this.findMany(
-      [{ $match: { _id: new Types.ObjectId(_id) } }],
-      undefined,
-      userId,
-    );
+    try {
+      // First try using the aggregation pipeline
+      const chats = await this.findMany(
+        [{ $match: { _id: new Types.ObjectId(_id) } }],
+        undefined,
+        userId,
+      );
 
-    if (!chats[0]) {
-      throw new NotFoundException(`No chat was found with ID ${_id}`);
+      if (chats[0]) {
+        return chats[0];
+      }
+
+      // If no chat was found through the pipeline, try a direct lookup
+      // This is important for newly created chats that might be filtered out by the pipeline
+      const chatDocument = await this.chatsRepository.findOne({
+        _id: new Types.ObjectId(_id),
+      });
+
+      if (!chatDocument) {
+        throw new NotFoundException(`No chat was found with ID ${_id}`);
+      }
+
+      // Manually populate the creator
+      const creator = await this.usersService.findOne(
+        chatDocument.creatorId.toString(),
+      );
+
+      if (!creator) {
+        throw new NotFoundException(
+          `Creator not found for chat with ID ${_id}`,
+        );
+      }
+
+      // Manually populate members
+      const memberIds = chatDocument.members.map((m) => m.toString());
+      const members = await Promise.all(
+        memberIds.map((id) => this.usersService.findOne(id)),
+      );
+
+      // Create a chat entity with the necessary fields
+      const chat = {
+        _id: chatDocument._id.toString(),
+        name: chatDocument.name,
+        type: chatDocument.type || 'private',
+        creator: creator,
+        members: members,
+        isPinned: chatDocument.pinnedBy?.get(userId) || false,
+      } as unknown as Chat;
+
+      return chat;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error(`Failed to find chat with ID ${_id}:`, error);
+      throw new NotFoundException(`Error finding chat with ID ${_id}`);
     }
-
-    // Extra safety check for creator
-    const chat = chats[0] as any; // Use type assertion to access raw document properties
-    if (!chat.creator && chat.creatorId) {
-      // This is a fallback in case the creator field wasn't populated
-      const creator = await this.usersService.findOne(chat.creatorId);
-      chat.creator = creator;
-    }
-
-    return chat as Chat;
   }
 
   /**
@@ -510,13 +618,27 @@ export class ChatsService {
 
   /**
    * Find all public and open chats for the explore page
+   * @param userId Optional user ID to filter out chats where the user is a member or creator
    * @returns Array of public and open chats
    */
-  async findPublicChats(): Promise<Chat[]> {
-    // Only match public or open chats
+  async findPublicChats(userId?: string): Promise<Chat[]> {
+    // Add debug logs
+    this.logger.debug('Finding public chats');
+
+    // Only match public or open chats, and filter out chats where the user is a member or creator
     const publicFilter = {
       type: { $in: ['public', 'open'] },
+      ...(userId
+        ? {
+            $and: [
+              { members: { $ne: new Types.ObjectId(userId) } }, // Not a member
+              { creatorId: { $ne: userId } }, // Not the creator
+            ],
+          }
+        : {}),
     };
+
+    this.logger.debug(`Public filter: ${JSON.stringify(publicFilter)}`);
 
     // Use type assertion for MongoDB aggregation results
     const pipeline: PipelineStage[] = [
@@ -554,7 +676,15 @@ export class ChatsService {
           foreignField: '_id',
           as: 'creator',
           pipeline: [
-            { $project: { _id: 1, username: 1, imageUrl: 1, email: 1 } },
+            {
+              $project: {
+                _id: 1,
+                username: 1,
+                imageUrl: 1,
+                email: 1,
+                status: 1,
+              },
+            },
           ],
         },
       },
@@ -566,7 +696,15 @@ export class ChatsService {
           foreignField: '_id',
           as: 'members',
           pipeline: [
-            { $project: { _id: 1, username: 1, imageUrl: 1, email: 1 } },
+            {
+              $project: {
+                _id: 1,
+                username: 1,
+                imageUrl: 1,
+                email: 1,
+                status: 1,
+              },
+            },
           ],
         },
       },
@@ -578,12 +716,42 @@ export class ChatsService {
       },
     ];
 
-    const chats = await this.chatsRepository.model.aggregate<any>(pipeline);
+    const chats =
+      await this.chatsRepository.model.aggregate<ChatWithLatestMessage>(
+        pipeline,
+      );
+
+    // Add debug logs
+    this.logger.debug(`Found ${chats.length} chats from aggregation`);
+    for (const chat of chats) {
+      this.logger.debug(
+        `Processing chat: ${String(chat._id)}, creator: ${chat.creator ? 'exists' : 'missing'}, creatorId: ${String(chat.creatorId || 'undefined')}`,
+      );
+    }
 
     // Process the chats to ensure proper structure
     const processedChats = [];
 
     for (const chat of chats) {
+      // MODIFIED: Don't skip chats with null creators immediately
+      // Instead, try to fetch the creator first
+      if (!chat.creator && chat.creatorId) {
+        try {
+          // This is a fallback in case the creator field wasn't populated
+          const creator = await this.usersService.findOne(
+            chat.creatorId.toString(),
+          );
+          chat.creator = creator;
+        } catch (err) {
+          this.logger.error(
+            `Failed to fetch creator for public chat ${chat._id.toString()}:`,
+            err,
+          );
+          // Continue processing even if we couldn't get the creator
+          // We'll handle missing creator later
+        }
+      }
+
       // Process latestMessage
       if (!chat.latestMessage?._id) {
         delete chat.latestMessage;
@@ -592,27 +760,75 @@ export class ChatsService {
           chat.latestMessage.user[0],
         );
         delete chat.latestMessage.userId;
-        chat.latestMessage.chatId = chat._id;
+        chat.latestMessage.chatId = chat._id.toString();
       }
 
-      // Ensure creator is properly populated - THIS IS THE CRITICAL FIX
-      if (!chat.creator && chat.creatorId) {
-        try {
-          // This is a fallback in case the creator field wasn't populated
-          const creator = await this.usersService.findOne(chat.creatorId);
-          chat.creator = creator;
-        } catch (err) {
-          console.error(`Failed to fetch creator for chat ${chat._id}:`, err);
-          // Skip this chat since we can't return null for creator
-          continue;
+      // MODIFIED: If we still don't have a creator, create a placeholder
+      if (!chat.creator) {
+        this.logger.warn(
+          `Creating placeholder creator for chat ${chat._id.toString()}`,
+        );
+        chat.creator = {
+          _id: chat.creatorId || 'unknown',
+          username: 'Unknown User',
+          email: 'unknown@example.com',
+          imageUrl:
+            'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y',
+          status: 'OFFLINE',
+        };
+      }
+
+      // Process members to ensure they have valid imageUrl fields
+      if (Array.isArray(chat.members)) {
+        const processedMembers: User[] = [];
+
+        for (const member of chat.members) {
+          if (member) {
+            try {
+              // Check if member is an ObjectId or has an _id property
+              const memberId =
+                member instanceof Types.ObjectId
+                  ? member.toString()
+                  : (member as any)._id?.toString();
+
+              if (memberId) {
+                const userDoc = await this.usersService.findOne(memberId);
+                if (userDoc) {
+                  processedMembers.push(userDoc);
+                }
+              } else {
+                // It's already a user document, just process it
+                const processedMember = this.usersService.toEntity(
+                  member as any,
+                );
+                if (processedMember) {
+                  processedMembers.push(processedMember);
+                }
+              }
+            } catch (err) {
+              this.logger.warn(
+                `Failed to process member: ${err instanceof Error ? err.message : String(err)}`,
+              );
+            }
+          }
         }
+
+        chat.members = processedMembers as any;
       }
 
-      // Only add chat if it has a valid creator
-      if (chat.creator) {
-        processedChats.push(chat);
+      // Ensure creator imageUrl is never null
+      if (chat.creator && !chat.creator.imageUrl) {
+        chat.creator.imageUrl =
+          'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
       }
+
+      processedChats.push(chat);
     }
+
+    // Add debug logs
+    this.logger.debug(
+      `Returning ${processedChats.length} processed public chats`,
+    );
 
     return processedChats as unknown as Chat[];
   }

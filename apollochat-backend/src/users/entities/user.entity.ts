@@ -17,7 +17,7 @@ export class User extends AbstractEntity {
   @Field()
   username: string;
 
-  @Field()
+  @Field({ nullable: true })
   imageUrl: string;
 
   @Field(() => UserStatus, { defaultValue: UserStatus.OFFLINE })

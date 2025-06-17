@@ -5,6 +5,7 @@ import Home from "./home/Home";
 import Chat from "./chat/Chat";
 import { Profile } from "./profile/Profile";
 import Demo from "./demo/Demo";
+import Explore from "./explore/Explore";
 import {
   Box,
   Typography,
@@ -69,7 +70,6 @@ const ComingSoon = ({ title }: { title: string }) => {
   );
 };
 
-const Explore = () => <ComingSoon title="Explore" />;
 const Notifications = () => <ComingSoon title="Notifications" />;
 const Favorites = () => <ComingSoon title="Favorites" />;
 

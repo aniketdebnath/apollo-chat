@@ -36,17 +36,31 @@ export class ChatsResolver {
 
   @UseGuards(GqlAuthGuard)
   @Query(() => [Chat], { name: 'publicChats' })
-  async findPublicChats(): Promise<Chat[]> {
-    return this.chatsService.findPublicChats();
+  async findPublicChats(@CurrentUser() user: TokenPayload): Promise<Chat[]> {
+    return this.chatsService.findPublicChats(user._id);
   }
 
   @UseGuards(GqlAuthGuard)
   @Query(() => Chat, { name: 'chat' })
   async findOne(
-    @Args('_id') _id: string,
+    @Args('_id') id: string,
     @CurrentUser() user: TokenPayload,
   ): Promise<Chat> {
-    return this.chatsService.findOne(_id, user._id);
+    return this.chatsService.findOne(id, user._id);
+  }
+
+  @UseGuards(GqlAuthGuard)
+  @Query(() => [Chat], { name: 'debugPublicChats' })
+  async debugPublicChats(@CurrentUser() user: TokenPayload): Promise<Chat[]> {
+    try {
+      console.log('Debug: Starting debugPublicChats query');
+      const chats = await this.chatsService.findPublicChats(user._id);
+      console.log(`Debug: Returning ${chats.length} public chats`);
+      return chats;
+    } catch (error) {
+      console.error('Debug: Error in debugPublicChats query:', error);
+      throw error;
+    }
   }
 
   @UseGuards(GqlAuthGuard)

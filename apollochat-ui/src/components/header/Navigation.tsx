@@ -1,4 +1,4 @@
-import { Box, Button, alpha, useTheme } from "@mui/material";
+import { Box, Button, useTheme } from "@mui/material";
 import { Pages } from "../../interfaces/pages.interface";
 import router from "../Routes";
 
