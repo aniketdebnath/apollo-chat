@@ -21,14 +21,7 @@ export const CHAT_TYPE_OPTIONS: ChatTypeOption[] = [
   {
     value: ChatType.PUBLIC,
     label: "Public",
-    description:
-      "Anyone can find and join this chat, but only after being approved",
-    icon: "group",
-  },
-  {
-    value: ChatType.OPEN,
-    label: "Open",
-    description: "Anyone can find and join this chat without approval",
+    description: "Anyone can find and join this chat",
     icon: "public",
   },
 ];
@@ -36,17 +29,17 @@ export const CHAT_TYPE_OPTIONS: ChatTypeOption[] = [
 export const chatTypeLabels = {
   [ChatType.PRIVATE]: "Private",
   [ChatType.PUBLIC]: "Public",
-  [ChatType.OPEN]: "Open",
+  [ChatType.OPEN]: "Public",
 };
 
 export const chatTypeDescriptions = {
   [ChatType.PRIVATE]: "Only invited members can see and join",
-  [ChatType.PUBLIC]: "Visible in discovery but requires joining",
-  [ChatType.OPEN]: "Visible and accessible to everyone",
+  [ChatType.PUBLIC]: "Visible in discovery and anyone can join",
+  [ChatType.OPEN]: "Visible in discovery and anyone can join",
 };
 
 export const chatTypeIcons = {
   [ChatType.PRIVATE]: "lock",
   [ChatType.PUBLIC]: "public",
-  [ChatType.OPEN]: "people",
+  [ChatType.OPEN]: "public",
 };

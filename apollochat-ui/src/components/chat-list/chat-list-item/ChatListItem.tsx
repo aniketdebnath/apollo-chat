@@ -13,6 +13,7 @@ import router from "../../Routes";
 import { Chat } from "../../../gql/graphql";
 import "./ChatListItem.css";
 import { formatDistanceToNowStrict } from "date-fns";
+import PushPinIcon from "@mui/icons-material/PushPin";
 
 interface ChatListProps {
   chat: Chat;
@@ -74,7 +75,24 @@ const ChatListItem = ({ chat, selected }: ChatListProps) => {
       sx={{
         mb: 0.5,
         overflow: "hidden",
+        position: "relative",
       }}>
+      {chat.isPinned && (
+        <Box
+          sx={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            width: "100%",
+            height: "100%",
+            pointerEvents: "none",
+            zIndex: 0,
+            backgroundColor: alpha(theme.palette.primary.main, 0.05),
+            borderLeft: `2px solid ${theme.palette.primary.main}`,
+            borderRadius: 2,
+          }}
+        />
+      )}
       <ListItemButton
         onClick={() => router.navigate(`/chats/${chat._id}`)}
         selected={selected}
@@ -88,6 +106,7 @@ const ChatListItem = ({ chat, selected }: ChatListProps) => {
               backgroundColor: alpha(theme.palette.primary.main, 0.25),
             },
           },
+          zIndex: 1,
         }}>
         <ListItemAvatar>
           {avatarImageUrl ? (
@@ -106,18 +125,44 @@ const ChatListItem = ({ chat, selected }: ChatListProps) => {
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
+                width: "100%",
               }}>
-              <Typography
-                variant="body1"
-                fontWeight={hasLatestMessage ? 500 : 400}
-                noWrap>
-                {chat.name}
-              </Typography>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  minWidth: 0,
+                  maxWidth: "calc(100% - 80px)",
+                }}>
+                {chat.isPinned && (
+                  <PushPinIcon
+                    fontSize="small"
+                    sx={{
+                      mr: 0.5,
+                      color: "primary.main",
+                      fontSize: "0.9rem",
+                      transform: "rotate(45deg)",
+                      flexShrink: 0,
+                    }}
+                  />
+                )}
+                <Typography
+                  variant="body1"
+                  fontWeight={hasLatestMessage || chat.isPinned ? 500 : 400}
+                  noWrap
+                  sx={{ overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {chat.name}
+                </Typography>
+              </Box>
               {hasLatestMessage && (
                 <Typography
                   variant="caption"
                   color="text.secondary"
-                  sx={{ flexShrink: 0, ml: 1 }}>
+                  sx={{
+                    flexShrink: 0,
+                    ml: 1,
+                    whiteSpace: "nowrap",
+                  }}>
                   {timeAgo}
                 </Typography>
               )}
@@ -131,6 +176,8 @@ const ChatListItem = ({ chat, selected }: ChatListProps) => {
                 flexDirection: "row",
                 alignItems: "center",
                 gap: "0.25rem",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
               }}>
               {hasLatestMessage && (
                 <>
@@ -140,6 +187,7 @@ const ChatListItem = ({ chat, selected }: ChatListProps) => {
                     sx={{
                       color: "text.secondary",
                       fontWeight: 500,
+                      flexShrink: 0,
                     }}
                     noWrap>
                     {chat.latestMessage?.user.username}:
@@ -149,7 +197,8 @@ const ChatListItem = ({ chat, selected }: ChatListProps) => {
                     variant="body2"
                     color="text.secondary"
                     className="content"
-                    noWrap>
+                    noWrap
+                    sx={{ overflow: "hidden", textOverflow: "ellipsis" }}>
                     {chat.latestMessage?.content}
                   </Typography>
                 </>

@@ -22,7 +22,11 @@ import { formatDistanceToNowStrict } from "date-fns";
 import LockIcon from "@mui/icons-material/Lock";
 import GroupIcon from "@mui/icons-material/Group";
 import PublicIcon from "@mui/icons-material/Public";
-import { ChatType, chatTypeDescriptions } from "../../constants/chatTypes";
+import {
+  ChatType,
+  chatTypeDescriptions,
+  chatTypeLabels,
+} from "../../constants/chatTypes";
 import { stringToColor } from "../../utils/avatar";
 import { Chat } from "../../gql/graphql";
 import { snackVar } from "../../constants/snack";
@@ -63,11 +67,10 @@ const Explore = () => {
       case ChatType.PRIVATE:
         return <LockIcon fontSize="small" />;
       case ChatType.PUBLIC:
-        return <GroupIcon fontSize="small" />;
       case ChatType.OPEN:
         return <PublicIcon fontSize="small" />;
       default:
-        return <GroupIcon fontSize="small" />;
+        return <PublicIcon fontSize="small" />;
     }
   };
 
@@ -231,15 +234,12 @@ const Explore = () => {
                           <Chip
                             icon={getChatTypeIcon(chat.type)}
                             label={
+                              chatTypeLabels[chat.type as ChatType] ||
                               chat.type.charAt(0).toUpperCase() +
-                              chat.type.slice(1)
+                                chat.type.slice(1)
                             }
                             size="small"
-                            color={
-                              chat.type === ChatType.OPEN
-                                ? "success"
-                                : "primary"
-                            }
+                            color="primary"
                             variant="outlined"
                             sx={{ borderRadius: 1 }}
                           />

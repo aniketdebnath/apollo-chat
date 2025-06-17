@@ -80,6 +80,11 @@ export const ChatList = () => {
           ) : data?.chats && data.chats.length > 0 ? (
             [...data.chats]
               .sort((chatA, chatB) => {
+                // First, sort by pinned status (pinned chats at the top)
+                if (chatA.isPinned && !chatB.isPinned) return -1;
+                if (!chatA.isPinned && chatB.isPinned) return 1;
+
+                // For chats with the same pin status, sort by latest message
                 // Explicit check: chats without messages go to the bottom
                 if (!chatA.latestMessage && chatB.latestMessage) return 1; // A to bottom
                 if (chatA.latestMessage && !chatB.latestMessage) return -1; // B to bottom

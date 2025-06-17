@@ -40,6 +40,11 @@ import { ChatType, CHAT_TYPE_OPTIONS } from "../../../constants/chatTypes";
 import { User } from "../../../gql/graphql";
 import { debounce } from "lodash";
 
+// Filter out the OPEN chat type option for UI simplicity
+const VISIBLE_CHAT_TYPE_OPTIONS = CHAT_TYPE_OPTIONS.filter(
+  (option) => option.value !== ChatType.OPEN
+);
+
 interface ChatListAddProps {
   open: boolean;
   handleClose: () => void;
@@ -141,8 +146,7 @@ const ChatListAdd = ({ open, handleClose }: ChatListAddProps) => {
       case ChatType.PRIVATE:
         return <LockIcon fontSize="small" />;
       case ChatType.PUBLIC:
-        return <GroupIcon fontSize="small" />;
-      case ChatType.OPEN:
+      case ChatType.OPEN: // Treat OPEN as PUBLIC
         return <PublicIcon fontSize="small" />;
       default:
         return <ChatIcon fontSize="small" />;
@@ -150,7 +154,7 @@ const ChatListAdd = ({ open, handleClose }: ChatListAddProps) => {
   };
 
   // Find the selected chat type option
-  const selectedTypeOption = CHAT_TYPE_OPTIONS.find(
+  const selectedTypeOption = VISIBLE_CHAT_TYPE_OPTIONS.find(
     (option) => option.value === chatType
   );
 
@@ -288,7 +292,7 @@ const ChatListAdd = ({ open, handleClose }: ChatListAddProps) => {
                   },
                 },
               }}>
-              {CHAT_TYPE_OPTIONS.map((option) => (
+              {VISIBLE_CHAT_TYPE_OPTIONS.map((option) => (
                 <ToggleButton
                   key={option.value}
                   value={option.value}

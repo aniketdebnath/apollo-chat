@@ -1,5 +1,5 @@
 import { ApolloCache } from "@apollo/client";
-import { Chat, Message } from "../gql/graphql";
+import { Chat } from "../gql/graphql";
 import { getChatsDocument } from "../hooks/useGetChats";
 
 // Use a large limit to effectively fetch all chats
@@ -23,9 +23,10 @@ const sortChats = (chats: Chat[]): Chat[] => {
   });
 };
 
-export const updateLatestMessage = (
+export const updateChatPinStatus = (
   cache: ApolloCache<any>,
-  message: Message
+  chatId: string,
+  isPinned: boolean
 ) => {
   try {
     const variables = {
@@ -41,22 +42,20 @@ export const updateLatestMessage = (
     if (!queryResult?.chats) return;
 
     const chats = [...queryResult.chats];
-    const cachedChatIndex = chats.findIndex(
-      (chat) => chat._id === message.chatId
-    );
+    const chatIndex = chats.findIndex((chat) => chat._id === chatId);
 
-    if (cachedChatIndex === -1) {
+    if (chatIndex === -1) {
       return;
     }
 
-    const cachedChat = chats[cachedChatIndex];
-    const cachedChatCopy = { ...cachedChat };
-    cachedChatCopy.latestMessage = message;
-    chats[cachedChatIndex] = cachedChatCopy;
+    // Update the pin status of the chat
+    const updatedChat = { ...chats[chatIndex], isPinned };
+    chats[chatIndex] = updatedChat;
 
     // Sort chats to maintain proper order with pinned chats first
     const sortedChats = sortChats(chats);
 
+    // Write the sorted chats back to the cache
     cache.writeQuery({
       query: getChatsDocument,
       variables,
@@ -65,6 +64,6 @@ export const updateLatestMessage = (
       },
     });
   } catch (error) {
-    console.error("Error updating latest message:", error);
+    console.error("Error updating chat pin status:", error);
   }
 };

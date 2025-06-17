@@ -27,7 +27,9 @@ const documents = {
     "\n  query GetPublicChats {\n    publicChats {\n      ...ChatFragment\n    }\n  }\n": types.GetPublicChatsDocument,
     "\n  mutation JoinChat($chatId: String!) {\n    joinChat(chatId: $chatId) {\n      ...ChatFragment\n    }\n  }\n": types.JoinChatDocument,
     "\n  subscription messageCreated($chatIds: [String!]!) {\n    messageCreated(chatIds: $chatIds) {\n      ...MessageFragment\n    }\n  }\n": types.MessageCreatedDocument,
+    "\n  mutation PinChat($chatPinInput: ChatPinInput!) {\n    pinChat(chatPinInput: $chatPinInput) {\n      _id\n      name\n      isPinned\n    }\n  }\n": types.PinChatDocument,
     "\n  query SearchUsers($searchTerm: String!, $limit: Int) {\n    searchUsers(searchTerm: $searchTerm, limit: $limit) {\n      ...UserFragment\n    }\n  }\n": types.SearchUsersDocument,
+    "\n  mutation UnpinChat($chatPinInput: ChatPinInput!) {\n    unpinChat(chatPinInput: $chatPinInput) {\n      _id\n      name\n      isPinned\n    }\n  }\n": types.UnpinChatDocument,
 };
 
 /**
@@ -103,7 +105,15 @@ export function graphql(source: "\n  subscription messageCreated($chatIds: [Stri
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "\n  mutation PinChat($chatPinInput: ChatPinInput!) {\n    pinChat(chatPinInput: $chatPinInput) {\n      _id\n      name\n      isPinned\n    }\n  }\n"): (typeof documents)["\n  mutation PinChat($chatPinInput: ChatPinInput!) {\n    pinChat(chatPinInput: $chatPinInput) {\n      _id\n      name\n      isPinned\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "\n  query SearchUsers($searchTerm: String!, $limit: Int) {\n    searchUsers(searchTerm: $searchTerm, limit: $limit) {\n      ...UserFragment\n    }\n  }\n"): (typeof documents)["\n  query SearchUsers($searchTerm: String!, $limit: Int) {\n    searchUsers(searchTerm: $searchTerm, limit: $limit) {\n      ...UserFragment\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UnpinChat($chatPinInput: ChatPinInput!) {\n    unpinChat(chatPinInput: $chatPinInput) {\n      _id\n      name\n      isPinned\n    }\n  }\n"): (typeof documents)["\n  mutation UnpinChat($chatPinInput: ChatPinInput!) {\n    unpinChat(chatPinInput: $chatPinInput) {\n      _id\n      name\n      isPinned\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

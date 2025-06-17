@@ -6,6 +6,7 @@ import { excludedRoutes } from "./excluded-routes";
 import { onLogout } from "../utils/logout";
 import { createClient } from "graphql-ws";
 import { getMainDefinition } from "@apollo/client/utilities";
+import { Chat } from "../gql/graphql";
 
 // Super detailed debug link to identify the source of Variable $skip errors
 const debugLink = onError(
@@ -63,6 +64,24 @@ const splitLink = split(
   httpLink
 );
 
+// Helper function to sort chats with pinned chats first
+const sortChats = (chats: Chat[]): Chat[] => {
+  return [...chats].sort((a, b) => {
+    // Sort by isPinned first (true values first)
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+
+    // Then sort by latest message date (newest first)
+    const aDate = a.latestMessage?.createdAt
+      ? new Date(a.latestMessage.createdAt).getTime()
+      : 0;
+    const bDate = b.latestMessage?.createdAt
+      ? new Date(b.latestMessage.createdAt).getTime()
+      : 0;
+    return bDate - aDate;
+  });
+};
+
 const client = new ApolloClient({
   cache: new InMemoryCache({
     typePolicies: {
@@ -72,7 +91,8 @@ const client = new ApolloClient({
             keyArgs: false,
             merge(existing, incoming, { args }) {
               if (args?.limit >= 1000) {
-                return incoming;
+                // Sort chats with pinned chats first
+                return sortChats(incoming);
               }
 
               const merged = existing ? existing.slice(0) : [];
@@ -80,10 +100,12 @@ const client = new ApolloClient({
                 for (let i = 0; i < incoming.length; ++i) {
                   merged[args.skip + i] = incoming[i];
                 }
-                return merged;
+                // Sort the merged array
+                return sortChats(merged);
               }
 
-              return incoming;
+              // Sort incoming chats
+              return sortChats(incoming);
             },
           },
           messages: {

@@ -12,14 +12,20 @@ import {
   Typography,
   alpha,
   useTheme,
+  Tooltip,
 } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
+import PushPinIcon from "@mui/icons-material/PushPin";
+import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
 import { useCreateMessage } from "../../hooks/useCreateMessage";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useGetMessages } from "../../hooks/useGetMessages";
 import { PAGE_SIZE } from "../../constants/page-size";
 import { useCountMessages } from "../../hooks/useCountMessages";
 import InfiniteScrollComponent from "react-infinite-scroller";
+import { usePinChat } from "../../hooks/usePinChat";
+import { useUnpinChat } from "../../hooks/useUnpinChat";
+import { snackVar } from "../../constants/snack";
 // @ts-ignore
 import { formatDistanceToNowStrict } from "date-fns";
 
@@ -60,6 +66,9 @@ const Chat = () => {
   const chatId = params._id!;
   const { data, loading: chatLoading } = useGetChat({ _id: chatId });
   const [createMessage, { loading: sendingMessage }] = useCreateMessage();
+  const { pinChat } = usePinChat();
+  const { unpinChat } = useUnpinChat();
+  const [isPinning, setIsPinning] = useState(false);
   const theme = useTheme();
 
   const {
@@ -149,6 +158,35 @@ const Chat = () => {
     return messageDate.toLocaleDateString();
   };
 
+  const handlePinToggle = async () => {
+    if (isPinning || !data?.chat) return;
+
+    setIsPinning(true);
+    try {
+      if (data.chat.isPinned) {
+        await unpinChat(chatId);
+        snackVar({
+          message: `Unpinned ${data.chat.name || "chat"}`,
+          type: "success",
+        });
+      } else {
+        await pinChat(chatId);
+        snackVar({
+          message: `Pinned ${data.chat.name || "chat"}`,
+          type: "success",
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling pin status:", error);
+      snackVar({
+        message: "Failed to update pin status",
+        type: "error",
+      });
+    } finally {
+      setIsPinning(false);
+    }
+  };
+
   return (
     <Paper
       elevation={0}
@@ -167,6 +205,7 @@ const Chat = () => {
         sx={{
           display: "flex",
           alignItems: "center",
+          justifyContent: "space-between",
           px: 3,
           py: 2,
           borderBottom: "1px solid",
@@ -177,22 +216,50 @@ const Chat = () => {
           <CircularProgress size={24} />
         ) : (
           <>
-            {data?.chat.latestMessage?.user.imageUrl ? (
-              <Avatar
-                src={data.chat.latestMessage.user.imageUrl}
-                sx={{ mr: 2 }}
-              />
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              {data?.chat.latestMessage?.user.imageUrl ? (
+                <Avatar
+                  src={data.chat.latestMessage.user.imageUrl}
+                  sx={{ mr: 2 }}
+                />
+              ) : (
+                <Avatar
+                  {...getAvatarProps(data?.chat.name || "Chat")}
+                  sx={{ mr: 2 }}
+                />
+              )}
+              <Typography
+                variant="h6"
+                fontWeight={600}>
+                {data?.chat.name}
+              </Typography>
+            </Box>
+            {isPinning ? (
+              <CircularProgress size={20} />
             ) : (
-              <Avatar
-                {...getAvatarProps(data?.chat.name || "Chat")}
-                sx={{ mr: 2 }}
-              />
+              <Tooltip title={data?.chat.isPinned ? "Unpin chat" : "Pin chat"}>
+                <span>
+                  <IconButton
+                    onClick={handlePinToggle}
+                    disabled={isPinning}
+                    size="small"
+                    sx={{
+                      color: data?.chat.isPinned
+                        ? "primary.main"
+                        : "text.secondary",
+                      "&:hover": {
+                        backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                      },
+                    }}>
+                    {data?.chat.isPinned ? (
+                      <PushPinIcon fontSize="small" />
+                    ) : (
+                      <PushPinOutlinedIcon fontSize="small" />
+                    )}
+                  </IconButton>
+                </span>
+              </Tooltip>
             )}
-            <Typography
-              variant="h6"
-              fontWeight={600}>
-              {data?.chat.name}
-            </Typography>
           </>
         )}
       </Box>
@@ -249,174 +316,150 @@ const Chat = () => {
                 <CircularProgress size={24} />
               </Box>
             }>
-            {messages &&
-              [...messages.messages]
-                .sort(
-                  (messageA, messageB) =>
-                    new Date(messageA.createdAt).getTime() -
-                    new Date(messageB.createdAt).getTime()
-                )
-                .map((message, index, array) => {
-                  // Check if this is a new day compared to previous message
-                  const showDateDivider =
-                    index === 0 ||
-                    new Date(message.createdAt).toDateString() !==
-                      new Date(array[index - 1].createdAt).toDateString();
+            <div style={{ display: "flex", flexDirection: "column-reverse" }}>
+              {messages?.messages.map((message, index, array) => {
+                // Check if this message is from a different day than the previous one
+                const showDateDivider =
+                  index === array.length - 1 ||
+                  new Date(message.createdAt).toDateString() !==
+                    new Date(array[index + 1].createdAt).toDateString();
 
-                  return (
-                    <Box key={message._id}>
-                      {showDateDivider && (
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "center",
-                            my: 2,
-                            position: "relative",
-                          }}>
-                          <Divider
-                            sx={{
-                              position: "absolute",
-                              width: "100%",
-                              top: "50%",
-                            }}
-                          />
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              bgcolor: "background.paper",
-                              px: 2,
-                              py: 0.5,
-                              borderRadius: 1,
-                              position: "relative",
-                              zIndex: 1,
-                            }}>
-                            {new Date(message.createdAt).toLocaleDateString(
-                              undefined,
-                              {
-                                weekday: "long",
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              }
-                            )}
-                          </Typography>
-                        </Box>
-                      )}
-
+                return (
+                  <div key={message._id}>
+                    {showDateDivider && (
                       <Box
                         sx={{
                           display: "flex",
-                          alignItems: "flex-start",
-                          mb: 2,
-                          px: 1,
+                          justifyContent: "center",
+                          my: 2,
+                          position: "relative",
                         }}>
-                        {/* Avatar */}
-                        <Box sx={{ mr: 2, mt: 0.5 }}>
-                          {message.user.imageUrl ? (
-                            <Avatar
-                              src={message.user.imageUrl}
-                              sx={{ width: 40, height: 40 }}
-                            />
-                          ) : (
-                            <Avatar
-                              {...getAvatarProps(message.user.username)}
-                              sx={{ width: 40, height: 40 }}
-                            />
-                          )}
-                        </Box>
-
-                        {/* Message content */}
-                        <Box sx={{ maxWidth: "80%" }}>
+                        <Divider
+                          sx={{
+                            position: "absolute",
+                            width: "100%",
+                            top: "50%",
+                          }}
+                        />
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            bgcolor: "background.paper",
+                            px: 2,
+                            py: 0.5,
+                            borderRadius: 1,
+                            position: "relative",
+                            zIndex: 1,
+                          }}>
+                          {new Date(message.createdAt).toLocaleDateString()}
+                        </Typography>
+                      </Box>
+                    )}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        mb: 2,
+                        alignItems: "flex-start",
+                      }}>
+                      <Avatar
+                        src={message.user.imageUrl || ""}
+                        {...(!message.user.imageUrl
+                          ? getAvatarProps(message.user.username)
+                          : {})}
+                        sx={{ mr: 2, mt: 0.5 }}
+                      />
+                      <Box>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            mb: 0.5,
+                          }}>
                           <Typography
                             variant="subtitle2"
-                            color="text.secondary"
-                            sx={{ mb: 0.5 }}>
+                            color="text.secondary">
                             {message.user.username}
                           </Typography>
-
-                          <Paper
-                            elevation={0}
-                            sx={{
-                              p: 2,
-                              borderRadius: 2.5,
-                              backgroundColor: alpha(
-                                theme.palette.primary.main,
-                                0.1
-                              ),
-                              color: "text.primary",
-                            }}>
-                            <Typography variant="body1">
-                              {message.content}
-                            </Typography>
-                          </Paper>
-
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ display: "block", mt: 0.5, ml: 1 }}>
-                            {formatMessageDate(message.createdAt)}
-                          </Typography>
                         </Box>
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            p: 2,
+                            borderRadius: 2.5,
+                            backgroundColor: alpha(
+                              theme.palette.primary.main,
+                              0.1
+                            ),
+                            color: "text.primary",
+                          }}>
+                          <Typography>{message.content}</Typography>
+                        </Paper>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          sx={{ mt: 0.5, display: "block" }}>
+                          {formatMessageDate(message.createdAt)}
+                        </Typography>
                       </Box>
                     </Box>
-                  );
-                })}
-            <div ref={divRef}></div>
+                  </div>
+                );
+              })}
+            </div>
           </InfiniteScroll>
         )}
+        <div ref={divRef} />
       </Box>
 
       {/* Message Input */}
-      <Box sx={{ p: 2, borderTop: "1px solid", borderColor: "divider" }}>
+      <Box sx={{ p: 2 }}>
         <Paper
           elevation={0}
           sx={{
-            p: "2px 4px",
+            p: "8px 16px",
             display: "flex",
             alignItems: "center",
-            width: "100%",
             borderRadius: 3,
-            backgroundColor: alpha(theme.palette.background.paper, 0.8),
             border: "1px solid",
             borderColor: "divider",
+            backgroundColor: alpha(theme.palette.background.paper, 0.8),
             "&:hover": {
               borderColor: theme.palette.primary.main,
             },
             transition: "all 0.2s ease",
           }}>
           <InputBase
-            sx={{
-              ml: 2,
-              flex: 1,
-              color: "text.primary",
-              fontSize: "0.95rem",
-            }}
-            onChange={(event) => setMessage(event.target.value)}
-            value={message}
+            sx={{ ml: 1, flex: 1 }}
             placeholder="Type a message..."
-            onKeyDown={async (event) => {
-              if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                await handleCreateMessage();
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleCreateMessage();
               }
             }}
             multiline
             maxRows={4}
           />
           <IconButton
-            onClick={handleCreateMessage}
-            color="primary"
-            disabled={sendingMessage || !message.trim()}
             sx={{
               p: "10px",
-              borderRadius: 2,
-              transition: "all 0.2s ease",
-              mr: 0.5,
-              "&:hover": {
-                backgroundColor: alpha(theme.palette.primary.main, 0.1),
+              color: theme.palette.primary.main,
+              "&:disabled": {
+                color: alpha(theme.palette.primary.main, 0.5),
               },
-            }}>
-            {sendingMessage ? <CircularProgress size={24} /> : <SendIcon />}
+            }}
+            disabled={!message.trim() || sendingMessage}
+            onClick={handleCreateMessage}>
+            {sendingMessage ? (
+              <CircularProgress
+                size={24}
+                color="inherit"
+              />
+            ) : (
+              <SendIcon />
+            )}
           </IconButton>
         </Paper>
       </Box>
