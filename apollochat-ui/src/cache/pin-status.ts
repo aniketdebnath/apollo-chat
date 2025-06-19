@@ -1,27 +1,13 @@
 import { ApolloCache } from "@apollo/client";
 import { Chat } from "../gql/graphql";
 import { getChatsDocument } from "../hooks/useGetChats";
+import { sortChats } from "../utils/chat-sorting";
 
 // Use a large limit to effectively fetch all chats
 const FETCH_ALL_CHATS_LIMIT = 1000;
 
 // Helper function to sort chats with pinned chats first, then by latest message date
-const sortChats = (chats: Chat[]): Chat[] => {
-  return [...chats].sort((a, b) => {
-    // Sort by isPinned first (true values first)
-    if (a.isPinned && !b.isPinned) return -1;
-    if (!a.isPinned && b.isPinned) return 1;
-
-    // Then sort by latest message date (newest first)
-    const aDate = a.latestMessage?.createdAt
-      ? new Date(a.latestMessage.createdAt).getTime()
-      : 0;
-    const bDate = b.latestMessage?.createdAt
-      ? new Date(b.latestMessage.createdAt).getTime()
-      : 0;
-    return bDate - aDate;
-  });
-};
+// Removed local sortChats function and using the imported one
 
 export const updateChatPinStatus = (
   cache: ApolloCache<any>,

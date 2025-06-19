@@ -18,7 +18,7 @@ import SendIcon from "@mui/icons-material/Send";
 import PushPinIcon from "@mui/icons-material/PushPin";
 import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
 import { useCreateMessage } from "../../hooks/useCreateMessage";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useGetMessages } from "../../hooks/useGetMessages";
 import { PAGE_SIZE } from "../../constants/page-size";
 import { useCountMessages } from "../../hooks/useCountMessages";
@@ -26,6 +26,9 @@ import InfiniteScrollComponent from "react-infinite-scroller";
 import { usePinChat } from "../../hooks/usePinChat";
 import { useUnpinChat } from "../../hooks/useUnpinChat";
 import { snackVar } from "../../constants/snack";
+import { UserAvatar } from "../common/UserAvatar";
+import { UserStatus } from "../../constants/userStatus";
+import { useUserStatus } from "../../hooks/useUserStatus";
 // @ts-ignore
 import { formatDistanceToNowStrict } from "date-fns";
 
@@ -187,6 +190,39 @@ const Chat = () => {
     }
   };
 
+  // Get unique user IDs from messages for status subscription
+  const userIds = useMemo(() => {
+    const ids = new Set<string>();
+
+    // Add the latest message user if available
+    if (data?.chat?.latestMessage?.user?._id) {
+      ids.add(data.chat.latestMessage.user._id);
+    }
+
+    // Add all message senders
+    if (messages?.messages) {
+      messages.messages.forEach((message) => {
+        if (message.user._id) {
+          ids.add(message.user._id);
+        }
+      });
+    }
+
+    return Array.from(ids);
+  }, [data?.chat?.latestMessage, messages?.messages]);
+
+  // Subscribe to status updates for all users in this chat
+  useUserStatus(userIds);
+
+  // Sort messages in chronological order (oldest first)
+  const sortedMessages = useMemo(() => {
+    if (!messages?.messages) return [];
+    return [...messages.messages].sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
+  }, [messages?.messages]);
+
   return (
     <Paper
       elevation={0}
@@ -217,9 +253,15 @@ const Chat = () => {
         ) : (
           <>
             <Box sx={{ display: "flex", alignItems: "center" }}>
-              {data?.chat.latestMessage?.user.imageUrl ? (
-                <Avatar
-                  src={data.chat.latestMessage.user.imageUrl}
+              {data?.chat.latestMessage ? (
+                <UserAvatar
+                  username={data.chat.latestMessage.user.username}
+                  imageUrl={data.chat.latestMessage.user.imageUrl}
+                  status={
+                    data.chat.latestMessage.user.status as unknown as UserStatus
+                  }
+                  showStatus={true}
+                  size="medium"
                   sx={{ mr: 2 }}
                 />
               ) : (
@@ -288,41 +330,41 @@ const Chat = () => {
           <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
             <CircularProgress />
           </Box>
-        ) : messages?.messages?.length === 0 ? (
+        ) : sortedMessages.length === 0 ? (
           <Box sx={{ p: 4, textAlign: "center" }}>
             <Typography color="text.secondary">
               No messages yet. Start the conversation!
             </Typography>
           </Box>
         ) : (
-          <InfiniteScroll
-            pageStart={0}
-            isReverse={true}
-            loadMore={handleLoadMore}
-            hasMore={
-              messages && messagesCount
-                ? messages.messages.length < messagesCount
-                : false
-            }
-            useWindow={false}
-            getScrollParent={() =>
-              document.getElementById("messages-container")
-            }
-            threshold={100}
-            loader={
-              <Box
-                sx={{ display: "flex", justifyContent: "center", p: 2 }}
-                key="loader">
-                <CircularProgress size={24} />
-              </Box>
-            }>
-            <div style={{ display: "flex", flexDirection: "column-reverse" }}>
-              {messages?.messages.map((message, index, array) => {
+          <Box sx={{ display: "flex", flexDirection: "column" }}>
+            <InfiniteScroll
+              pageStart={0}
+              loadMore={handleLoadMore}
+              hasMore={
+                messages && messagesCount
+                  ? messages.messages.length < messagesCount
+                  : false
+              }
+              useWindow={false}
+              getScrollParent={() =>
+                document.getElementById("messages-container")
+              }
+              threshold={100}
+              isReverse={false}
+              loader={
+                <Box
+                  sx={{ display: "flex", justifyContent: "center", p: 2 }}
+                  key="loader">
+                  <CircularProgress size={24} />
+                </Box>
+              }>
+              {sortedMessages.map((message, index, array) => {
                 // Check if this message is from a different day than the previous one
                 const showDateDivider =
-                  index === array.length - 1 ||
+                  index === 0 ||
                   new Date(message.createdAt).toDateString() !==
-                    new Date(array[index + 1].createdAt).toDateString();
+                    new Date(array[index - 1].createdAt).toDateString();
 
                 return (
                   <div key={message._id}>
@@ -361,11 +403,12 @@ const Chat = () => {
                         mb: 2,
                         alignItems: "flex-start",
                       }}>
-                      <Avatar
-                        src={message.user.imageUrl || ""}
-                        {...(!message.user.imageUrl
-                          ? getAvatarProps(message.user.username)
-                          : {})}
+                      <UserAvatar
+                        username={message.user.username}
+                        imageUrl={message.user.imageUrl}
+                        status={message.user.status as unknown as UserStatus}
+                        showStatus={true}
+                        size="medium"
                         sx={{ mr: 2, mt: 0.5 }}
                       />
                       <Box>
@@ -405,10 +448,10 @@ const Chat = () => {
                   </div>
                 );
               })}
-            </div>
-          </InfiniteScroll>
+            </InfiniteScroll>
+            <div ref={divRef} />
+          </Box>
         )}
-        <div ref={divRef} />
       </Box>
 
       {/* Message Input */}

@@ -20,6 +20,8 @@ import router from "../Routes";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useGetMe } from "../../hooks/useGetMe";
+import { StatusSelector } from "../status/StatusSelector";
+import { UserStatus } from "../../constants/userStatus";
 
 // Function to create avatar props based on username
 const getAvatarProps = (username: string) => {
@@ -67,6 +69,8 @@ const UserSettings = () => {
 
   const username = userData?.me?.username || "User";
   const avatarUrl = userData?.me?.imageUrl;
+  const userStatus =
+    (userData?.me?.status as unknown as UserStatus) || UserStatus.OFFLINE;
 
   return (
     <Box sx={{ ml: 1 }}>
@@ -99,14 +103,13 @@ const UserSettings = () => {
         id="account-menu"
         open={Boolean(anchorElUser)}
         onClose={handleCloseUserMenu}
-        onClick={handleCloseUserMenu}
         PaperProps={{
           elevation: 2,
           sx: {
             overflow: "visible",
             filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
             mt: 1.5,
-            width: 200,
+            width: 250,
             borderRadius: 2,
             "&:before": {
               content: '""',
@@ -137,6 +140,12 @@ const UserSettings = () => {
             noWrap>
             {userData?.me?.email || ""}
           </Typography>
+        </Box>
+
+        <Divider />
+
+        <Box sx={{ px: 2, py: 1 }}>
+          <StatusSelector currentStatus={userStatus} />
         </Box>
 
         <Divider />

@@ -13,10 +13,17 @@ export const userStatusLabels = {
 };
 
 export const userStatusColors = {
-  [UserStatus.ONLINE]: "#00B8A9", // Green
-  [UserStatus.AWAY]: "#FFAF20", // Amber
-  [UserStatus.DND]: "#FF6584", // Red
-  [UserStatus.OFFLINE]: "#6E7191", // Gray
+  [UserStatus.ONLINE]: "#44b700", // Green
+  [UserStatus.AWAY]: "#ff9800", // Orange
+  [UserStatus.DND]: "#f44336", // Red
+  [UserStatus.OFFLINE]: "#bdbdbd", // Gray
+};
+
+export const userStatusDescriptions = {
+  [UserStatus.ONLINE]: "You're active and visible to others",
+  [UserStatus.AWAY]: "You're away from your computer",
+  [UserStatus.DND]: "You don't want to be disturbed",
+  [UserStatus.OFFLINE]: "You'll appear offline to others",
 };
 
 export const userStatusIcons = {

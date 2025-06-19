@@ -14,6 +14,8 @@ import { Chat } from "../../../gql/graphql";
 import "./ChatListItem.css";
 import { formatDistanceToNowStrict } from "date-fns";
 import PushPinIcon from "@mui/icons-material/PushPin";
+import { UserAvatar } from "../../common/UserAvatar";
+import { UserStatus } from "../../../constants/userStatus";
 
 interface ChatListProps {
   chat: Chat;
@@ -53,6 +55,7 @@ const ChatListItem = ({ chat, selected }: ChatListProps) => {
   const theme = useTheme();
   const hasLatestMessage = !!chat.latestMessage;
   const avatarImageUrl = chat.latestMessage?.user.imageUrl;
+  const userStatus = chat.latestMessage?.user.status as unknown as UserStatus;
 
   let timeAgo = "";
   if (hasLatestMessage) {
@@ -109,10 +112,13 @@ const ChatListItem = ({ chat, selected }: ChatListProps) => {
           zIndex: 1,
         }}>
         <ListItemAvatar>
-          {avatarImageUrl ? (
-            <Avatar
-              alt={chat.name || ""}
-              src={avatarImageUrl}
+          {hasLatestMessage ? (
+            <UserAvatar
+              username={chat.latestMessage!.user.username}
+              imageUrl={avatarImageUrl}
+              status={userStatus}
+              showStatus={true}
+              size="medium"
             />
           ) : (
             <Avatar {...getAvatarProps(chat.name || "Chat")} />

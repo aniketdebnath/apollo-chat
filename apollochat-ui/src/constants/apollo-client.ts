@@ -6,7 +6,11 @@ import { excludedRoutes } from "./excluded-routes";
 import { onLogout } from "../utils/logout";
 import { createClient } from "graphql-ws";
 import { getMainDefinition } from "@apollo/client/utilities";
-import { Chat } from "../gql/graphql";
+import { Chat, User } from "../gql/graphql";
+import { sortChats } from "../utils/chat-sorting";
+
+// Function to get the token from localStorage
+const getToken = () => localStorage.getItem("token") || "";
 
 // Super detailed debug link to identify the source of Variable $skip errors
 const debugLink = onError(
@@ -49,6 +53,9 @@ const httpLink = new HttpLink({ uri: `${API_URL}/graphql` });
 const wsLink = new GraphQLWsLink(
   createClient({
     url: `${WS_URL}/graphql`,
+    connectionParams: {
+      Authorization: `Bearer ${getToken()}`,
+    },
   })
 );
 
@@ -65,22 +72,7 @@ const splitLink = split(
 );
 
 // Helper function to sort chats with pinned chats first
-const sortChats = (chats: Chat[]): Chat[] => {
-  return [...chats].sort((a, b) => {
-    // Sort by isPinned first (true values first)
-    if (a.isPinned && !b.isPinned) return -1;
-    if (!a.isPinned && b.isPinned) return 1;
-
-    // Then sort by latest message date (newest first)
-    const aDate = a.latestMessage?.createdAt
-      ? new Date(a.latestMessage.createdAt).getTime()
-      : 0;
-    const bDate = b.latestMessage?.createdAt
-      ? new Date(b.latestMessage.createdAt).getTime()
-      : 0;
-    return bDate - aDate;
-  });
-};
+// Removed local sortChats function and using the imported one
 
 const client = new ApolloClient({
   cache: new InMemoryCache({
@@ -120,6 +112,14 @@ const client = new ApolloClient({
               }
               return incoming;
             },
+          },
+        },
+      },
+      User: {
+        fields: {
+          status: {
+            // Always use the latest status value from the server
+            merge: (_, incoming) => incoming,
           },
         },
       },

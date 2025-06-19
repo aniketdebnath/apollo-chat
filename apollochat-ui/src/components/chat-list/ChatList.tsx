@@ -6,13 +6,15 @@ import {
   alpha,
   useTheme,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useGetChats } from "../../hooks/useGetChats";
 import { usePath } from "../../hooks/usePath";
 import { useMessageCreated } from "../../hooks/useMessageCreated";
 import ChatListItem from "./chat-list-item/ChatListItem";
 import ChatListHeader from "./chat-list-header/ChatListHeader";
 import ChatListAdd from "./chat-list-add/ChatListAdd";
+import { useUserStatus } from "../../hooks/useUserStatus";
+import { sortChats } from "../../utils/chat-sorting";
 
 export const ChatList = () => {
   const [chatListAddVisible, setChatListAddVisible] = useState(false);
@@ -24,6 +26,24 @@ export const ChatList = () => {
   useMessageCreated({
     chatIds: data?.chats.map((chat: any) => chat._id) || [],
   });
+
+  // Get unique user IDs from latest messages for status subscription
+  const userIds = useMemo(() => {
+    const ids = new Set<string>();
+
+    if (data?.chats) {
+      data.chats.forEach((chat) => {
+        if (chat.latestMessage?.user?._id) {
+          ids.add(chat.latestMessage.user._id);
+        }
+      });
+    }
+
+    return Array.from(ids);
+  }, [data?.chats]);
+
+  // Subscribe to status updates for all users with latest messages
+  useUserStatus(userIds);
 
   useEffect(() => {
     const pathSplit = path.split("chats/");
@@ -78,39 +98,13 @@ export const ChatList = () => {
               </Typography>
             </Box>
           ) : data?.chats && data.chats.length > 0 ? (
-            [...data.chats]
-              .sort((chatA, chatB) => {
-                // First, sort by pinned status (pinned chats at the top)
-                if (chatA.isPinned && !chatB.isPinned) return -1;
-                if (!chatA.isPinned && chatB.isPinned) return 1;
-
-                // For chats with the same pin status, sort by latest message
-                // Explicit check: chats without messages go to the bottom
-                if (!chatA.latestMessage && chatB.latestMessage) return 1; // A to bottom
-                if (chatA.latestMessage && !chatB.latestMessage) return -1; // B to bottom
-
-                // If both have messages or both don't have messages
-                if (!chatA.latestMessage && !chatB.latestMessage) {
-                  // For chats without messages, sort by ID (oldest first)
-                  return chatA._id < chatB._id ? -1 : 1;
-                }
-
-                // For chats with messages, newest messages first
-                const timeA = new Date(
-                  chatA.latestMessage?.createdAt
-                ).getTime();
-                const timeB = new Date(
-                  chatB.latestMessage?.createdAt
-                ).getTime();
-                return timeB - timeA; // Newest messages at top
-              })
-              .map((chat) => (
-                <ChatListItem
-                  key={chat._id}
-                  chat={chat}
-                  selected={chat._id === selectedChatId}
-                />
-              ))
+            sortChats([...data.chats]).map((chat) => (
+              <ChatListItem
+                key={chat._id}
+                chat={chat}
+                selected={chat._id === selectedChatId}
+              />
+            ))
           ) : (
             <Box sx={{ p: 3, textAlign: "center" }}>
               <Typography
