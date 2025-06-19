@@ -12,9 +12,8 @@ import { PaginationArgs } from '../common/dto/pagination-args.dto';
 import { UsersService } from '../users/users.service';
 import { ChatMemberInput } from './dto/chat-member.input';
 import { ChatTypeInput } from './dto/chat-type.input';
-import { ChatDocument } from './entities/chat.document';
-import { User } from '../users/entities/user.entity';
 import { UserDocument } from '../users/entities/user.document';
+import { User } from '../users/entities/user.entity';
 import { UserStatus } from '../users/constants/user-status.enum';
 
 // Define interface for chat with latest message that extends parts of ChatDocument
@@ -565,14 +564,76 @@ export class ChatsService {
     return this.findOne(chatId, userId);
   }
 
-  // TODO: Implement proper chat update
-  update(id: number, updateChatInput: UpdateChatInput): string {
-    return `This action updates a #${id} chat`;
+  /**
+   * Update chat name
+   * @param updateChatInput - Input containing chatId and new name
+   * @param userId - ID of the user performing the update
+   * @returns Updated chat entity
+   */
+  async update(
+    updateChatInput: UpdateChatInput,
+    userId: string,
+  ): Promise<Chat> {
+    const { chatId, name } = updateChatInput;
+
+    // Only creator can update chat name
+    const chat = await this.chatsRepository.model.findOne({
+      _id: new Types.ObjectId(chatId),
+      creatorId: userId,
+    });
+
+    if (!chat) {
+      throw new NotFoundException(
+        `Chat not found or you don't have permission to update it`,
+      );
+    }
+
+    // Update chat name
+    await this.chatsRepository.model.updateOne(
+      { _id: new Types.ObjectId(chatId) },
+      { $set: { name } },
+    );
+
+    return this.findOne(chatId, userId);
   }
 
-  // TODO: Implement proper chat removal
-  remove(id: number): string {
-    return `This action removes a #${id} chat`;
+  /**
+   * Delete a chat
+   * @param chatId - ID of the chat to delete
+   * @param userId - ID of the user performing the deletion
+   * @returns Deleted chat entity
+   */
+  async remove(chatId: string, userId: string): Promise<Chat> {
+    // Only creator can delete a chat
+    const chat = await this.chatsRepository.model.findOne({
+      _id: new Types.ObjectId(chatId),
+      creatorId: userId,
+    });
+
+    if (!chat) {
+      throw new NotFoundException(
+        `Chat not found or you don't have permission to delete it`,
+      );
+    }
+
+    // Store chat data before deletion
+    const chatBeforeDeletion = { ...chat.toObject() };
+
+    // Delete the chat
+    await this.chatsRepository.model.deleteOne({
+      _id: new Types.ObjectId(chatId),
+    });
+
+    // Convert the saved chat document to a Chat entity
+    const chatEntity = {
+      _id: chatBeforeDeletion._id.toString(),
+      name: chatBeforeDeletion.name,
+      type: chatBeforeDeletion.type,
+      creator: await this.usersService.findOne(chatBeforeDeletion.creatorId),
+      members: [], // We don't need to populate members for a deleted chat
+    } as unknown as Chat;
+
+    return chatEntity;
   }
 
   async countChats() {

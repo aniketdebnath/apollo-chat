@@ -455,7 +455,7 @@ const Home = () => {
                           <Paper
                             elevation={0}
                             sx={{
-                              p: 1.5,
+                              p: { xs: 1, sm: 1.5 },
                               borderRadius: 2,
                               textAlign: "center",
                               border: "1px solid",
@@ -473,11 +473,17 @@ const Home = () => {
                             onClick={() => navigate("/explore")}>
                             <ExploreOutlined
                               color="primary"
-                              sx={{ mb: 1 }}
+                              sx={{ mb: 0.5 }}
                             />
                             <Typography
                               variant="body2"
-                              fontWeight={500}>
+                              fontWeight={500}
+                              noWrap
+                              sx={{
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                              }}>
                               Explore
                             </Typography>
                           </Paper>
@@ -488,7 +494,7 @@ const Home = () => {
                           <Paper
                             elevation={0}
                             sx={{
-                              p: 1.5,
+                              p: { xs: 1, sm: 1.5 },
                               borderRadius: 2,
                               textAlign: "center",
                               border: "1px solid",
@@ -506,11 +512,17 @@ const Home = () => {
                             onClick={() => navigate("/notifications")}>
                             <NotificationsOutlined
                               color="primary"
-                              sx={{ mb: 1 }}
+                              sx={{ mb: 0.5 }}
                             />
                             <Typography
                               variant="body2"
-                              fontWeight={500}>
+                              fontWeight={500}
+                              noWrap
+                              sx={{
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                              }}>
                               Notifications
                             </Typography>
                           </Paper>
@@ -521,7 +533,7 @@ const Home = () => {
                           <Paper
                             elevation={0}
                             sx={{
-                              p: 1.5,
+                              p: { xs: 1, sm: 1.5 },
                               borderRadius: 2,
                               textAlign: "center",
                               border: "1px solid",
@@ -539,11 +551,17 @@ const Home = () => {
                             onClick={() => navigate("/favorites")}>
                             <StarOutlined
                               color="primary"
-                              sx={{ mb: 1 }}
+                              sx={{ mb: 0.5 }}
                             />
                             <Typography
                               variant="body2"
-                              fontWeight={500}>
+                              fontWeight={500}
+                              noWrap
+                              sx={{
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                              }}>
                               Favorites
                             </Typography>
                           </Paper>
@@ -554,7 +572,7 @@ const Home = () => {
                           <Paper
                             elevation={0}
                             sx={{
-                              p: 1.5,
+                              p: { xs: 1, sm: 1.5 },
                               borderRadius: 2,
                               textAlign: "center",
                               border: "1px solid",
@@ -572,11 +590,17 @@ const Home = () => {
                             onClick={handleAddChat}>
                             <AddCircleOutline
                               color="primary"
-                              sx={{ mb: 1 }}
+                              sx={{ mb: 0.5 }}
                             />
                             <Typography
                               variant="body2"
-                              fontWeight={500}>
+                              fontWeight={500}
+                              noWrap
+                              sx={{
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                fontSize: { xs: "0.75rem", sm: "0.875rem" },
+                              }}>
                               New Chat
                             </Typography>
                           </Paper>

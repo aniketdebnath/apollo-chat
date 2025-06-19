@@ -16,6 +16,8 @@ import Snackbar from "./components/snackbar/Snackbar";
 import { ChatList } from "./components/chat-list/ChatList";
 import { usePath } from "./hooks/usePath";
 import darkTheme from "./theme/theme";
+import CookieConsent from "./components/common/CookieConsent";
+import WelcomeTour from "./components/onboarding/WelcomeTour";
 import "@fontsource/poppins/300.css";
 import "@fontsource/poppins/400.css";
 import "@fontsource/poppins/500.css";
@@ -96,6 +98,8 @@ const App = () => {
             </Box>
           </Guard>
           <Snackbar />
+          <CookieConsent />
+          {!isAuthPage && <WelcomeTour />}
         </Box>
       </ThemeProvider>
     </ApolloProvider>

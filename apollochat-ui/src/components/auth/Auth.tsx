@@ -11,6 +11,7 @@ import {
   useTheme,
   CircularProgress,
   Divider,
+  useMediaQuery,
 } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useGetMe } from "../../hooks/useGetMe";
@@ -18,7 +19,7 @@ import { useNavigate } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import EmailIcon from "@mui/icons-material/Email";
-import { motion, Variants } from "framer-motion";
+import { motion, Variants, AnimatePresence } from "framer-motion";
 
 interface AuthProps {
   submitLabel: string;
@@ -42,6 +43,8 @@ const Auth = ({
   const { data } = useGetMe();
   const navigate = useNavigate();
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [showMobileIntro, setShowMobileIntro] = useState(true);
 
   // Animation variants
   const containerVariants: Variants = {
@@ -107,6 +110,16 @@ const Auth = ({
     return () => clearInterval(interval);
   }, []);
 
+  // Mobile intro animation timing
+  useEffect(() => {
+    if (isMobile && showMobileIntro) {
+      const timer = setTimeout(() => {
+        setShowMobileIntro(false);
+      }, 2500); // Show intro for 2.5 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [isMobile, showMobileIntro]);
+
   useEffect(() => {
     if (data) {
       navigate("/");
@@ -126,6 +139,127 @@ const Auth = ({
     }
   };
 
+  // Mobile intro component
+  const MobileIntro = () => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1100,
+        background: "linear-gradient(to bottom, #121212, #1a1a1a)",
+      }}>
+      {/* Apollo Logo */}
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.8 }}>
+        <Box
+          sx={{
+            width: "180px",
+            height: "180px",
+            mb: 3,
+            position: "relative",
+            mx: "auto",
+          }}>
+          <motion.img
+            src="/logo512.png"
+            alt="Apollo Chat Logo"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              filter: "drop-shadow(0 0 20px rgba(108, 99, 255, 0.3))",
+            }}
+            animate={{
+              filter: [
+                "drop-shadow(0 0 20px rgba(108, 99, 255, 0.3))",
+                "drop-shadow(0 0 25px rgba(255, 101, 132, 0.4))",
+                "drop-shadow(0 0 20px rgba(108, 99, 255, 0.3))",
+              ],
+            }}
+            transition={{
+              duration: 2,
+              repeat: 1,
+              repeatType: "reverse",
+            }}
+          />
+        </Box>
+      </motion.div>
+
+      {/* Apollo Chat Text */}
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3, duration: 0.5 }}>
+        <Typography
+          variant="h1"
+          sx={{
+            fontSize: "3rem",
+            fontWeight: 800,
+            backgroundImage: "linear-gradient(90deg, #6C63FF, #FF6584)",
+            backgroundClip: "text",
+            color: "transparent",
+            textAlign: "center",
+            lineHeight: 1.1,
+            letterSpacing: "-0.03em",
+            textTransform: "uppercase",
+            mb: 0,
+          }}>
+          Apollo
+        </Typography>
+      </motion.div>
+
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.5, duration: 0.5 }}>
+        <Typography
+          variant="h2"
+          sx={{
+            fontSize: "1.8rem",
+            fontWeight: 600,
+            backgroundImage: "linear-gradient(90deg, #6C63FF, #FF6584)",
+            backgroundClip: "text",
+            color: "transparent",
+            textAlign: "center",
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+          }}>
+          Chat
+        </Typography>
+      </motion.div>
+
+      {/* Tagline */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.8, duration: 0.5 }}>
+        <Typography
+          variant="subtitle1"
+          sx={{
+            mt: 2,
+            color: "rgba(255, 255, 255, 0.7)",
+            fontWeight: 300,
+            letterSpacing: "0.03em",
+            textAlign: "center",
+          }}>
+          {taglines[taglineIndex]}
+        </Typography>
+      </motion.div>
+    </motion.div>
+  );
+
   return (
     <Box
       sx={{
@@ -140,6 +274,11 @@ const Auth = ({
           "radial-gradient(circle at 30% 30%, rgba(108, 99, 255, 0.2) 0%, transparent 70%), radial-gradient(circle at 70% 70%, rgba(255, 101, 132, 0.2) 0%, transparent 70%)",
         zIndex: 1000,
       }}>
+      {/* Mobile intro animation */}
+      <AnimatePresence>
+        {isMobile && showMobileIntro && <MobileIntro />}
+      </AnimatePresence>
+
       {/* Left half - Apollo Logo */}
       <Box
         sx={{
@@ -299,12 +438,15 @@ const Auth = ({
         }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          animate={{
+            opacity: isMobile && showMobileIntro ? 0 : 1,
+            y: isMobile && showMobileIntro ? 20 : 0,
+          }}
           transition={{
             type: "spring",
             stiffness: 100,
             damping: 15,
-            delay: 0.4,
+            delay: isMobile ? 0.2 : 0.4,
           }}
           style={{ width: "100%", maxWidth: 420 }}>
           <Paper

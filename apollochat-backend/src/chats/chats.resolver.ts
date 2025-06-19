@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { ChatsService } from './chats.service';
 import { Chat } from './entities/chat.entity';
 import { CreateChatInput } from './dto/create-chat.input';
@@ -117,15 +117,21 @@ export class ChatsResolver {
     return this.chatsService.unpinChat(chatPinInput.chatId, user._id);
   }
 
+  @UseGuards(GqlAuthGuard)
   @Mutation(() => Chat)
-  updateChat(
+  async updateChat(
     @Args('updateChatInput') updateChatInput: UpdateChatInput,
-  ): string {
-    return this.chatsService.update(updateChatInput.id, updateChatInput);
+    @CurrentUser() user: TokenPayload,
+  ): Promise<Chat> {
+    return this.chatsService.update(updateChatInput, user._id);
   }
 
+  @UseGuards(GqlAuthGuard)
   @Mutation(() => Chat)
-  removeChat(@Args('id', { type: () => Int }) id: number): string {
-    return this.chatsService.remove(id);
+  async removeChat(
+    @Args('chatId') chatId: string,
+    @CurrentUser() user: TokenPayload,
+  ): Promise<Chat> {
+    return this.chatsService.remove(chatId, user._id);
   }
 }

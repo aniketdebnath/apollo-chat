@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   AppBar,
   Toolbar,
@@ -17,6 +17,8 @@ import {
   Tooltip,
   alpha,
   Typography,
+  Avatar,
+  ListItemIcon,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
@@ -26,6 +28,7 @@ import NotificationsIcon from "@mui/icons-material/NotificationsOutlined";
 import StarIcon from "@mui/icons-material/StarOutline";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import HomeIcon from "@mui/icons-material/Home";
+import LogoutIcon from "@mui/icons-material/Logout";
 import Logo from "./Logo";
 import MobileLogo from "./mobile/MobileLogo";
 import Navigation from "./Navigation";
@@ -37,6 +40,13 @@ import { ChatList } from "../chat-list/ChatList";
 import router from "../Routes";
 import { usePath } from "../../hooks/usePath";
 import DemoChatList from "../demo/DemoChatList";
+import { useLogout } from "../../hooks/useLogout";
+import { onLogout } from "../../utils/logout";
+import { snackVar } from "../../constants/snack";
+import { UNKNOWN_ERROR_SNACK_MESSAGE } from "../../constants/error";
+import { useGetMe } from "../../hooks/useGetMe";
+import { StatusSelector } from "../status/StatusSelector";
+import { UserStatus } from "../../constants/userStatus";
 
 const pages: Pages[] = [
   {
@@ -68,6 +78,36 @@ const unauthenticatedPages: Pages[] = [
   },
 ];
 
+// Function to create avatar props based on username
+const getAvatarProps = (username: string) => {
+  // Create a simple hash for the string
+  let hash = 0;
+  for (let i = 0; i < username.length; i++) {
+    hash = username.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  // Generate a color based on the hash
+  const colors = [
+    "#6C63FF", // primary
+    "#FF6584", // secondary
+    "#00B8A9", // success
+    "#0084FF", // info
+    "#FFAF20", // warning
+  ];
+  const colorIndex = Math.abs(hash) % colors.length;
+
+  return {
+    sx: {
+      bgcolor: colors[colorIndex],
+      width: 36,
+      height: 36,
+      border: "2px solid",
+      borderColor: "background.paper",
+    },
+    children: username ? username.substring(0, 1).toUpperCase() : "U",
+  };
+};
+
 const Header = () => {
   const authenticated = useReactiveVar(authenticatedVar);
   const theme = useTheme();
@@ -76,6 +116,23 @@ const Header = () => {
   const [navDrawerOpen, setNavDrawerOpen] = useState(false);
   const { path } = usePath();
   const isDemoPage = path === "/demo";
+  const { logout } = useLogout();
+  const { data: userData } = useGetMe();
+
+  // Add event listener for chat selection
+  useEffect(() => {
+    const handleChatSelected = () => {
+      if (isMobile) {
+        setChatDrawerOpen(false);
+      }
+    };
+
+    window.addEventListener("chatSelected", handleChatSelected);
+
+    return () => {
+      window.removeEventListener("chatSelected", handleChatSelected);
+    };
+  }, [isMobile]);
 
   const toggleChatDrawer = () => {
     setChatDrawerOpen(!chatDrawerOpen);
@@ -90,6 +147,21 @@ const Header = () => {
     setChatDrawerOpen(false);
     setNavDrawerOpen(false);
   };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      onLogout();
+      setNavDrawerOpen(false);
+    } catch (error) {
+      snackVar(UNKNOWN_ERROR_SNACK_MESSAGE);
+    }
+  };
+
+  const username = userData?.me?.username || "User";
+  const avatarUrl = userData?.me?.imageUrl;
+  const userStatus =
+    (userData?.me?.status as unknown as UserStatus) || UserStatus.OFFLINE;
 
   return (
     <>
@@ -262,7 +334,62 @@ const Header = () => {
           </IconButton>
         </Toolbar>
 
-        <List>
+        {authenticated && (
+          <Box
+            sx={{
+              px: 2,
+              py: 2,
+              display: "flex",
+              alignItems: "center",
+              borderBottom: "1px solid",
+              borderColor: "divider",
+            }}>
+            <Box sx={{ mr: 2 }}>
+              {avatarUrl ? (
+                <Avatar
+                  alt={username}
+                  src={avatarUrl}
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    border: "2px solid",
+                    borderColor: alpha(theme.palette.primary.main, 0.3),
+                  }}
+                />
+              ) : (
+                <Avatar {...getAvatarProps(username)} />
+              )}
+            </Box>
+            <Box>
+              <Typography
+                variant="subtitle1"
+                fontWeight={600}
+                noWrap>
+                {username}
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                noWrap>
+                {userData?.me?.email || ""}
+              </Typography>
+            </Box>
+          </Box>
+        )}
+
+        {authenticated && (
+          <Box
+            sx={{
+              px: 2,
+              py: 1.5,
+              borderBottom: "1px solid",
+              borderColor: "divider",
+            }}>
+            <StatusSelector currentStatus={userStatus} />
+          </Box>
+        )}
+
+        <List sx={{ flexGrow: 1 }}>
           {authenticated ? (
             <>
               {/* Home */}
@@ -346,6 +473,22 @@ const Header = () => {
             ))
           )}
         </List>
+
+        {authenticated && (
+          <Box sx={{ mt: "auto" }}>
+            <Divider />
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={handleLogout}
+                sx={{ py: 2, color: theme.palette.error.main }}>
+                <ListItemIcon sx={{ color: "inherit" }}>
+                  <LogoutIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Logout" />
+              </ListItemButton>
+            </ListItem>
+          </Box>
+        )}
       </Drawer>
     </>
   );

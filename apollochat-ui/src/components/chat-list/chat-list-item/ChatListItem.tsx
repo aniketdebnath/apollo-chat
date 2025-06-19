@@ -51,11 +51,24 @@ const getAvatarProps = (name: string) => {
   };
 };
 
+// Custom event for chat selection
+const dispatchChatSelectedEvent = () => {
+  // Create and dispatch a custom event that can be listened to by the Header component
+  const event = new CustomEvent("chatSelected");
+  window.dispatchEvent(event);
+};
+
 const ChatListItem = ({ chat, selected }: ChatListProps) => {
   const theme = useTheme();
   const hasLatestMessage = !!chat.latestMessage;
   const avatarImageUrl = chat.latestMessage?.user.imageUrl;
   const userStatus = chat.latestMessage?.user.status as unknown as UserStatus;
+
+  const handleChatClick = () => {
+    router.navigate(`/chats/${chat._id}`);
+    // Dispatch the custom event to close the drawer
+    dispatchChatSelectedEvent();
+  };
 
   let timeAgo = "";
   if (hasLatestMessage) {
@@ -97,7 +110,7 @@ const ChatListItem = ({ chat, selected }: ChatListProps) => {
         />
       )}
       <ListItemButton
-        onClick={() => router.navigate(`/chats/${chat._id}`)}
+        onClick={handleChatClick}
         selected={selected}
         sx={{
           borderRadius: 2,
@@ -119,6 +132,7 @@ const ChatListItem = ({ chat, selected }: ChatListProps) => {
               status={userStatus}
               showStatus={true}
               size="medium"
+              sx={{ mr: 0.5 }}
             />
           ) : (
             <Avatar {...getAvatarProps(chat.name || "Chat")} />
