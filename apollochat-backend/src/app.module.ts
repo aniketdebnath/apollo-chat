@@ -15,6 +15,9 @@ import { PubSubModule } from './common/pubsub/pubsub.module';
 import { AuthService } from './auth/auth.service';
 import { S3Module } from './common/s3/s3.module';
 import { UsersService } from './users/users.service';
+import { SecurityModule } from './common/security/security.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { SecurityInterceptor } from './common/security/security.interceptor';
 
 @Module({
   imports: [
@@ -103,8 +106,15 @@ import { UsersService } from './users/users.service';
     ChatsModule,
     PubSubModule,
     S3Module,
+    SecurityModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: SecurityInterceptor,
+    },
+  ],
 })
 export class AppModule {}

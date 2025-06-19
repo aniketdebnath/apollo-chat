@@ -1,5 +1,4 @@
 import { Box, Typography, useTheme } from "@mui/material";
-import ChatBubbleOutlineRoundedIcon from "@mui/icons-material/ChatBubbleOutlineRounded";
 import router from "../../Routes";
 
 const MobileLogo = () => {
@@ -14,12 +13,6 @@ const MobileLogo = () => {
         gap: 0.5,
       }}
       onClick={() => router.navigate("/")}>
-      <ChatBubbleOutlineRoundedIcon
-        sx={{
-          color: theme.palette.primary.main,
-          fontSize: 24,
-        }}
-      />
       <Typography
         variant="h6"
         component="span"
@@ -34,6 +27,16 @@ const MobileLogo = () => {
           WebkitTextFillColor: "transparent",
         }}>
         APOLLO
+        <Box
+          component="span"
+          sx={{
+            color: theme.palette.text.secondary,
+            WebkitTextFillColor: theme.palette.text.secondary,
+            fontWeight: 300,
+            ml: 0.5,
+          }}>
+          CHAT
+        </Box>
       </Typography>
     </Box>
   );
