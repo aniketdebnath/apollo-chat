@@ -155,6 +155,34 @@ export class UsersService {
   }
 
   /**
+   * Update a user's password
+   * @param userId - User ID
+   * @param newPassword - New password (will be hashed)
+   * @returns Boolean indicating success
+   */
+  async updatePassword(userId: string, newPassword: string): Promise<boolean> {
+    try {
+      // Hash the new password
+      const hashedPassword = await this.hashPassword(newPassword);
+
+      // Update the user document
+      await this.usersRepository.findOneAndUpdate(
+        { _id: userId },
+        { $set: { password: hashedPassword } },
+      );
+
+      return true;
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.logger.error(
+        `Failed to update password for user ${userId}: ${errorMessage}`,
+      );
+      return false;
+    }
+  }
+
+  /**
    * Track a new WebSocket connection for a user
    * @param userId - User ID
    * @returns True if this is the first connection for the user

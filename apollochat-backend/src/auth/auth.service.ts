@@ -321,4 +321,93 @@ export class AuthService {
   async sendWelcomeEmail(email: string, username: string): Promise<boolean> {
     return this.emailService.sendWelcomeEmail(email, username);
   }
+
+  // Forgot Password Methods
+  async requestPasswordReset(email: string): Promise<boolean> {
+    // Check if user exists
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      // Return true even if user doesn't exist for security reasons
+      // This prevents user enumeration attacks
+      return true;
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Set expiration (15 minutes from now)
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 15);
+
+    // Delete any existing OTPs for this email
+    await this.otpModel.deleteMany({ email });
+
+    // Create new OTP document
+    const otpVerification = new this.otpModel({
+      _id: new Types.ObjectId(),
+      email,
+      otp,
+      expiresAt,
+    });
+
+    await otpVerification.save();
+
+    // Send password reset email
+    const emailSent = await this.emailService.sendPasswordResetEmail(
+      email,
+      otp,
+    );
+
+    // For development, still log the OTP
+    if (this.configService.get('NODE_ENV') !== 'production') {
+      console.log(`Password reset OTP for ${email}: ${otp}`);
+    }
+
+    return emailSent;
+  }
+
+  async verifyPasswordResetOtp(email: string, otp: string): Promise<boolean> {
+    // Reuse the existing OTP verification
+    return this.verifyOtp(email, otp);
+  }
+
+  async resetPassword(email: string, newPassword: string): Promise<boolean> {
+    try {
+      // Validate inputs
+      if (!email || !newPassword || newPassword.trim() === '') {
+        return false;
+      }
+
+      // Check if email has been verified with OTP
+      const isVerified = await this.isEmailVerified(email);
+      if (!isVerified) {
+        return false;
+      }
+
+      // Find user and update password
+      const user = await this.usersService.findByEmail(email);
+      if (!user) {
+        return false;
+      }
+
+      // Update the password - this should throw an error if it fails
+      const passwordUpdated = await this.usersService.updatePassword(
+        user._id.toString(),
+        newPassword,
+      );
+      if (!passwordUpdated) {
+        return false;
+      }
+
+      // Only revoke tokens if password was successfully updated
+      await this.revokeAllUserTokens(user._id.toString());
+
+      return true;
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error(`Error resetting password: ${errorMessage}`);
+      return false;
+    }
+  }
 }

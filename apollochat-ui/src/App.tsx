@@ -57,7 +57,7 @@ const App = () => {
             <CssBaseline />
             <Guard>
               <Box sx={{ flex: 1, display: "flex", flexDirection: "column" }}>
-                <Header />
+                {!isAuthPage && <Header />}
                 <Container
                   maxWidth="xl"
                   sx={{

@@ -212,4 +212,53 @@ export class AuthController {
     const isVerified = await this.authService.isEmailVerified(email);
     return { verified: isVerified };
   }
+
+  @Post('request-password-reset')
+  @UseGuards(OtpThrottlerGuard)
+  async requestPasswordReset(@Body() { email }: { email: string }) {
+    try {
+      const result = await this.authService.requestPasswordReset(email);
+      // Always return success even if email doesn't exist for security reasons
+      return { success: result };
+    } catch (error: unknown) {
+      // Log the error but don't expose details to client
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error(`Error requesting password reset: ${errorMessage}`);
+      return { success: false, error: 'Failed to process request' };
+    }
+  }
+
+  @Post('verify-reset-otp')
+  @UseGuards(OtpThrottlerGuard)
+  async verifyResetOtp(@Body() { email, otp }: { email: string; otp: string }) {
+    const isVerified = await this.authService.verifyPasswordResetOtp(
+      email,
+      otp,
+    );
+    if (!isVerified) {
+      throw new UnauthorizedException('Invalid or expired OTP');
+    }
+    return { success: true };
+  }
+
+  @Post('reset-password')
+  @UseGuards(OtpThrottlerGuard)
+  async resetPassword(@Body() body: { email: string; newPassword: string }) {
+    // Validate required fields
+    if (!body.email || !body.newPassword || body.newPassword.trim() === '') {
+      throw new UnauthorizedException('Email and new password are required');
+    }
+
+    const success = await this.authService.resetPassword(
+      body.email,
+      body.newPassword,
+    );
+    if (!success) {
+      throw new UnauthorizedException(
+        'Failed to reset password. Please verify your email with OTP first.',
+      );
+    }
+    return { success: true, message: 'Password has been reset successfully' };
+  }
 }

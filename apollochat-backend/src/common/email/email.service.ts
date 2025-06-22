@@ -111,6 +111,31 @@ export class EmailService {
   }
 
   /**
+   * Send a password reset email with OTP
+   * @param to - Recipient email address
+   * @param otp - The OTP code
+   * @returns Promise resolving to success status
+   */
+  async sendPasswordResetEmail(to: string, otp: string): Promise<boolean> {
+    const subject = 'Apollo Chat Password Reset';
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #4a5568;">Apollo Chat Password Reset</h2>
+        <p>Hello,</p>
+        <p>We received a request to reset your password. To proceed, use the verification code below:</p>
+        <div style="background-color: #edf2f7; padding: 15px; border-radius: 5px; text-align: center; margin: 20px 0;">
+          <h1 style="color: #2d3748; letter-spacing: 5px; font-size: 32px;">${otp}</h1>
+        </div>
+        <p>This code will expire in 15 minutes.</p>
+        <p>If you didn't request a password reset, please ignore this email or contact support if you have concerns.</p>
+        <p>Thank you,<br>The Apollo Chat Team</p>
+      </div>
+    `;
+
+    return this.sendEmail(to, subject, html);
+  }
+
+  /**
    * Send a welcome email
    * @param to - Recipient email address
    * @param username - User's username
