@@ -54,12 +54,12 @@ export class EmailService {
    */
   async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
     try {
-      // In development, just log the email
-      if (this.configService.get('NODE_ENV') !== 'production') {
-        this.logger.log(`[DEV EMAIL] To: ${to}, Subject: ${subject}`);
-        this.logger.log(`[DEV EMAIL] Content: ${html}`);
-        return true;
-      }
+      // // In development, just log the email
+      // if (this.configService.get('NODE_ENV') !== 'production') {
+      //   this.logger.log(`[DEV EMAIL] To: ${to}, Subject: ${subject}`);
+      //   this.logger.log(`[DEV EMAIL] Content: ${html}`);
+      //   return true;
+      // }
 
       // In production, actually send the email
       const info = (await this.transporter.sendMail({
