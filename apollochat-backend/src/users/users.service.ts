@@ -3,6 +3,8 @@ import {
   UnauthorizedException,
   UnprocessableEntityException,
   Logger,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { CreateUserInput } from './dto/create-user.input';
 import { UpdateUserInput } from './dto/update-user.input';
@@ -15,6 +17,7 @@ import { User } from './entities/user.entity';
 import { FilterQuery } from 'mongoose';
 import { UserStatus } from './constants/user-status.enum';
 import fetch from 'node-fetch';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable()
 export class UsersService {
@@ -25,10 +28,24 @@ export class UsersService {
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly s3Service: S3Service,
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService,
   ) {}
 
   async create(createUserInput: CreateUserInput) {
     try {
+      // Check if user with this email already exists
+      const existingUser = await this.usersRepository.find({
+        email: createUserInput.email,
+      });
+      if (existingUser && existingUser.length > 0) {
+        throw new UnprocessableEntityException('Email already exists.');
+      }
+
+      // Only send OTP for email verification if the email doesn't exist
+      await this.authService.generateAndSendOtp(createUserInput.email);
+
+      // Continue with existing user creation logic
       return this.toEntity(
         await this.usersRepository.create({
           ...createUserInput,
@@ -38,8 +55,12 @@ export class UsersService {
       );
     } catch (error) {
       // Check if error is a MongoDB duplicate key error
-      if (error instanceof Error && error.message.includes('E11000')) {
-        throw new UnprocessableEntityException('Email already exits.');
+      if (
+        error instanceof Error &&
+        (error.message.includes('E11000') ||
+          error.message.includes('duplicate key'))
+      ) {
+        throw new UnprocessableEntityException('Email already exists.');
       }
       throw error;
     }
@@ -57,6 +78,17 @@ export class UsersService {
 
   async findOne(_id: string) {
     return this.toEntity(await this.usersRepository.findOne({ _id }));
+  }
+
+  async findByEmail(email: string) {
+    try {
+      return this.toEntity(await this.usersRepository.findOne({ email }));
+    } catch (error) {
+      this.logger.error(
+        `Error finding user by email: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return null;
+    }
   }
 
   async update(_id: string, updateUserInput: UpdateUserInput) {
@@ -83,6 +115,13 @@ export class UsersService {
 
     if (!passwordIsValid)
       throw new UnauthorizedException('Credentials are not valid');
+
+    // Check if email is verified
+    const isVerified = await this.authService.isEmailVerified(email);
+    if (!isVerified)
+      throw new UnauthorizedException(
+        'Email not verified. Please verify your email first.',
+      );
 
     return this.toEntity(user);
   }
@@ -225,13 +264,13 @@ export class UsersService {
 
     try {
       // Create a user object with required fields
-      const user: any = {
+      const user = {
         ...userDocument,
         // Convert status string to proper enum value
         status:
           (userDocument.status?.toUpperCase() as UserStatus) ||
           UserStatus.OFFLINE,
-      };
+      } as unknown as User;
 
       // Try to get the image URL, but don't fail if it's not available
       try {
@@ -239,25 +278,27 @@ export class UsersService {
           USERS_BUCKET,
           this.getUserImage(userDocument._id.toHexString()),
         );
-      } catch (_) {
+      } catch {
         // Leave imageUrl as undefined/null
       }
 
-      delete user.password;
-      return user as unknown as User;
+      // Use type assertion to safely delete password
+      const userWithPassword = user as User & { password?: string };
+      delete userWithPassword.password;
+      return user;
     } catch (error) {
       this.logger.error(
         `Error converting user document to entity: ${error instanceof Error ? error.message : String(error)}`,
       );
 
       // Return user with default values for required fields
-      const safeUser: any = {
+      const safeUser = {
         ...userDocument,
         status: UserStatus.OFFLINE,
-      };
+      } as unknown as User & { password?: string };
 
       delete safeUser.password;
-      return safeUser as unknown as User;
+      return safeUser;
     }
   }
 
@@ -288,7 +329,7 @@ export class UsersService {
           user = await this.usersRepository.findOne({
             email: googleUserData.email,
           });
-        } catch (error) {
+        } catch {
           // User not found by email either
           user = null;
         }
@@ -296,37 +337,78 @@ export class UsersService {
 
       // If still not found, create a new user
       if (!user) {
+        // Double check for existing user with same email to prevent duplicates
+        const existingUserByEmail = await this.usersRepository.find({
+          email: googleUserData.email,
+        });
+
+        if (existingUserByEmail && existingUserByEmail.length > 0) {
+          // User exists with this email, update with Google ID
+          user = await this.usersRepository.findOneAndUpdate(
+            { email: googleUserData.email },
+            { $set: { googleId: googleUserData.googleId } },
+          );
+          return this.toEntity(user);
+        }
+
         // Generate a random secure password for OAuth users
         const randomPassword =
           Math.random().toString(36).slice(-10) +
           Math.random().toString(36).slice(-10) +
           Math.random().toString(36).toUpperCase().slice(-10);
 
-        user = await this.usersRepository.create({
-          googleId: googleUserData.googleId,
-          email: googleUserData.email,
-          username: googleUserData.username,
-          password: await this.hashPassword(randomPassword),
-          status: UserStatus.OFFLINE,
-        });
+        try {
+          user = await this.usersRepository.create({
+            googleId: googleUserData.googleId,
+            email: googleUserData.email,
+            username: googleUserData.username,
+            password: await this.hashPassword(randomPassword),
+            status: UserStatus.OFFLINE,
+          });
+        } catch (createError) {
+          if (
+            createError instanceof Error &&
+            (createError.message.includes('E11000') ||
+              createError.message.includes('duplicate key'))
+          ) {
+            // Race condition - another request created this user
+            // Try to find the user that was just created
+            user = await this.usersRepository.findOne({
+              email: googleUserData.email,
+            });
+
+            // Update with Google ID if needed
+            if (user && !(user as UserDocument).googleId) {
+              user = await this.usersRepository.findOneAndUpdate(
+                { _id: (user as UserDocument)._id },
+                { $set: { googleId: googleUserData.googleId } },
+              );
+            }
+          } else {
+            throw createError;
+          }
+        }
 
         // If image URL is provided, try to download and upload it
-        if (googleUserData.imageUrl) {
+        if (user && googleUserData.imageUrl) {
           try {
             const response = await fetch(googleUserData.imageUrl);
             const arrayBuffer = await response.arrayBuffer();
             const buffer = Buffer.from(arrayBuffer);
-            await this.uploadImage(buffer, user._id.toString());
-          } catch (error) {
+            await this.uploadImage(
+              buffer,
+              (user as UserDocument)._id.toString(),
+            );
+          } catch (imgError) {
             this.logger.error(
-              `Failed to download and upload Google profile image: ${error}`,
+              `Failed to download and upload Google profile image: ${imgError}`,
             );
           }
         }
-      } else if (!user.googleId) {
+      } else if (!(user as UserDocument).googleId) {
         // If user exists but doesn't have googleId, update it
         user = await this.usersRepository.findOneAndUpdate(
-          { _id: user._id },
+          { _id: (user as UserDocument)._id },
           { $set: { googleId: googleUserData.googleId } },
         );
       }

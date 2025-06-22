@@ -13,7 +13,7 @@ import {
   Divider,
   useMediaQuery,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useGetMe } from "../../hooks/useGetMe";
 import { useNavigate } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -44,7 +44,7 @@ const Auth = ({
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [showMobileIntro, setShowMobileIntro] = useState(true);
+  const authCardRef = useRef<HTMLDivElement>(null);
 
   // Animation variants
   const containerVariants: Variants = {
@@ -83,17 +83,6 @@ const Auth = ({
     },
   };
 
-  const taglineVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        delay: 1.2,
-        duration: 0.8,
-      },
-    },
-  };
-
   // Text animation for the tagline
   const [taglineIndex, setTaglineIndex] = useState(0);
   const taglines = [
@@ -110,15 +99,22 @@ const Auth = ({
     return () => clearInterval(interval);
   }, []);
 
-  // Mobile intro animation timing
+  // Auto-scroll to the auth card on mobile
   useEffect(() => {
-    if (isMobile && showMobileIntro) {
+    if (isMobile && authCardRef.current) {
+      // Short delay to ensure rendering is complete
       const timer = setTimeout(() => {
-        setShowMobileIntro(false);
-      }, 2500); // Show intro for 2.5 seconds
+        if (authCardRef.current) {
+          authCardRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        }
+      }, 500);
+
       return () => clearTimeout(timer);
     }
-  }, [isMobile, showMobileIntro]);
+  }, [isMobile]);
 
   useEffect(() => {
     if (data) {
@@ -129,7 +125,7 @@ const Auth = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!email.trim() || !password.trim()) return;
+    if (!submitLabel || !email.trim() || !password.trim()) return;
 
     setIsSubmitting(true);
     try {
@@ -139,147 +135,113 @@ const Auth = ({
     }
   };
 
-  // Mobile intro component
-  const MobileIntro = () => (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        zIndex: 1100,
-        background: "linear-gradient(to bottom, #121212, #1a1a1a)",
-      }}>
-      {/* Apollo Logo */}
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.8 }}>
-        <Box
-          sx={{
-            width: "180px",
-            height: "180px",
-            mb: 3,
-            position: "relative",
-            mx: "auto",
-          }}>
-          <motion.img
-            src="/logo512.png"
-            alt="Apollo Chat Logo"
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-              filter: "drop-shadow(0 0 20px rgba(108, 99, 255, 0.3))",
-            }}
-            animate={{
-              filter: [
-                "drop-shadow(0 0 20px rgba(108, 99, 255, 0.3))",
-                "drop-shadow(0 0 25px rgba(255, 101, 132, 0.4))",
-                "drop-shadow(0 0 20px rgba(108, 99, 255, 0.3))",
-              ],
-            }}
-            transition={{
-              duration: 2,
-              repeat: 1,
-              repeatType: "reverse",
-            }}
-          />
-        </Box>
-      </motion.div>
-
-      {/* Apollo Chat Text */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.3, duration: 0.5 }}>
-        <Typography
-          variant="h1"
-          sx={{
-            fontSize: "3rem",
-            fontWeight: 800,
-            backgroundImage: "linear-gradient(90deg, #6C63FF, #FF6584)",
-            backgroundClip: "text",
-            color: "transparent",
-            textAlign: "center",
-            lineHeight: 1.1,
-            letterSpacing: "-0.03em",
-            textTransform: "uppercase",
-            mb: 0,
-          }}>
-          Apollo
-        </Typography>
-      </motion.div>
-
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.5, duration: 0.5 }}>
-        <Typography
-          variant="h2"
-          sx={{
-            fontSize: "1.8rem",
-            fontWeight: 600,
-            backgroundImage: "linear-gradient(90deg, #6C63FF, #FF6584)",
-            backgroundClip: "text",
-            color: "transparent",
-            textAlign: "center",
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-          }}>
-          Chat
-        </Typography>
-      </motion.div>
-
-      {/* Tagline */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.8, duration: 0.5 }}>
-        <Typography
-          variant="subtitle1"
-          sx={{
-            mt: 2,
-            color: "rgba(255, 255, 255, 0.7)",
-            fontWeight: 300,
-            letterSpacing: "0.03em",
-            textAlign: "center",
-          }}>
-          {taglines[taglineIndex]}
-        </Typography>
-      </motion.div>
-    </motion.div>
-  );
+  // Determine if we should show the form fields
+  const showFormFields = submitLabel !== "";
 
   return (
     <Box
       sx={{
-        height: "100vh",
+        minHeight: "100vh",
         width: "100%",
         display: "flex",
-        position: "fixed",
+        flexDirection: { xs: "column", md: "row" },
+        position: "absolute", // Changed from fixed to absolute
         top: 0,
         left: 0,
-        overflow: "hidden",
+        overflow: "auto", // Allow scrolling
         backgroundImage:
           "radial-gradient(circle at 30% 30%, rgba(108, 99, 255, 0.2) 0%, transparent 70%), radial-gradient(circle at 70% 70%, rgba(255, 101, 132, 0.2) 0%, transparent 70%)",
         zIndex: 1000,
       }}>
-      {/* Mobile intro animation */}
-      <AnimatePresence>
-        {isMobile && showMobileIntro && <MobileIntro />}
-      </AnimatePresence>
+      {/* Mobile Logo Section (only shown on mobile) */}
+      {isMobile && (
+        <Box
+          sx={{
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            py: 6,
+            px: 3,
+          }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8 }}
+            style={{ width: "100%", maxWidth: "250px" }}>
+            <Box
+              sx={{
+                width: "180px",
+                height: "180px",
+                mb: 2,
+                position: "relative",
+                mx: "auto",
+              }}>
+              <img
+                src="/logo512.png"
+                alt="Apollo Chat Logo"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  filter: "drop-shadow(0 0 20px rgba(108, 99, 255, 0.3))",
+                }}
+              />
+            </Box>
 
-      {/* Left half - Apollo Logo */}
+            {/* Apollo Chat Text Logo */}
+            <Box sx={{ textAlign: "center", width: "100%" }}>
+              <Typography
+                variant="h1"
+                sx={{
+                  fontSize: "3rem",
+                  fontWeight: 800,
+                  backgroundImage: "linear-gradient(90deg, #6C63FF, #FF6584)",
+                  backgroundClip: "text",
+                  color: "transparent",
+                  textAlign: "center",
+                  lineHeight: 1.1,
+                  letterSpacing: "-0.03em",
+                  textTransform: "uppercase",
+                  mb: 0,
+                }}>
+                Apollo
+              </Typography>
+
+              <Typography
+                variant="h2"
+                sx={{
+                  fontSize: "1.8rem",
+                  fontWeight: 600,
+                  backgroundImage: "linear-gradient(90deg, #6C63FF, #FF6584)",
+                  backgroundClip: "text",
+                  color: "transparent",
+                  textAlign: "center",
+                  letterSpacing: "0.1em",
+                  textTransform: "uppercase",
+                }}>
+                Chat
+              </Typography>
+
+              {/* Tagline */}
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  mt: 2,
+                  color: "rgba(255, 255, 255, 0.7)",
+                  fontWeight: 300,
+                  letterSpacing: "0.03em",
+                  textAlign: "center",
+                }}>
+                {taglines[taglineIndex]}
+              </Typography>
+            </Box>
+          </motion.div>
+        </Box>
+      )}
+
+      {/* Left half - Apollo Logo (desktop only) */}
       <Box
         sx={{
           width: "50%",
@@ -381,7 +343,6 @@ const Auth = ({
                 overflow: "hidden",
               }}>
               <motion.div
-                variants={taglineVariants}
                 key={taglineIndex}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -435,22 +396,23 @@ const Auth = ({
           alignItems: "center",
           justifyContent: "center",
           p: 2,
+          minHeight: { xs: "auto", md: "100vh" },
+          pb: { xs: 6, md: 2 },
         }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
-          animate={{
-            opacity: isMobile && showMobileIntro ? 0 : 1,
-            y: isMobile && showMobileIntro ? 20 : 0,
-          }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{
             type: "spring",
             stiffness: 100,
             damping: 15,
-            delay: isMobile ? 0.2 : 0.4,
+            delay: 0.4,
           }}
           style={{ width: "100%", maxWidth: 420 }}>
           <Paper
             elevation={4}
+            className="auth-card"
+            ref={authCardRef}
             sx={{
               width: "100%",
               p: { xs: 3, sm: 4 },
@@ -460,11 +422,17 @@ const Auth = ({
               border: "1px solid",
               borderColor: "rgba(255, 255, 255, 0.1)",
               color: "white",
+              minHeight: "450px",
+              display: "flex",
+              flexDirection: "column",
+              position: "relative",
+              zIndex: 2,
             }}>
             <Stack
               spacing={4}
               component="form"
-              onSubmit={handleSubmit}>
+              onSubmit={handleSubmit}
+              sx={{ flex: 1 }}>
               <Box sx={{ textAlign: "center", mb: 2 }}>
                 <Typography
                   variant="h4"
@@ -480,136 +448,150 @@ const Auth = ({
                 <Typography
                   variant="subtitle1"
                   color="rgba(255, 255, 255, 0.7)">
-                  {submitLabel === "Login"
-                    ? "Sign in to your account"
-                    : "Create a new account"}
+                  {showFormFields
+                    ? submitLabel === "Login"
+                      ? "Sign in to your account"
+                      : "Create a new account"
+                    : ""}
                 </Typography>
               </Box>
 
-              <TextField
-                type="email"
-                label="Email"
-                variant="outlined"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                error={!!error}
-                required
-                fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <EmailIcon sx={{ color: "rgba(255, 255, 255, 0.7)" }} />
-                    </InputAdornment>
-                  ),
-                }}
+              {showFormFields && (
+                <>
+                  <TextField
+                    type="email"
+                    label="Email"
+                    variant="outlined"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    error={!!error}
+                    required
+                    fullWidth
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <EmailIcon
+                            sx={{ color: "rgba(255, 255, 255, 0.7)" }}
+                          />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2,
+                        color: "white",
+                        "& fieldset": {
+                          borderColor: "rgba(255, 255, 255, 0.2)",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "rgba(255, 255, 255, 0.3)",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: theme.palette.primary.main,
+                        },
+                      },
+                      "& .MuiInputLabel-root": {
+                        color: "rgba(255, 255, 255, 0.7)",
+                      },
+                      "& .MuiInputLabel-root.Mui-focused": {
+                        color: theme.palette.primary.main,
+                      },
+                    }}
+                  />
+
+                  {extraFields}
+
+                  <TextField
+                    type={showPassword ? "text" : "password"}
+                    label="Password"
+                    variant="outlined"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    error={!!error}
+                    helperText={error}
+                    required
+                    fullWidth
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                            sx={{ color: "rgba(255, 255, 255, 0.7)" }}>
+                            {showPassword ? (
+                              <VisibilityOffIcon />
+                            ) : (
+                              <VisibilityIcon />
+                            )}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: 2,
+                        color: "white",
+                        "& fieldset": {
+                          borderColor: "rgba(255, 255, 255, 0.2)",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: "rgba(255, 255, 255, 0.3)",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: theme.palette.primary.main,
+                        },
+                      },
+                      "& .MuiInputLabel-root": {
+                        color: "rgba(255, 255, 255, 0.7)",
+                      },
+                      "& .MuiInputLabel-root.Mui-focused": {
+                        color: theme.palette.primary.main,
+                      },
+                      "& .MuiFormHelperText-root": {
+                        color: theme.palette.error.light,
+                      },
+                    }}
+                  />
+
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    disabled={isSubmitting}
+                    fullWidth
+                    sx={{
+                      py: 1.5,
+                      borderRadius: 2,
+                      textTransform: "none",
+                      fontSize: "1rem",
+                      fontWeight: 600,
+                      backgroundColor: "#6C63FF",
+                      "&:hover": {
+                        backgroundColor: "#5A52D5",
+                      },
+                    }}>
+                    {isSubmitting ? (
+                      <CircularProgress
+                        size={24}
+                        color="inherit"
+                      />
+                    ) : (
+                      submitLabel
+                    )}
+                  </Button>
+                </>
+              )}
+
+              <Box
                 sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2,
-                    color: "white",
-                    "& fieldset": {
-                      borderColor: "rgba(255, 255, 255, 0.2)",
-                    },
-                    "&:hover fieldset": {
-                      borderColor: "rgba(255, 255, 255, 0.3)",
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: theme.palette.primary.main,
-                    },
-                  },
-                  "& .MuiInputLabel-root": {
-                    color: "rgba(255, 255, 255, 0.7)",
-                  },
-                  "& .MuiInputLabel-root.Mui-focused": {
-                    color: theme.palette.primary.main,
-                  },
-                }}
-              />
-
-              {extraFields}
-
-              <TextField
-                type={showPassword ? "text" : "password"}
-                label="Password"
-                variant="outlined"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                error={!!error}
-                helperText={error}
-                required
-                fullWidth
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                        sx={{ color: "rgba(255, 255, 255, 0.7)" }}>
-                        {showPassword ? (
-                          <VisibilityOffIcon />
-                        ) : (
-                          <VisibilityIcon />
-                        )}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: 2,
-                    color: "white",
-                    "& fieldset": {
-                      borderColor: "rgba(255, 255, 255, 0.2)",
-                    },
-                    "&:hover fieldset": {
-                      borderColor: "rgba(255, 255, 255, 0.3)",
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: theme.palette.primary.main,
-                    },
-                  },
-                  "& .MuiInputLabel-root": {
-                    color: "rgba(255, 255, 255, 0.7)",
-                  },
-                  "& .MuiInputLabel-root.Mui-focused": {
-                    color: theme.palette.primary.main,
-                  },
-                  "& .MuiFormHelperText-root": {
-                    color: theme.palette.error.light,
-                  },
-                }}
-              />
-
-              <motion.div
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  disabled={isSubmitting}
-                  fullWidth
-                  sx={{
-                    py: 1.5,
-                    borderRadius: 2,
-                    textTransform: "none",
-                    fontSize: "1rem",
-                    fontWeight: 600,
-                    backgroundColor: "#6C63FF",
-                    "&:hover": {
-                      backgroundColor: "#5A52D5",
-                    },
-                  }}>
-                  {isSubmitting ? (
-                    <CircularProgress
-                      size={24}
-                      color="inherit"
-                    />
-                  ) : (
-                    submitLabel
-                  )}
-                </Button>
-              </motion.div>
-
-              <Box sx={{ textAlign: "center", color: "white" }}>{children}</Box>
+                  textAlign: "center",
+                  color: "white",
+                  flex: submitLabel ? 0 : 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: submitLabel ? "flex-start" : "center",
+                }}>
+                {children}
+              </Box>
             </Stack>
           </Paper>
         </motion.div>

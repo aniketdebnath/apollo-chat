@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalStrategy } from './strategies/local.strategy';
 import { GoogleStrategy } from './strategies/google.strategy';
@@ -12,10 +12,14 @@ import {
   RefreshToken,
   RefreshTokenSchema,
 } from './entities/refresh-token.entity';
+import { OtpVerification, OtpVerificationSchema } from './entities/otp.entity';
+import { EmailModule } from '../common/email/email.module';
+import { OtpThrottlerGuard } from './guards/otp-throttler.guard';
 
 @Module({
   imports: [
-    UsersModule,
+    forwardRef(() => UsersModule),
+    EmailModule,
     JwtModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow('JWT_SECRET'),
@@ -27,9 +31,16 @@ import {
     }),
     DatabaseModule.forFeature([
       { name: RefreshToken.name, schema: RefreshTokenSchema },
+      { name: OtpVerification.name, schema: OtpVerificationSchema },
     ]),
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy, GoogleStrategy],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+    GoogleStrategy,
+    OtpThrottlerGuard,
+  ],
   controllers: [AuthController],
   exports: [AuthService],
 })

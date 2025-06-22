@@ -6,6 +6,7 @@ import {
   UseGuards,
   Req,
   UnauthorizedException,
+  Body,
 } from '@nestjs/common';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { GoogleAuthGuard } from './guards/google-auth.guard';
@@ -14,22 +15,25 @@ import { User } from '../users/entities/user.entity';
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
+import { UsersService } from '../users/users.service';
+import { OtpThrottlerGuard } from './guards/otp-throttler.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
+    private readonly usersService: UsersService,
   ) {}
 
   @Post('login')
   @UseGuards(LocalAuthGuard)
-  login(
+  async login(
     @CurrentUser() user: User,
     @Res({ passthrough: true }) response: Response,
     @Req() request: Request,
   ) {
-    this.authService.login(user, response, request);
+    await this.authService.login(user, response, request);
     return user;
   }
 
@@ -165,5 +169,47 @@ export class AuthController {
       frontendUrl: this.configService.get<string>('FRONTEND_URL'),
     };
     return config;
+  }
+
+  @Post('send-otp')
+  @UseGuards(OtpThrottlerGuard)
+  async sendOtp(@Body() { email }: { email: string }) {
+    try {
+      const result = await this.authService.generateAndSendOtp(email);
+      return { success: result };
+    } catch (error) {
+      return { success: false, error: 'Failed to send OTP' };
+    }
+  }
+
+  @Post('verify-otp')
+  @UseGuards(OtpThrottlerGuard)
+  async verifyOtp(@Body() { email, otp }: { email: string; otp: string }) {
+    const isVerified = await this.authService.verifyOtp(email, otp);
+    if (!isVerified) {
+      throw new UnauthorizedException('Invalid or expired OTP');
+    }
+
+    // Try to find the user to send a welcome email
+    try {
+      const user = await this.usersService.findByEmail(email);
+      if (user) {
+        await this.authService.sendWelcomeEmail(email, user.username);
+      }
+    } catch (error: unknown) {
+      // Don't fail verification if welcome email fails
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error(`Failed to send welcome email: ${errorMessage}`);
+    }
+
+    return { success: true };
+  }
+
+  @Post('check-email-verified')
+  @UseGuards(OtpThrottlerGuard)
+  async checkEmailVerified(@Body() { email }: { email: string }) {
+    const isVerified = await this.authService.isEmailVerified(email);
+    return { verified: isVerified };
   }
 }

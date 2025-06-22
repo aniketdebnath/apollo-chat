@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { User } from '../users/entities/user.entity';
 import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
@@ -6,35 +11,50 @@ import { TokenPayload } from './interfaces/token-payload.interface';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { RefreshToken } from './entities/refresh-token.entity';
+import { OtpVerification } from './entities/otp.entity';
 import { Model, Types } from 'mongoose';
 import * as crypto from 'crypto';
 import { UsersService } from '../users/users.service';
+import { EmailService } from '../common/email/email.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
+    @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
     @InjectModel(RefreshToken.name)
     private refreshTokenModel: Model<RefreshToken>,
+    @InjectModel(OtpVerification.name)
+    private otpModel: Model<OtpVerification>,
+    private readonly emailService: EmailService,
   ) {}
 
-  async login(user: User, response: Response, request?: Request) {
-    // Generate access token
-    const accessToken = this.generateAccessToken(user);
+  async login(
+    user: User,
+    response: Response,
+    request?: Request,
+  ): Promise<{ success: boolean }> {
+    try {
+      // Generate access token
+      const accessToken = this.generateAccessToken(user);
 
-    // Generate refresh token
-    const refreshToken = await this.generateRefreshToken(
-      user._id.toHexString(),
-      request?.headers['user-agent'],
-      request?.ip,
-    );
+      // Generate refresh token
+      const refreshToken = await this.generateRefreshToken(
+        user._id.toHexString(),
+        request?.headers['user-agent'],
+        request?.ip,
+      );
 
-    // Set cookies
-    this.setTokenCookies(response, accessToken, refreshToken);
+      // Set cookies
+      this.setTokenCookies(response, accessToken, refreshToken);
 
-    return { success: true };
+      return { success: true };
+    } catch (error) {
+      console.error('Error during login:', error);
+      throw new UnauthorizedException('Login failed');
+    }
   }
 
   private generateAccessToken(user: User): string {
@@ -234,5 +254,71 @@ export class AuthService {
       .exec();
 
     return sessions;
+  }
+
+  // OTP Methods
+  async generateAndSendOtp(email: string): Promise<boolean> {
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Set expiration (15 minutes from now)
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 15);
+
+    // Delete any existing OTPs for this email
+    await this.otpModel.deleteMany({ email });
+
+    // Create new OTP document
+    const otpVerification = new this.otpModel({
+      _id: new Types.ObjectId(),
+      email,
+      otp,
+      expiresAt,
+    });
+
+    await otpVerification.save();
+
+    // Send OTP via email
+    const emailSent = await this.emailService.sendOtpEmail(email, otp);
+
+    // For development, still log the OTP
+    if (this.configService.get('NODE_ENV') !== 'production') {
+      console.log(`OTP for ${email}: ${otp}`);
+    }
+
+    return emailSent;
+  }
+
+  async verifyOtp(email: string, otp: string): Promise<boolean> {
+    const otpDoc = await this.otpModel.findOne({
+      email,
+      otp,
+      expiresAt: { $gt: new Date() },
+      verified: false,
+    });
+
+    if (!otpDoc) {
+      return false;
+    }
+
+    // Mark as verified
+    otpDoc.verified = true;
+    await otpDoc.save();
+
+    return true;
+  }
+
+  async isEmailVerified(email: string): Promise<boolean> {
+    const verifiedOtp = await this.otpModel.findOne({
+      email,
+      verified: true,
+    });
+
+    return !!verifiedOtp;
+  }
+
+  // Send welcome email after successful verification
+  async sendWelcomeEmail(email: string, username: string): Promise<boolean> {
+    return this.emailService.sendWelcomeEmail(email, username);
   }
 }

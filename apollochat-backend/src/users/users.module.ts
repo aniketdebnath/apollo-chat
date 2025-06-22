@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersResolver } from './users.resolver';
 import { UsersRepository } from './users.repository';
@@ -7,11 +7,13 @@ import { User } from './entities/user.entity';
 import { UserSchema } from './entities/user.document';
 import { UsersController } from './users.controller';
 import { S3Module } from '../common/s3/s3.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
     DatabaseModule.forFeature([{ name: User.name, schema: UserSchema }]),
     S3Module,
+    forwardRef(() => AuthModule),
   ],
   providers: [UsersResolver, UsersService, UsersRepository],
   exports: [UsersService],
