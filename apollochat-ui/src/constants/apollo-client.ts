@@ -16,6 +16,8 @@ import { Chat, User } from "../gql/graphql";
 import { sortChats } from "../utils/chat-sorting";
 import { refreshAccessToken } from "../utils/refreshToken";
 import { getRelativeApiUrl } from "../utils/api-url";
+import { snackVar } from "./snack";
+import { DEMO_ERROR_SNACK_MESSAGE } from "./error";
 
 // Function to get the token from localStorage
 const getToken = () => localStorage.getItem("token") || "";
@@ -47,6 +49,17 @@ const debugLink = onError(
 // Enhanced error handling with token refresh
 const errorLink = onError(
   ({ graphQLErrors, networkError, operation, forward }) => {
+    // Check for demo restriction errors
+    const demoError = graphQLErrors?.find((error) =>
+      error.message.includes("Demo account is read-only")
+    );
+
+    if (demoError) {
+      // Show alert for demo restrictions
+      snackVar(DEMO_ERROR_SNACK_MESSAGE);
+      return forward(operation);
+    }
+
     // Check if we have authentication errors
     const authError = graphQLErrors?.find(
       (error) =>
@@ -55,7 +68,9 @@ const errorLink = onError(
     );
 
     // If on login page or other excluded routes, don't try to refresh
-    if (excludedRoutes.includes(window.location.pathname)) {
+    if (
+      excludedRoutes.some((route) => window.location.pathname.includes(route))
+    ) {
       return forward(operation);
     }
 

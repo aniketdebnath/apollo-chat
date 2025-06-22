@@ -1,10 +1,9 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import Login from "./auth/Login";
 import Signup from "./auth/Signup";
 import Home from "./home/Home";
 import Chat from "./chat/Chat";
 import { Profile } from "./profile/Profile";
-import Demo from "./demo/Demo";
 import Explore from "./explore/Explore";
 import {
   Box,
@@ -128,7 +127,12 @@ const router = createBrowserRouter([
   },
   {
     path: "/demo",
-    element: withErrorBoundary(<Demo />),
+    element: (
+      <Navigate
+        to="/login?demo=true"
+        replace
+      />
+    ),
     errorElement: <RouteErrorElement />,
   },
   {

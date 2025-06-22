@@ -19,6 +19,9 @@ import {
   Typography,
   Avatar,
   ListItemIcon,
+  Alert,
+  Menu,
+  MenuItem,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
@@ -39,7 +42,6 @@ import { Pages } from "../../interfaces/pages.interface";
 import { ChatList } from "../chat-list/ChatList";
 import router from "../Routes";
 import { usePath } from "../../hooks/usePath";
-import DemoChatList from "../demo/DemoChatList";
 import { useLogout } from "../../hooks/useLogout";
 import { onLogout } from "../../utils/logout";
 import { snackVar } from "../../constants/snack";
@@ -47,6 +49,8 @@ import { UNKNOWN_ERROR_SNACK_MESSAGE } from "../../constants/error";
 import { useGetMe } from "../../hooks/useGetMe";
 import { StatusSelector } from "../status/StatusSelector";
 import { UserStatus } from "../../constants/userStatus";
+import InfoIcon from "@mui/icons-material/Info";
+import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 
 const pages: Pages[] = [
   {
@@ -115,9 +119,9 @@ const Header = () => {
   const [chatDrawerOpen, setChatDrawerOpen] = useState(false);
   const [navDrawerOpen, setNavDrawerOpen] = useState(false);
   const { path } = usePath();
-  const isDemoPage = path === "/demo";
   const { logout } = useLogout();
   const { data: userData } = useGetMe();
+  const isDemoUser = userData?.me?.email === "demo@apollochat.com";
 
   // Add event listener for chat selection
   useEffect(() => {
@@ -187,7 +191,7 @@ const Header = () => {
             <Box sx={{ display: "flex", alignItems: "center" }}>
               {isMobile ? (
                 <Box sx={{ display: "flex", alignItems: "center" }}>
-                  {(authenticated || isDemoPage) && (
+                  {(authenticated || path === "/demo") && (
                     <Tooltip title="Chats">
                       <IconButton
                         onClick={toggleChatDrawer}
@@ -252,7 +256,7 @@ const Header = () => {
       {/* Mobile drawer for chats */}
       <Drawer
         anchor="left"
-        open={chatDrawerOpen && (authenticated || isDemoPage)}
+        open={chatDrawerOpen && (authenticated || path === "/demo")}
         onClose={toggleChatDrawer}
         sx={{
           "& .MuiDrawer-paper": {
@@ -292,7 +296,7 @@ const Header = () => {
           </IconButton>
         </Toolbar>
         <Box sx={{ overflow: "auto", height: "calc(100% - 64px)" }}>
-          {isDemoPage ? <DemoChatList /> : <ChatList />}
+          <ChatList />
         </Box>
       </Drawer>
 
@@ -490,6 +494,47 @@ const Header = () => {
           </Box>
         )}
       </Drawer>
+
+      {/* Demo Mode Banner - Fixed at the bottom */}
+      {isDemoUser && (
+        <Box
+          sx={{
+            position: "fixed",
+            bottom: 20, // slight padding from bottom
+            left: 0,
+            right: 0,
+            zIndex: 9999,
+            display: "flex",
+            justifyContent: "center",
+            pointerEvents: "none", // optional: makes it non-interactive
+
+            "& > div": {
+              backgroundColor: "rgba(255, 175, 32, 0.95)",
+              color: "rgba(0, 0, 0, 0.8)",
+              padding: "10px 16px",
+              display: "flex",
+              alignItems: "center",
+              borderRadius: "8px",
+              boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
+              border: "1px solid rgba(255, 255, 255, 0.3)",
+              backdropFilter: "blur(5px)",
+              animation: "pulse 2s infinite",
+            },
+
+            "@keyframes pulse": {
+              "0%": { boxShadow: "0 0 0 0 rgba(255, 175, 32, 0.4)" },
+              "70%": { boxShadow: "0 0 0 10px rgba(255, 175, 32, 0)" },
+              "100%": { boxShadow: "0 0 0 0 rgba(255, 175, 32, 0)" },
+            },
+          }}>
+          <Box>
+            <WarningAmberOutlinedIcon sx={{ mr: 1 }} />
+            <Typography fontWeight={600}>
+              Demo Mode - Read-only access. Changes will not be saved.
+            </Typography>
+          </Box>
+        </Box>
+      )}
     </>
   );
 };

@@ -57,7 +57,48 @@ const useLogin = () => {
     }
   };
 
-  return { login, error };
+  // Special function for demo login
+  const demoLogin = async () => {
+    try {
+      console.log("Attempting demo login");
+
+      // Use the special demo login endpoint
+      const demoLoginUrl = getRelativeApiUrl("/auth/demo-login");
+      console.log("Demo Login URL:", demoLoginUrl);
+
+      const res = await fetch(demoLoginUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        console.error("Demo login failed:", res.status, data);
+        setError(data.message || UNKNOWN_ERROR_MESSAGE);
+        return;
+      }
+
+      console.log("Demo login successful");
+
+      // Clear any previous errors
+      setError("");
+
+      // Set authenticated state
+      authenticatedVar(true);
+
+      // Refetch active queries to update the UI
+      await client.refetchQueries({ include: "active" });
+    } catch (error) {
+      console.error("Demo login error:", error);
+      setError(error instanceof Error ? error.message : UNKNOWN_ERROR_MESSAGE);
+    }
+  };
+
+  return { login, demoLogin, error };
 };
 
 export { useLogin };

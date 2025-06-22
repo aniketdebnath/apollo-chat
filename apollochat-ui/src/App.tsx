@@ -34,6 +34,7 @@ const App = () => {
     "/explore",
     "/notifications",
     "/favorites",
+    "/profile",
     "/404",
   ];
 

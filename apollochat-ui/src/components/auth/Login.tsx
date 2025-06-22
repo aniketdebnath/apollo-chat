@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import Auth from "./Auth";
 import { useLogin } from "../../hooks/useLogin";
 import {
@@ -15,7 +15,7 @@ import {
   IconButton,
   Stack,
 } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RocketLaunch } from "@mui/icons-material";
 import GoogleSignIn from "./GoogleSignIn";
 import { useGoogleAuthError } from "../../hooks/useGoogleAuthError";
@@ -30,10 +30,37 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 const Login = () => {
-  const { login, error: loginError } = useLogin();
+  const { login, demoLogin, error: loginError } = useLogin();
   const { error: googleError } = useGoogleAuthError();
   const theme = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check if this is a demo login request
+  const isDemoLogin =
+    new URLSearchParams(location.search).get("demo") === "true";
+  const [demoLoading, setDemoLoading] = useState(isDemoLogin);
+  const [demoError, setDemoError] = useState<string | null>(null);
+
+  // Auto-login for demo user
+  useEffect(() => {
+    if (isDemoLogin) {
+      const loginAsDemo = async () => {
+        try {
+          await demoLogin();
+          navigate("/");
+        } catch (error) {
+          console.error("Demo login failed:", error);
+          setDemoError(
+            "Failed to log in to demo account. Please try again later."
+          );
+          setDemoLoading(false);
+        }
+      };
+
+      loginAsDemo();
+    }
+  }, [isDemoLogin, demoLogin, navigate]);
 
   // States for forgot password flow
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -52,7 +79,7 @@ const Login = () => {
   const [resetSuccess, setResetSuccess] = useState(false);
 
   // Use either login error or Google OAuth error
-  const error = loginError || googleError || undefined;
+  const error = loginError || googleError || demoError || undefined;
 
   // Custom success color for the demo button
   const successColor = "#00B8A9"; // Using the success color from the theme
@@ -359,6 +386,23 @@ const Login = () => {
     );
   }
 
+  // Show loading screen for demo login
+  if (demoLoading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          height: "100vh",
+        }}>
+        <CircularProgress />
+        <Typography sx={{ mt: 2 }}>Loading demo account...</Typography>
+      </Box>
+    );
+  }
+
   // Main login form
   return (
     <Auth
@@ -428,7 +472,7 @@ const Login = () => {
         </Box>
 
         <Button
-          onClick={() => navigate("/demo")}
+          onClick={() => navigate("/login?demo=true")}
           variant="outlined"
           fullWidth
           startIcon={<RocketLaunch />}

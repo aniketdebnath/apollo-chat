@@ -18,8 +18,11 @@ import { UsersService } from './users/users.service';
 import { SecurityModule } from './common/security/security.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { SecurityInterceptor } from './common/security/security.interceptor';
+import { DemoUserInterceptor } from './common/interceptors/demo-user.interceptor';
 import { Request, Response, CookieOptions } from 'express';
 import { TokenPayload } from './auth/interfaces/token-payload.interface';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { EmailModule } from './common/email/email.module';
 
 // Define WebSocket context interface
 interface WsContext {
@@ -198,6 +201,8 @@ interface WsContext {
     PubSubModule,
     S3Module,
     SecurityModule,
+    ThrottlerModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [
@@ -205,6 +210,10 @@ interface WsContext {
     {
       provide: APP_INTERCEPTOR,
       useClass: SecurityInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: DemoUserInterceptor,
     },
   ],
 })

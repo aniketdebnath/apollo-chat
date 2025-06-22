@@ -37,6 +37,29 @@ export class AuthController {
     return user;
   }
 
+  // Special endpoint for demo login
+  @Post('demo-login')
+  async demoLogin(
+    @Res({ passthrough: true }) response: Response,
+    @Req() request: Request,
+  ) {
+    try {
+      // Find the demo user
+      const demoUser = await this.usersService.findByEmail(
+        'demo@apollochat.com',
+      );
+      if (!demoUser) {
+        throw new UnauthorizedException('Demo user not found');
+      }
+
+      // Login the demo user
+      await this.authService.login(demoUser, response, request);
+      return demoUser;
+    } catch (error) {
+      throw new UnauthorizedException('Demo login failed');
+    }
+  }
+
   @Get('google')
   @UseGuards(GoogleAuthGuard)
   googleAuth() {
