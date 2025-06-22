@@ -11,7 +11,10 @@ export class UserDocument extends AbstractEntity {
   username: string;
 
   @Prop()
-  password: string;
+  password?: string;
+
+  @Prop()
+  googleId?: string;
 
   @Prop({
     type: String,

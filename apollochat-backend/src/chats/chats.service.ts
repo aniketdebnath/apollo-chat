@@ -616,24 +616,20 @@ export class ChatsService {
       );
     }
 
-    // Store chat data before deletion
-    const chatBeforeDeletion = { ...chat.toObject() };
+    // Get the full chat entity with populated members before deletion
+    const chatToDelete = await this.findOne(chatId, userId);
+
+    if (!chatToDelete) {
+      // This should ideally not happen if the above check passed
+      throw new NotFoundException(`Chat with ID ${chatId} disappeared.`);
+    }
 
     // Delete the chat
     await this.chatsRepository.model.deleteOne({
       _id: new Types.ObjectId(chatId),
     });
 
-    // Convert the saved chat document to a Chat entity
-    const chatEntity = {
-      _id: chatBeforeDeletion._id.toString(),
-      name: chatBeforeDeletion.name,
-      type: chatBeforeDeletion.type,
-      creator: await this.usersService.findOne(chatBeforeDeletion.creatorId),
-      members: [], // We don't need to populate members for a deleted chat
-    } as unknown as Chat;
-
-    return chatEntity;
+    return chatToDelete;
   }
 
   async countChats() {

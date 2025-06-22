@@ -1,9 +1,10 @@
-import { API_URL } from "../constants/urls";
+import { getRelativeApiUrl } from "../utils/api-url";
 
 const useLogout = () => {
   const logout = async () => {
-    const res = await fetch(`${API_URL}/auth/logout`, {
+    const res = await fetch(getRelativeApiUrl("/auth/logout"), {
       method: "POST",
+      credentials: "include",
     });
     if (!res.ok) {
       throw new Error("Error logging out");

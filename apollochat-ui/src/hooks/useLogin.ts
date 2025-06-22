@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { API_URL } from "../constants/urls";
 import client from "../constants/apollo-client";
 import { UNKNOWN_ERROR_MESSAGE } from "../constants/error";
 import { authenticatedVar } from "../constants/authenticated";
@@ -14,12 +13,13 @@ const useLogin = () => {
 
   const login = async (request: LoginRequest) => {
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
+      const res = await fetch(`/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(request),
+        credentials: "include",
       });
 
       if (!res.ok) {
@@ -40,7 +40,6 @@ const useLogin = () => {
       // Refetch active queries to update the UI
       await client.refetchQueries({ include: "active" });
     } catch (error) {
-      console.error("Login error:", error);
       setError(UNKNOWN_ERROR_MESSAGE);
     }
   };

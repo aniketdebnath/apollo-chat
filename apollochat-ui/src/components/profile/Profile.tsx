@@ -15,11 +15,11 @@ import {
 } from "@mui/material";
 import { useGetMe } from "../../hooks/useGetMe";
 import { UploadFile, Email, Person, ArrowBack } from "@mui/icons-material";
-import { API_URL } from "../../constants/urls";
 import { snackVar } from "../../constants/snack";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { stringToColor, getAvatarProps } from "../../utils/avatar";
+import { getRelativeApiUrl } from "../../utils/api-url";
 
 export const Profile = () => {
   const { data, loading } = useGetMe();
@@ -51,7 +51,7 @@ export const Profile = () => {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch(`${API_URL}/users/image`, {
+      const res = await fetch(getRelativeApiUrl("/users/image"), {
         method: "POST",
         body: formData,
       });

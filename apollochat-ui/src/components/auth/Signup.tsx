@@ -17,6 +17,8 @@ import { useLogin } from "../../hooks/useLogin";
 import { UNKNOWN_ERROR_MESSAGE } from "../../constants/error";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
 import { RocketLaunch } from "@mui/icons-material";
+import GoogleSignIn from "./GoogleSignIn";
+import { useGoogleAuthError } from "../../hooks/useGoogleAuthError";
 
 const Signup = () => {
   const [createUser] = useCreateUser();
@@ -25,6 +27,10 @@ const Signup = () => {
   const { login } = useLogin();
   const navigate = useNavigate();
   const theme = useTheme();
+  const { error: googleError } = useGoogleAuthError();
+
+  // Use either signup error or Google OAuth error
+  const displayError = error || googleError || undefined;
 
   // Custom success color for the demo button
   const successColor = "#00B8A9"; // Using the success color from the theme
@@ -32,7 +38,7 @@ const Signup = () => {
   return (
     <Auth
       submitLabel="Sign Up"
-      error={error}
+      error={displayError}
       extraFields={[
         <TextField
           key="username-field"
@@ -41,7 +47,7 @@ const Signup = () => {
           variant="outlined"
           value={username}
           onChange={(event) => setUsername(event.target.value)}
-          error={!!error}
+          error={!!displayError}
           required
           fullWidth
           InputProps={{
@@ -80,6 +86,19 @@ const Signup = () => {
           setError(UNKNOWN_ERROR_MESSAGE);
         }
       }}>
+      <Box sx={{ position: "relative", my: 1, width: "100%" }}>
+        <Divider sx={{ width: "100%" }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ px: 1 }}>
+            or
+          </Typography>
+        </Divider>
+      </Box>
+
+      <GoogleSignIn sx={{ mb: 2 }} />
+
       <Box
         sx={{
           display: "flex",

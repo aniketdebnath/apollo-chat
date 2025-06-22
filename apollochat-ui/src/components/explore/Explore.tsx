@@ -13,15 +13,19 @@ import {
   CircularProgress,
   IconButton,
   Tooltip,
+  Alert,
+  Collapse,
 } from "@mui/material";
 import { useGetPublicChats } from "../../hooks/useGetPublicChats";
 import { useJoinChat } from "../../hooks/useJoinChat";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNowStrict } from "date-fns";
 import LockIcon from "@mui/icons-material/Lock";
 import GroupIcon from "@mui/icons-material/Group";
 import PublicIcon from "@mui/icons-material/Public";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import CloseIcon from "@mui/icons-material/Close";
 import {
   ChatType,
   chatTypeDescriptions,
@@ -30,13 +34,32 @@ import {
 import { stringToColor } from "../../utils/avatar";
 import { Chat } from "../../gql/graphql";
 import { snackVar } from "../../constants/snack";
+import { useChatSubscriptions } from "../../hooks/useChatSubscriptions";
 
 const Explore = () => {
   const { publicChats, loading, error, refetch } = useGetPublicChats();
   const { joinChat, loading: joinLoading } = useJoinChat();
   const [joiningChatId, setJoiningChatId] = useState<string | null>(null);
+  const [showNewChatAlert, setShowNewChatAlert] = useState(false);
   const theme = useTheme();
   const navigate = useNavigate();
+  const prevChatsCountRef = useRef(0);
+
+  // Subscribe to chat added/deleted events
+  useChatSubscriptions();
+
+  // Check if new chats have been added
+  useEffect(() => {
+    if (
+      !loading &&
+      publicChats.length > prevChatsCountRef.current &&
+      prevChatsCountRef.current > 0
+    ) {
+      // New chats have been added
+      setShowNewChatAlert(true);
+    }
+    prevChatsCountRef.current = publicChats.length;
+  }, [publicChats.length, loading]);
 
   const handleJoinChat = async (chatId: string) => {
     try {
@@ -106,7 +129,52 @@ const Explore = () => {
           sx={{ mb: 2 }}>
           Discover and join public conversations from the Apollo Chat community
         </Typography>
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+          }}>
+          <Box
+            component="span"
+            sx={{
+              width: 8,
+              height: 8,
+              borderRadius: "50%",
+              backgroundColor: theme.palette.success.main,
+              display: "inline-block",
+            }}
+          />
+          Real-time updates enabled
+        </Typography>
       </Paper>
+
+      <Collapse
+        in={showNewChatAlert}
+        sx={{ mb: 2 }}>
+        <Alert
+          severity="info"
+          action={
+            <IconButton
+              aria-label="close"
+              color="inherit"
+              size="small"
+              onClick={() => {
+                setShowNewChatAlert(false);
+              }}>
+              <CloseIcon fontSize="inherit" />
+            </IconButton>
+          }
+          sx={{
+            borderRadius: 2,
+            backgroundColor: alpha(theme.palette.info.main, 0.1),
+            color: theme.palette.info.main,
+          }}>
+          New public chats are available!
+        </Alert>
+      </Collapse>
 
       {loading ? (
         <Box
@@ -177,195 +245,233 @@ const Explore = () => {
           </Typography>
         </Paper>
       ) : (
-        <Grid
-          container
-          spacing={2}>
-          {publicChats.map((chat: Chat) => (
-            <Grid
-              item
-              xs={12}
-              key={chat._id}>
-              <Paper
-                elevation={0}
+        <>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              mb: 2,
+            }}>
+            <Button
+              startIcon={<RefreshIcon />}
+              onClick={() => refetch()}
+              size="small"
+              sx={{
+                borderRadius: 2,
+                textTransform: "none",
+              }}>
+              Refresh
+            </Button>
+          </Box>
+          <Grid
+            container
+            spacing={2}>
+            {publicChats.map((chat: Chat) => (
+              <Grid
+                item
+                xs={12}
+                key={chat._id}
                 sx={{
-                  p: 3,
-                  borderRadius: 3,
-                  border: "1px solid",
-                  borderColor: "divider",
-                  backgroundColor: alpha(theme.palette.background.paper, 0.8),
-                  transition: "all 0.2s ease",
-                  "&:hover": {
-                    backgroundColor: alpha(theme.palette.background.paper, 1),
-                    boxShadow: `0 4px 20px ${alpha(
-                      theme.palette.common.black,
-                      0.1
-                    )}`,
-                    transform: "translateY(-2px)",
+                  animation: "fadeIn 0.5s ease-in-out",
+                  "@keyframes fadeIn": {
+                    "0%": {
+                      opacity: 0,
+                      transform: "translateY(10px)",
+                    },
+                    "100%": {
+                      opacity: 1,
+                      transform: "translateY(0)",
+                    },
                   },
                 }}>
-                <Box
+                <Paper
+                  elevation={0}
                   sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    mb: 2,
+                    p: 3,
+                    borderRadius: 3,
+                    border: "1px solid",
+                    borderColor: "divider",
+                    backgroundColor: alpha(theme.palette.background.paper, 0.8),
+                    transition: "all 0.2s ease",
+                    "&:hover": {
+                      backgroundColor: alpha(theme.palette.background.paper, 1),
+                      boxShadow: `0 4px 20px ${alpha(
+                        theme.palette.common.black,
+                        0.1
+                      )}`,
+                      transform: "translateY(-2px)",
+                    },
                   }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Avatar
-                      sx={{
-                        bgcolor: stringToColor(chat.name || "Chat"),
-                        width: 48,
-                        height: 48,
-                      }}>
-                      {(chat.name?.[0] || "C").toUpperCase()}
-                    </Avatar>
-                    <Box>
-                      <Typography
-                        variant="h6"
-                        fontWeight={600}>
-                        {chat.name || "Unnamed Chat"}
-                      </Typography>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <Tooltip
-                          title={
-                            chatTypeDescriptions[chat.type as ChatType] || ""
-                          }>
-                          <Chip
-                            icon={getChatTypeIcon(chat.type)}
-                            label={
-                              chatTypeLabels[chat.type as ChatType] ||
-                              chat.type.charAt(0).toUpperCase() +
-                                chat.type.slice(1)
-                            }
-                            size="small"
-                            color="primary"
-                            variant="outlined"
-                            sx={{ borderRadius: 1 }}
-                          />
-                        </Tooltip>
-                        <Typography
-                          variant="caption"
-                          color="text.secondary">
-                          {chat.members.length} member
-                          {chat.members.length !== 1 ? "s" : ""}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => handleJoinChat(chat._id)}
-                    disabled={joinLoading && joiningChatId === chat._id}
-                    sx={{
-                      borderRadius: 2,
-                      textTransform: "none",
-                      px: 2,
-                      py: 1,
-                      fontWeight: 600,
-                    }}>
-                    {joinLoading && joiningChatId === chat._id ? (
-                      <CircularProgress
-                        size={24}
-                        color="inherit"
-                      />
-                    ) : (
-                      "Join Chat"
-                    )}
-                  </Button>
-                </Box>
-
-                {chat.latestMessage && (
-                  <>
-                    <Divider sx={{ my: 2 }} />
-                    <Box>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          mb: 0.5,
-                        }}>
-                        <Avatar
-                          src={chat.latestMessage.user.imageUrl || undefined}
-                          sx={{
-                            width: 24,
-                            height: 24,
-                            bgcolor: !chat.latestMessage.user.imageUrl
-                              ? stringToColor(chat.latestMessage.user.username)
-                              : undefined,
-                          }}>
-                          {chat.latestMessage.user.username[0].toUpperCase()}
-                        </Avatar>
-                        <Typography
-                          variant="subtitle2"
-                          fontWeight={500}
-                          color="text.primary">
-                          {chat.latestMessage.user.username}
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{ ml: "auto" }}>
-                          {formatDistanceToNowStrict(
-                            new Date(chat.latestMessage.createdAt),
-                            { addSuffix: true }
-                          )}
-                        </Typography>
-                      </Box>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{
-                          ml: 4,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          display: "-webkit-box",
-                          WebkitLineClamp: 1,
-                          WebkitBoxOrient: "vertical",
-                        }}>
-                        {chat.latestMessage.content}
-                      </Typography>
-                    </Box>
-                  </>
-                )}
-
-                {chat.creator && (
                   <Box
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 1,
-                      mt: 2,
+                      justifyContent: "space-between",
+                      mb: 2,
                     }}>
-                    <Typography
-                      variant="caption"
-                      color="text.secondary">
-                      Created by
-                    </Typography>
-                    <Avatar
-                      src={chat.creator.imageUrl || undefined}
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                      <Avatar
+                        sx={{
+                          bgcolor: stringToColor(chat.name || "Chat"),
+                          width: 48,
+                          height: 48,
+                        }}>
+                        {(chat.name?.[0] || "C").toUpperCase()}
+                      </Avatar>
+                      <Box>
+                        <Typography
+                          variant="h6"
+                          fontWeight={600}>
+                          {chat.name || "Unnamed Chat"}
+                        </Typography>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                          }}>
+                          <Tooltip
+                            title={
+                              chatTypeDescriptions[chat.type as ChatType] || ""
+                            }>
+                            <Chip
+                              icon={getChatTypeIcon(chat.type)}
+                              label={
+                                chatTypeLabels[chat.type as ChatType] ||
+                                chat.type.charAt(0).toUpperCase() +
+                                  chat.type.slice(1)
+                              }
+                              size="small"
+                              color="primary"
+                              variant="outlined"
+                              sx={{ borderRadius: 1 }}
+                            />
+                          </Tooltip>
+                          <Typography
+                            variant="caption"
+                            color="text.secondary">
+                            {chat.members.length} member
+                            {chat.members.length !== 1 ? "s" : ""}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => handleJoinChat(chat._id)}
+                      disabled={joinLoading && joiningChatId === chat._id}
                       sx={{
-                        width: 20,
-                        height: 20,
-                        bgcolor: !chat.creator.imageUrl
-                          ? stringToColor(chat.creator.username)
-                          : undefined,
+                        borderRadius: 2,
+                        textTransform: "none",
+                        px: 2,
+                        py: 1,
+                        fontWeight: 600,
                       }}>
-                      {chat.creator.username[0].toUpperCase()}
-                    </Avatar>
-                    <Typography
-                      variant="caption"
-                      fontWeight={500}>
-                      {chat.creator.username}
-                    </Typography>
+                      {joinLoading && joiningChatId === chat._id ? (
+                        <CircularProgress
+                          size={24}
+                          color="inherit"
+                        />
+                      ) : (
+                        "Join Chat"
+                      )}
+                    </Button>
                   </Box>
-                )}
-              </Paper>
-            </Grid>
-          ))}
-        </Grid>
+
+                  {chat.latestMessage && (
+                    <>
+                      <Divider sx={{ my: 2 }} />
+                      <Box>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            mb: 0.5,
+                          }}>
+                          <Avatar
+                            src={chat.latestMessage.user.imageUrl || undefined}
+                            sx={{
+                              width: 24,
+                              height: 24,
+                              bgcolor: !chat.latestMessage.user.imageUrl
+                                ? stringToColor(
+                                    chat.latestMessage.user.username
+                                  )
+                                : undefined,
+                            }}>
+                            {chat.latestMessage.user.username[0].toUpperCase()}
+                          </Avatar>
+                          <Typography
+                            variant="subtitle2"
+                            fontWeight={500}
+                            color="text.primary">
+                            {chat.latestMessage.user.username}
+                          </Typography>
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ ml: "auto" }}>
+                            {formatDistanceToNowStrict(
+                              new Date(chat.latestMessage.createdAt),
+                              { addSuffix: true }
+                            )}
+                          </Typography>
+                        </Box>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{
+                            ml: 4,
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 1,
+                            WebkitBoxOrient: "vertical",
+                          }}>
+                          {chat.latestMessage.content}
+                        </Typography>
+                      </Box>
+                    </>
+                  )}
+
+                  {chat.creator && (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        mt: 2,
+                      }}>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary">
+                        Created by
+                      </Typography>
+                      <Avatar
+                        src={chat.creator.imageUrl || undefined}
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          bgcolor: !chat.creator.imageUrl
+                            ? stringToColor(chat.creator.username)
+                            : undefined,
+                        }}>
+                        {chat.creator.username[0].toUpperCase()}
+                      </Avatar>
+                      <Typography
+                        variant="caption"
+                        fontWeight={500}>
+                        {chat.creator.username}
+                      </Typography>
+                    </Box>
+                  )}
+                </Paper>
+              </Grid>
+            ))}
+          </Grid>
+        </>
       )}
     </Container>
   );

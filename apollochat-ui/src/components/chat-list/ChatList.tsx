@@ -15,6 +15,7 @@ import ChatListHeader from "./chat-list-header/ChatListHeader";
 import ChatListAdd from "./chat-list-add/ChatListAdd";
 import { useUserStatus } from "../../hooks/useUserStatus";
 import { sortChats } from "../../utils/chat-sorting";
+import { useChatSubscriptions } from "../../hooks/useChatSubscriptions";
 
 export const ChatList = () => {
   const [chatListAddVisible, setChatListAddVisible] = useState(false);
@@ -23,9 +24,13 @@ export const ChatList = () => {
   const { path } = usePath();
   const theme = useTheme();
 
+  // Subscribe to message created events
   useMessageCreated({
     chatIds: data?.chats.map((chat: any) => chat._id) || [],
   });
+
+  // Subscribe to chat added and deleted events
+  useChatSubscriptions();
 
   // Get unique user IDs from latest messages for status subscription
   const userIds = useMemo(() => {

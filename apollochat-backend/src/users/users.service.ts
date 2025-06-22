@@ -14,6 +14,7 @@ import { UserDocument } from './entities/user.document';
 import { User } from './entities/user.entity';
 import { FilterQuery } from 'mongoose';
 import { UserStatus } from './constants/user-status.enum';
+import fetch from 'node-fetch';
 
 @Injectable()
 export class UsersService {
@@ -262,5 +263,78 @@ export class UsersService {
 
   private getUserImage(userId: string) {
     return `${userId}.${USERS_IMAGE_FILE_EXTENSION}`;
+  }
+
+  /**
+   * Find or create a user based on Google OAuth profile data
+   * @param googleUserData - User data from Google OAuth
+   * @returns User entity
+   */
+  async findOrCreateGoogleUser(googleUserData: {
+    googleId: string;
+    email: string;
+    username: string;
+    imageUrl?: string;
+  }): Promise<User> {
+    try {
+      // First try to find user by Google ID
+      let user = await this.usersRepository
+        .findOne({ googleId: googleUserData.googleId })
+        .catch(() => null);
+
+      // If not found, try to find by email
+      if (!user) {
+        try {
+          user = await this.usersRepository.findOne({
+            email: googleUserData.email,
+          });
+        } catch (error) {
+          // User not found by email either
+          user = null;
+        }
+      }
+
+      // If still not found, create a new user
+      if (!user) {
+        // Generate a random secure password for OAuth users
+        const randomPassword =
+          Math.random().toString(36).slice(-10) +
+          Math.random().toString(36).slice(-10) +
+          Math.random().toString(36).toUpperCase().slice(-10);
+
+        user = await this.usersRepository.create({
+          googleId: googleUserData.googleId,
+          email: googleUserData.email,
+          username: googleUserData.username,
+          password: await this.hashPassword(randomPassword),
+          status: UserStatus.OFFLINE,
+        });
+
+        // If image URL is provided, try to download and upload it
+        if (googleUserData.imageUrl) {
+          try {
+            const response = await fetch(googleUserData.imageUrl);
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            await this.uploadImage(buffer, user._id.toString());
+          } catch (error) {
+            this.logger.error(
+              `Failed to download and upload Google profile image: ${error}`,
+            );
+          }
+        }
+      } else if (!user.googleId) {
+        // If user exists but doesn't have googleId, update it
+        user = await this.usersRepository.findOneAndUpdate(
+          { _id: user._id },
+          { $set: { googleId: googleUserData.googleId } },
+        );
+      }
+
+      return this.toEntity(user);
+    } catch (error) {
+      this.logger.error(`Failed to find or create Google user: ${error}`);
+      throw error;
+    }
   }
 }

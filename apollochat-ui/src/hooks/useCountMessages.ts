@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
-import { API_URL } from "../constants/urls";
 import { snackVar } from "../constants/snack";
 import { UNKNOWN_ERROR_SNACK_MESSAGE } from "../constants/error";
+import { getRelativeApiUrl } from "../utils/api-url";
 
 const useCountMessages = (chatId: string) => {
   const [messagesCount, setMessagesCount] = useState<number | undefined>();
@@ -12,7 +12,7 @@ const useCountMessages = (chatId: string) => {
       }
 
       const response = await fetch(
-        `${API_URL}/messages/count?chatId=${chatId}`
+        getRelativeApiUrl(`/messages/count?chatId=${chatId}`)
       );
       if (!response.ok) {
         console.error(

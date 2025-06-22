@@ -24,6 +24,7 @@ import {
   CardContent,
   Stack,
   TextField,
+  Autocomplete,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -33,6 +34,7 @@ import PublicIcon from "@mui/icons-material/Public";
 import PeopleIcon from "@mui/icons-material/People";
 import PersonIcon from "@mui/icons-material/Person";
 import EditIcon from "@mui/icons-material/Edit";
+import AddIcon from "@mui/icons-material/Add";
 import { UserAvatar } from "../common/UserAvatar";
 import { Chat, User } from "../../gql/graphql";
 import { UserStatus } from "../../constants/userStatus";
@@ -42,6 +44,8 @@ import { snackVar } from "../../constants/snack";
 import { useNavigate } from "react-router-dom";
 import { useDeleteChat } from "../../hooks/useDeleteChat";
 import { useUpdateChatName } from "../../hooks/useUpdateChatName";
+import { useSearchUsers } from "../../hooks/useSearchUsers";
+import { useAddChatMember } from "../../hooks/useAddChatMember";
 
 interface ChatInfoProps {
   chat: Chat;
@@ -62,9 +66,17 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newChatName, setNewChatName] = useState(chat.name || "");
+  const [isAddingMember, setIsAddingMember] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const { removeChatMember, loading: removingMember } = useRemoveChatMember();
   const { deleteChat, loading: deletingChat } = useDeleteChat();
   const { updateChatName, loading: updatingChatName } = useUpdateChatName();
+  const { users: searchResults, loading: searching } =
+    useSearchUsers(searchTerm);
+  const { addMember: addChatMember, loading: addingMember } =
+    useAddChatMember();
+  const searchTimeoutRef = React.useRef<NodeJS.Timeout>();
 
   const handleLeaveChat = async () => {
     try {
@@ -74,6 +86,23 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
         type: "success",
       });
       navigate("/");
+    } catch (error) {
+      // Error is handled in the hook
+    }
+  };
+
+  const handleAddMember = async () => {
+    if (!selectedUser) return;
+
+    try {
+      await addChatMember(chat._id, selectedUser._id);
+      snackVar({
+        message: `Added ${selectedUser.username} to the chat`,
+        type: "success",
+      });
+      setIsAddingMember(false);
+      setSearchTerm("");
+      setSelectedUser(null);
     } catch (error) {
       // Error is handled in the hook
     }
@@ -122,6 +151,15 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
     }
   };
 
+  const debouncedSearch = (term: string) => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      setSearchTerm(term);
+    }, 300);
+  };
+
   const openRemoveConfirm = (member: User) => {
     setMemberToRemove(member);
     setConfirmRemoveOpen(true);
@@ -129,6 +167,15 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
 
   const isCreator = chat.creator?._id === currentUserId;
   const isPrivateChat = chat.type === ChatType.PRIVATE;
+
+  const existingMemberIds = React.useMemo(
+    () => chat.members.map((m) => m._id),
+    [chat.members]
+  );
+  const filteredSearchResults = React.useMemo(
+    () => searchResults.filter((u) => !existingMemberIds.includes(u._id)),
+    [searchResults, existingMemberIds]
+  );
 
   // Sort members: online first, then away, then dnd, then offline
   const sortedMembers = [...(chat.members || [])].sort((a, b) => {
@@ -390,7 +437,90 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
               fontWeight={600}>
               Members ({sortedMembers.length})
             </Typography>
+            {isCreator && isPrivateChat && (
+              <Tooltip title="Add Member">
+                <IconButton
+                  onClick={() => setIsAddingMember((prev) => !prev)}
+                  size="small"
+                  sx={{ ml: "auto" }}>
+                  <AddIcon />
+                </IconButton>
+              </Tooltip>
+            )}
           </Box>
+
+          {isAddingMember && (
+            <Card
+              sx={{
+                mb: 2,
+                p: 2,
+                borderRadius: 2.5,
+                backgroundColor: alpha(theme.palette.background.default, 0.4),
+              }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Autocomplete
+                  fullWidth
+                  options={filteredSearchResults}
+                  getOptionLabel={(option) => option.username}
+                  isOptionEqualToValue={(option, value) =>
+                    option._id === value._id
+                  }
+                  onChange={(e, value) => setSelectedUser(value)}
+                  onInputChange={(e, newInputValue) =>
+                    debouncedSearch(newInputValue)
+                  }
+                  loading={searching}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Search users to add"
+                      size="small"
+                      InputProps={{
+                        ...params.InputProps,
+                        endAdornment: (
+                          <>
+                            {searching ? (
+                              <CircularProgress
+                                color="inherit"
+                                size={20}
+                              />
+                            ) : null}
+                            {params.InputProps.endAdornment}
+                          </>
+                        ),
+                      }}
+                    />
+                  )}
+                  renderOption={(props, option) => (
+                    <Box
+                      component="li"
+                      {...props}
+                      key={option._id}>
+                      <UserAvatar
+                        username={option.username}
+                        imageUrl={option.imageUrl}
+                        sx={{ mr: 1.5 }}
+                      />
+                      {option.username}
+                    </Box>
+                  )}
+                />
+                <Button
+                  variant="contained"
+                  onClick={handleAddMember}
+                  disabled={!selectedUser || addingMember}>
+                  {addingMember ? (
+                    <CircularProgress
+                      size={24}
+                      color="inherit"
+                    />
+                  ) : (
+                    "Add"
+                  )}
+                </Button>
+              </Box>
+            </Card>
+          )}
 
           <List
             disablePadding

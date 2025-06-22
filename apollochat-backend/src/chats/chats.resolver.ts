@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Subscription } from '@nestjs/graphql';
 import { ChatsService } from './chats.service';
 import { Chat } from './entities/chat.entity';
 import { CreateChatInput } from './dto/create-chat.input';
@@ -11,10 +11,22 @@ import { PaginationArgs } from '../common/dto/pagination-args.dto';
 import { ChatMemberInput } from './dto/chat-member.input';
 import { ChatTypeInput } from './dto/chat-type.input';
 import { ChatPinInput } from './dto/chat-pin.input';
+import { Inject } from '@nestjs/common';
+import { PUB_SUB } from '../common/constants/injection-tokens';
+import { PubSub } from 'graphql-subscriptions';
+import { CHAT_ADDED, CHAT_DELETED } from './constants/pubsub-triggers';
+
+interface ChatPayload {
+  chatAdded?: Chat;
+  chatDeleted?: Chat;
+}
 
 @Resolver(() => Chat)
 export class ChatsResolver {
-  constructor(private readonly chatsService: ChatsService) {}
+  constructor(
+    private readonly chatsService: ChatsService,
+    @Inject(PUB_SUB) private readonly pubSub: PubSub,
+  ) {}
 
   @UseGuards(GqlAuthGuard)
   @Mutation(() => Chat)
@@ -22,7 +34,9 @@ export class ChatsResolver {
     @Args('createChatInput') createChatInput: CreateChatInput,
     @CurrentUser() user: TokenPayload,
   ): Promise<Chat> {
-    return this.chatsService.create(createChatInput, user._id);
+    const chat = await this.chatsService.create(createChatInput, user._id);
+    this.pubSub.publish(CHAT_ADDED, { chatAdded: chat });
+    return chat;
   }
 
   @UseGuards(GqlAuthGuard)
@@ -132,6 +146,22 @@ export class ChatsResolver {
     @Args('chatId') chatId: string,
     @CurrentUser() user: TokenPayload,
   ): Promise<Chat> {
-    return this.chatsService.remove(chatId, user._id);
+    const chat = await this.chatsService.remove(chatId, user._id);
+    this.pubSub.publish(CHAT_DELETED, { chatDeleted: chat });
+    return chat;
+  }
+
+  @Subscription(() => Chat, {
+    filter: (payload: ChatPayload) => !!payload.chatAdded,
+  })
+  chatAdded() {
+    return this.pubSub.asyncIterableIterator(CHAT_ADDED);
+  }
+
+  @Subscription(() => Chat, {
+    filter: (payload: ChatPayload) => !!payload.chatDeleted,
+  })
+  chatDeleted() {
+    return this.pubSub.asyncIterableIterator(CHAT_DELETED);
   }
 }

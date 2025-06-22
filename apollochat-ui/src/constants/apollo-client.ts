@@ -1,54 +1,88 @@
-import { ApolloClient, HttpLink, InMemoryCache, split } from "@apollo/client";
+import {
+  ApolloClient,
+  HttpLink,
+  InMemoryCache,
+  split,
+  fromPromise,
+} from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
-import { API_URL, WS_URL } from "./urls";
+import { WS_URL } from "./urls";
 import { excludedRoutes } from "./excluded-routes";
 import { onLogout } from "../utils/logout";
 import { createClient } from "graphql-ws";
 import { getMainDefinition } from "@apollo/client/utilities";
 import { Chat, User } from "../gql/graphql";
 import { sortChats } from "../utils/chat-sorting";
+import { refreshAccessToken } from "../utils/refreshToken";
+import { getRelativeApiUrl } from "../utils/api-url";
 
 // Function to get the token from localStorage
 const getToken = () => localStorage.getItem("token") || "";
 
-// Super detailed debug link to identify the source of Variable $skip errors
+// Debug link for critical errors only
 const debugLink = onError(
   ({ graphQLErrors, networkError, operation, forward }) => {
     if (graphQLErrors) {
-      graphQLErrors.forEach(({ message, locations, path }) => {
+      graphQLErrors.forEach(({ message }) => {
         if (
           message.includes(
             'Variable "$skip" of required type "Int!" was not provided'
           )
         ) {
-          console.error(
-            `%c[SKIP ERROR] in operation: ${operation.operationName}`,
-            "background: #ff0000; color: white; padding: 2px;"
-          );
-          console.error("Variables:", JSON.stringify(operation.variables));
-          console.error("Query:", operation.query.loc?.source.body);
-          console.error("Stack trace:", new Error().stack);
+          // Only log critical errors in production
+          if (process.env.NODE_ENV !== "production") {
+            console.error(
+              `[SKIP ERROR] in operation: ${operation.operationName}`
+            );
+          }
         }
       });
     }
+
     return forward(operation);
   }
 );
 
-const logoutLink = onError((error) => {
-  if (
-    error.graphQLErrors?.length &&
-    (error.graphQLErrors[0].extensions?.originalError as any)?.statusCode ===
-      401
-  ) {
-    if (!excludedRoutes.includes(window.location.pathname)) {
-      onLogout();
-    }
-  }
-});
+// Enhanced error handling with token refresh
+const errorLink = onError(
+  ({ graphQLErrors, networkError, operation, forward }) => {
+    // Check if we have authentication errors
+    const authError = graphQLErrors?.find(
+      (error) =>
+        error.extensions?.code === "UNAUTHENTICATED" ||
+        (error.extensions?.originalError as any)?.statusCode === 401
+    );
 
-const httpLink = new HttpLink({ uri: `${API_URL}/graphql` });
+    // If on login page or other excluded routes, don't try to refresh
+    if (excludedRoutes.includes(window.location.pathname)) {
+      return forward(operation);
+    }
+
+    // If we have an auth error, try to refresh the token
+    if (authError) {
+      // Use fromPromise for token refresh
+      return fromPromise(refreshAccessToken()).flatMap((success) => {
+        if (success) {
+          // Retry the failed request
+          return forward(operation);
+        } else {
+          // If refresh failed, logout
+          onLogout();
+          return forward(operation);
+        }
+      });
+    }
+
+    // For non-auth errors, just pass through
+    return forward(operation);
+  }
+);
+
+const httpLink = new HttpLink({
+  uri: getRelativeApiUrl("/graphql"),
+  credentials: "include", // Important: include cookies with every request
+});
 
 const wsLink = new GraphQLWsLink(
   createClient({
@@ -71,9 +105,6 @@ const splitLink = split(
   httpLink
 );
 
-// Helper function to sort chats with pinned chats first
-// Removed local sortChats function and using the imported one
-
 const client = new ApolloClient({
   cache: new InMemoryCache({
     typePolicies: {
@@ -81,22 +112,8 @@ const client = new ApolloClient({
         fields: {
           chats: {
             keyArgs: false,
-            merge(existing, incoming, { args }) {
-              if (args?.limit >= 1000) {
-                // Sort chats with pinned chats first
-                return sortChats(incoming);
-              }
-
-              const merged = existing ? existing.slice(0) : [];
-              if (args?.skip !== undefined) {
-                for (let i = 0; i < incoming.length; ++i) {
-                  merged[args.skip + i] = incoming[i];
-                }
-                // Sort the merged array
-                return sortChats(merged);
-              }
-
-              // Sort incoming chats
+            merge(_, incoming) {
+              // Simplified merge logic - just sort the incoming chats
               return sortChats(incoming);
             },
           },
@@ -125,7 +142,7 @@ const client = new ApolloClient({
       },
     },
   }),
-  link: debugLink.concat(logoutLink.concat(splitLink)),
+  link: debugLink.concat(errorLink.concat(splitLink)),
 });
 
 export default client;

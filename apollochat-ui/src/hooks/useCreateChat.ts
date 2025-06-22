@@ -1,7 +1,7 @@
 import { graphql } from "../gql";
 import { useMutation } from "@apollo/client";
 import { ChatType } from "../constants/chatTypes";
-import { ChatFragment } from "../fragments/chat.fragment";
+import { DocumentNode } from "graphql";
 
 export const CREATE_CHAT = graphql(`
   mutation CreateChat($createChatInput: CreateChatInput!) {
@@ -9,28 +9,10 @@ export const CREATE_CHAT = graphql(`
       ...ChatFragment
     }
   }
-`);
+`) as unknown as DocumentNode;
 
 export const useCreateChat = () => {
-  const [createChatMutation, { loading, error }] = useMutation(CREATE_CHAT, {
-    update(cache, { data }) {
-      if (data?.createChat) {
-        cache.modify({
-          fields: {
-            chats(existingChats = []) {
-              const newChatRef = cache.writeFragment({
-                data: data.createChat,
-                fragment: ChatFragment,
-                fragmentName: "ChatFragment",
-              });
-              // Always place new chats at the beginning to ensure consistent behavior
-              return [newChatRef, ...existingChats];
-            },
-          },
-        });
-      }
-    },
-  });
+  const [createChatMutation, { loading, error }] = useMutation(CREATE_CHAT);
 
   const createChat = async (
     name: string,

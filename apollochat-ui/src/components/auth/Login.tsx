@@ -10,11 +10,17 @@ import {
   useTheme,
 } from "@mui/material";
 import { RocketLaunch } from "@mui/icons-material";
+import GoogleSignIn from "./GoogleSignIn";
+import { useGoogleAuthError } from "../../hooks/useGoogleAuthError";
 
 const Login = () => {
-  const { login, error } = useLogin();
+  const { login, error: loginError } = useLogin();
+  const { error: googleError } = useGoogleAuthError();
   const theme = useTheme();
   const navigate = useNavigate();
+
+  // Use either login error or Google OAuth error
+  const error = loginError || googleError || undefined;
 
   // Custom success color for the demo button
   const successColor = "#00B8A9"; // Using the success color from the theme
@@ -34,6 +40,9 @@ const Login = () => {
           </Typography>
         </Divider>
       </Box>
+
+      <GoogleSignIn sx={{ mb: 2 }} />
+
       <Button
         component={Link}
         to="/signup"
