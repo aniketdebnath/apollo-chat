@@ -14,6 +14,9 @@ import {
   alpha,
   useTheme,
 } from "@mui/material";
+import NotFound from "./common/NotFound";
+import ErrorBoundary from "./common/ErrorBoundary";
+import RouteErrorElement from "./common/RouteErrorElement";
 
 // Placeholder components for new pages
 const ComingSoon = ({ title }: { title: string }) => {
@@ -42,15 +45,18 @@ const ComingSoon = ({ title }: { title: string }) => {
             color: "transparent",
             display: "inline-block",
             fontWeight: 700,
+            mb: 3,
           }}>
           {title}
         </Typography>
+
         <Typography
           variant="h6"
           color="text.secondary"
           sx={{ mb: 3 }}>
           This feature is coming soon!
         </Typography>
+
         <Box
           component="img"
           src="https://illustrations.popsy.co/amber/digital-nomad.svg"
@@ -62,6 +68,7 @@ const ComingSoon = ({ title }: { title: string }) => {
             mb: 4,
           }}
         />
+
         <Typography color="text.secondary">
           We're working hard to bring you this feature. Check back soon!
         </Typography>
@@ -73,42 +80,60 @@ const ComingSoon = ({ title }: { title: string }) => {
 const Notifications = () => <ComingSoon title="Notifications" />;
 const Favorites = () => <ComingSoon title="Favorites" />;
 
+// Wrap each route element with ErrorBoundary
+const withErrorBoundary = (component: React.ReactNode) => (
+  <ErrorBoundary>{component}</ErrorBoundary>
+);
+
 const router = createBrowserRouter([
   {
     path: "/login",
-    element: <Login />,
+    element: withErrorBoundary(<Login />),
+    errorElement: <RouteErrorElement />,
   },
   {
     path: "/signup",
-    element: <Signup />,
+    element: withErrorBoundary(<Signup />),
+    errorElement: <RouteErrorElement />,
   },
   {
     path: "/",
-    element: <Home />,
+    element: withErrorBoundary(<Home />),
+    errorElement: <RouteErrorElement />,
   },
   {
     path: "/chats/:_id",
-    element: <Chat />,
+    element: withErrorBoundary(<Chat />),
+    errorElement: <RouteErrorElement />,
   },
   {
     path: "/profile",
-    element: <Profile />,
+    element: withErrorBoundary(<Profile />),
+    errorElement: <RouteErrorElement />,
   },
   {
     path: "/explore",
-    element: <Explore />,
+    element: withErrorBoundary(<Explore />),
+    errorElement: <RouteErrorElement />,
   },
   {
     path: "/notifications",
-    element: <Notifications />,
+    element: withErrorBoundary(<Notifications />),
+    errorElement: <RouteErrorElement />,
   },
   {
     path: "/favorites",
-    element: <Favorites />,
+    element: withErrorBoundary(<Favorites />),
+    errorElement: <RouteErrorElement />,
   },
   {
     path: "/demo",
-    element: <Demo />,
+    element: withErrorBoundary(<Demo />),
+    errorElement: <RouteErrorElement />,
+  },
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ]);
 
