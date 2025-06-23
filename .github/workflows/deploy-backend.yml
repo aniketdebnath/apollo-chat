@@ -1,0 +1,44 @@
+name: Deploy Backend to Elastic Beanstalk
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apollochat-backend/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-southeast-2
+
+      - name: Zip backend for Beanstalk
+        run: |
+          cd apollochat-backend
+          zip -r ../backend.zip .
+
+      - name: Upload to S3
+        run: |
+          aws s3 cp backend.zip s3://elasticbeanstalk-ap-southeast-2-680871074175/backend-${{ github.sha }}.zip
+
+      - name: Create new EB version
+        run: |
+          aws elasticbeanstalk create-application-version \
+            --application-name apollochat-backend \
+            --version-label github-${{ github.sha }} \
+            --source-bundle S3Bucket=elasticbeanstalk-ap-southeast-2-680871074175,S3Key=backend-${{ github.sha }}.zip
+
+      - name: Deploy to Elastic Beanstalk
+        run: |
+          aws elasticbeanstalk update-environment \
+            --environment-name Apollochat-backend-env \
+            --version-label github-${{ github.sha }}

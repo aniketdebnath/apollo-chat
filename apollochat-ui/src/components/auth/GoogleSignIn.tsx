@@ -7,7 +7,7 @@ interface GoogleSignInProps {
 
 const GoogleSignIn = ({ sx }: GoogleSignInProps) => {
   const handleGoogleSignIn = () => {
-    window.location.href = getFullApiUrl("/api/auth/google");
+    window.location.href = getFullApiUrl("/auth/google");
   };
 
   return (
