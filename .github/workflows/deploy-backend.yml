@@ -22,10 +22,36 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-southeast-2
 
-      - name: Zip backend for Beanstalk
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install backend dependencies
         run: |
           cd apollochat-backend
-          zip -r ../backend.zip .
+          pnpm install --frozen-lockfile
+
+      - name: Build backend
+        run: |
+          cd apollochat-backend
+          pnpm build
+
+      - name: Prepare deployment artifacts
+        run: |
+          mkdir build-output
+          cp -r apollochat-backend/dist build-output/
+          cp apollochat-backend/package.json build-output/
+          cp apollochat-backend/pnpm-lock.yaml build-output/
+          cp apollochat-backend/tsconfig.json build-output/
+          cp apollochat-backend/nest-cli.json build-output/ || true
+          cp apollochat-backend/Procfile build-output/
+
+      - name: Zip backend for Beanstalk
+        run: zip -r backend.zip build-output/*
 
       - name: Upload to S3
         run: |
