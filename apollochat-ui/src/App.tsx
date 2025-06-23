@@ -19,11 +19,6 @@ import darkTheme from "./theme/theme";
 import CookieConsent from "./components/common/CookieConsent";
 import WelcomeTour from "./components/onboarding/WelcomeTour";
 import ErrorBoundary from "./components/common/ErrorBoundary";
-import "@fontsource/poppins/300.css";
-import "@fontsource/poppins/400.css";
-import "@fontsource/poppins/500.css";
-import "@fontsource/poppins/600.css";
-import "@fontsource/poppins/700.css";
 
 const App = () => {
   const { path } = usePath();
