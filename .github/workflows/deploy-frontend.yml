@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latestL
+    runs-on: ubuntu-latest
 
     steps:
       - name: Configure AWS credentials
@@ -22,5 +22,5 @@ jobs:
         run: |
           aws amplify start-job \
             --app-id d3ci2d4x0qjky4 \
-            --branch-name main \
+            --branch-name master \
             --job-type RELEASE
