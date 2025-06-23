@@ -50,8 +50,13 @@ jobs:
           cp apollochat-backend/nest-cli.json build-output/ || true
           cp apollochat-backend/Procfile build-output/
 
+      - name: Generate unique version label
+        run: echo "VERSION_LABEL=github-${{ github.sha }}-$(date +%s)" >> $GITHUB_ENV
+
       - name: Zip backend for Beanstalk
-        run: zip -r backend.zip build-output/*
+        run: |
+          cd build-output
+          zip -r ../backend.zip .
 
       - name: Upload to S3
         run: |
@@ -61,11 +66,11 @@ jobs:
         run: |
           aws elasticbeanstalk create-application-version \
             --application-name apollochat-backend \
-            --version-label github-${{ github.sha }} \
+            --version-label $VERSION_LABEL \
             --source-bundle S3Bucket=elasticbeanstalk-ap-southeast-2-680871074175,S3Key=backend-${{ github.sha }}.zip
 
       - name: Deploy to Elastic Beanstalk
         run: |
           aws elasticbeanstalk update-environment \
             --environment-name Apollochat-backend-env \
-            --version-label github-${{ github.sha }}
+            --version-label $VERSION_LABEL
