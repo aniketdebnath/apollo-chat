@@ -5,6 +5,7 @@ on:
     branches: [master]
     paths:
       - "apollochat-backend/**"
+  workflow_dispatch:
 
 jobs:
   deploy:
