@@ -1,3 +1,7 @@
+/**
+ * Authentication Controller
+
+ */
 import {
   Controller,
   Post,
@@ -18,6 +22,11 @@ import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { OtpThrottlerGuard } from './guards/otp-throttler.guard';
 
+/**
+ * Controller that provides REST endpoints for authentication operations
+ * Handles HTTP endpoints for authentication operations including login, logout,
+ * OAuth flows, OTP verification, and password reset functionality.
+ */
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -26,6 +35,14 @@ export class AuthController {
     private readonly usersService: UsersService,
   ) {}
 
+  /**
+   * Authenticates a user with email and password
+   *
+   * @param user - User entity from LocalAuthGuard
+   * @param response - Express response for setting cookies
+   * @param request - Express request for client information
+   * @returns Authenticated user information
+   */
   @Post('login')
   @UseGuards(LocalAuthGuard)
   async login(
@@ -37,7 +54,15 @@ export class AuthController {
     return user;
   }
 
-  // Special endpoint for demo login
+  /**
+   * Special endpoint for demo account login
+   * Allows easy access to a demo account without registration
+   *
+   * @param response - Express response for setting cookies
+   * @param request - Express request for client information
+   * @returns Demo user information
+   * @throws UnauthorizedException if demo user not found
+   */
   @Post('demo-login')
   async demoLogin(
     @Res({ passthrough: true }) response: Response,
@@ -60,6 +85,12 @@ export class AuthController {
     }
   }
 
+  /**
+   * Initiates Google OAuth authentication flow
+   * Redirects user to Google login page
+   *
+   * @returns Never directly returns (redirects to Google)
+   */
   @Get('google')
   @UseGuards(GoogleAuthGuard)
   googleAuth() {
@@ -68,6 +99,14 @@ export class AuthController {
     return { msg: 'Google Authentication' };
   }
 
+  /**
+   * Handles Google OAuth callback after successful authentication
+   * Sets authentication cookies and redirects to frontend
+   *
+   * @param user - User entity from GoogleAuthGuard
+   * @param response - Express response for redirects and cookies
+   * @param request - Express request for client information
+   */
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
   googleAuthCallback(
@@ -101,6 +140,14 @@ export class AuthController {
     }
   }
 
+  /**
+   * Refreshes authentication tokens using refresh token cookie
+   *
+   * @param request - Express request containing refresh token cookie
+   * @param response - Express response for setting new cookies
+   * @returns Object indicating success status
+   * @throws UnauthorizedException if refresh token is invalid
+   */
   @Post('refresh')
   async refresh(
     @Req() request: Request,
@@ -119,6 +166,13 @@ export class AuthController {
     }
   }
 
+  /**
+   * Logs out the current user by clearing cookies and invalidating refresh token
+   *
+   * @param request - Express request containing refresh token cookie
+   * @param response - Express response for clearing cookies
+   * @returns Object indicating success status
+   */
   @Post('logout')
   async logout(
     @Req() request: Request,
@@ -145,6 +199,14 @@ export class AuthController {
     }
   }
 
+  /**
+   * Logs out the user from all devices by revoking all refresh tokens
+   *
+   * @param user - Current authenticated user
+   * @param response - Express response for clearing cookies
+   * @param request - Express request containing refresh token cookie
+   * @returns Object indicating success status
+   */
   @Post('logout-all')
   @UseGuards(LocalAuthGuard)
   async logoutAll(
@@ -181,6 +243,11 @@ export class AuthController {
     }
   }
 
+  /**
+   * Provides Google OAuth configuration details for the frontend
+   *
+   * @returns Object with Google OAuth configuration
+   */
   @Get('google-config')
   googleConfig() {
     const config = {
@@ -194,6 +261,13 @@ export class AuthController {
     return config;
   }
 
+  /**
+   * Sends a one-time password (OTP) to the specified email
+   * Rate limited by OtpThrottlerGuard
+   *
+   * @param email - Email address to send OTP to
+   * @returns Object indicating success status
+   */
   @Post('send-otp')
   @UseGuards(OtpThrottlerGuard)
   async sendOtp(@Body() { email }: { email: string }) {
@@ -205,6 +279,15 @@ export class AuthController {
     }
   }
 
+  /**
+   * Verifies a one-time password (OTP) for a given email
+   * Rate limited by OtpThrottlerGuard
+   *
+   * @param email - Email address associated with the OTP
+   * @param otp - The OTP code to verify
+   * @returns Object indicating success status
+   * @throws UnauthorizedException if OTP is invalid
+   */
   @Post('verify-otp')
   @UseGuards(OtpThrottlerGuard)
   async verifyOtp(@Body() { email, otp }: { email: string; otp: string }) {
@@ -229,6 +312,13 @@ export class AuthController {
     return { success: true };
   }
 
+  /**
+   * Checks if an email has been verified with OTP
+   * Rate limited by OtpThrottlerGuard
+   *
+   * @param email - Email address to check
+   * @returns Object with verification status
+   */
   @Post('check-email-verified')
   @UseGuards(OtpThrottlerGuard)
   async checkEmailVerified(@Body() { email }: { email: string }) {
@@ -236,6 +326,13 @@ export class AuthController {
     return { verified: isVerified };
   }
 
+  /**
+   * Initiates a password reset process by sending an OTP
+   * Rate limited by OtpThrottlerGuard
+   *
+   * @param email - Email address for the account to reset
+   * @returns Object indicating success status (always returns success for security)
+   */
   @Post('request-password-reset')
   @UseGuards(OtpThrottlerGuard)
   async requestPasswordReset(@Body() { email }: { email: string }) {
@@ -252,6 +349,15 @@ export class AuthController {
     }
   }
 
+  /**
+   * Verifies an OTP for password reset
+   * Rate limited by OtpThrottlerGuard
+   *
+   * @param email - Email address associated with the OTP
+   * @param otp - The OTP code to verify
+   * @returns Object indicating success status
+   * @throws UnauthorizedException if OTP is invalid
+   */
   @Post('verify-reset-otp')
   @UseGuards(OtpThrottlerGuard)
   async verifyResetOtp(@Body() { email, otp }: { email: string; otp: string }) {
@@ -265,6 +371,14 @@ export class AuthController {
     return { success: true };
   }
 
+  /**
+   * Resets a user's password after OTP verification
+   * Rate limited by OtpThrottlerGuard
+   *
+   * @param body - Object containing email and new password
+   * @returns Object indicating success status
+   * @throws UnauthorizedException if password reset fails
+   */
   @Post('reset-password')
   @UseGuards(OtpThrottlerGuard)
   async resetPassword(@Body() body: { email: string; newPassword: string }) {

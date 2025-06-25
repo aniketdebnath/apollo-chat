@@ -12,7 +12,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  FormGroup,
   FormControlLabel,
   Switch,
   Divider,
@@ -124,59 +123,57 @@ const CookieConsent: React.FC = () => {
       <AnimatePresence>
         {showConsent && (
           <motion.div
-            initial={{ y: 100, opacity: 0 }}
+            initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 100, damping: 15 }}
+            exit={{ y: 80, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 120, damping: 20 }}
             style={{
               position: "fixed",
-              bottom: 0,
-              left: 0,
-              right: 0,
+              bottom: 16,
+              left: 16,
+              right: 16,
               zIndex: 2000,
-              padding: "16px",
             }}>
             <Paper
-              elevation={6}
+              elevation={3}
               sx={{
-                p: { xs: 2, sm: 3 },
+                p: { xs: 2, sm: 2 },
                 mx: "auto",
-                maxWidth: "1200px",
-                borderRadius: 2,
-                backgroundColor: alpha(theme.palette.background.paper, 0.9),
-                backdropFilter: "blur(10px)",
+                maxWidth: "800px",
+                borderRadius: 3,
+                backgroundColor: alpha(theme.palette.background.paper, 0.95),
+                backdropFilter: "blur(8px)",
                 border: "1px solid",
-                borderColor: "divider",
+                borderColor: alpha(theme.palette.divider, 0.1),
                 display: "flex",
                 flexDirection: isMobile ? "column" : "row",
-                alignItems: isMobile ? "flex-start" : "center",
+                alignItems: "center",
                 justifyContent: "space-between",
                 gap: 2,
               }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                 <CookieIcon
                   color="primary"
                   sx={{
-                    fontSize: { xs: 32, sm: 40 },
-                    opacity: 0.8,
+                    fontSize: 24,
+                    opacity: 0.9,
                   }}
                 />
                 <Box>
                   <Typography
-                    variant="h6"
+                    variant="subtitle1"
                     fontWeight={600}
-                    sx={{ mb: 0.5 }}>
+                    sx={{ mb: 0.2 }}>
                     We use cookies
                   </Typography>
                   <Typography
                     variant="body2"
-                    color="text.secondary">
-                    Apollo Chat uses cookies to enhance your experience and
-                    analyze our traffic. By clicking "Accept", you consent to
-                    our use of cookies.
+                    color="text.secondary"
+                    sx={{ fontSize: "0.8rem" }}>
+                    To enhance your experience.{" "}
                     <Link
                       href="/privacy"
-                      sx={{ ml: 0.5 }}>
+                      sx={{ ml: 0.2 }}>
                       Privacy Policy
                     </Link>
                   </Typography>
@@ -190,22 +187,29 @@ const CookieConsent: React.FC = () => {
                   alignSelf: isMobile ? "flex-end" : "center",
                 }}>
                 <Button
-                  variant="outlined"
+                  variant="text"
                   size="small"
                   onClick={handleCustomize}
                   sx={{
-                    minWidth: "100px",
-                    borderRadius: 1.5,
+                    minWidth: "80px",
+                    borderRadius: 2,
+                    textTransform: "none",
                   }}>
                   Customize
                 </Button>
                 <Button
                   variant="contained"
+                  size="small"
                   onClick={handleAccept}
                   sx={{
-                    minWidth: "100px",
-                    borderRadius: 1.5,
-                    fontWeight: 600,
+                    minWidth: "80px",
+                    borderRadius: 2,
+                    fontWeight: 500,
+                    textTransform: "none",
+                    boxShadow: "none",
+                    "&:hover": {
+                      boxShadow: "none",
+                    },
                   }}>
                   Accept All
                 </Button>
@@ -219,12 +223,13 @@ const CookieConsent: React.FC = () => {
       <Dialog
         open={showCustomizeModal}
         onClose={handleCloseModal}
-        maxWidth="sm"
+        maxWidth="xs"
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 2,
+            borderRadius: 3,
             backgroundColor: theme.palette.background.paper,
+            overflow: "hidden",
           },
         }}>
         <DialogTitle
@@ -232,224 +237,183 @@ const CookieConsent: React.FC = () => {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            pb: 1,
+            p: 2,
           }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <CookieIcon color="primary" />
-            <Typography variant="h6">Cookie Preferences</Typography>
+            <CookieIcon
+              color="primary"
+              sx={{ fontSize: 20 }}
+            />
+            <Typography
+              variant="subtitle1"
+              fontWeight={600}>
+              Cookie Preferences
+            </Typography>
           </Box>
           <IconButton
             onClick={handleCloseModal}
-            size="small">
-            <CloseIcon />
+            size="small"
+            sx={{ color: "text.secondary" }}>
+            <CloseIcon fontSize="small" />
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ pt: 1 }}>
+        <Divider />
+
+        <DialogContent sx={{ p: 2 }}>
           <Typography
             variant="body2"
             color="text.secondary"
-            sx={{ mb: 2 }}>
-            We use cookies to enhance your browsing experience, serve
-            personalized ads or content, and analyze our traffic. By clicking
-            "Save Preferences", you consent to our use of cookies.
+            sx={{ mb: 2, fontSize: "0.85rem" }}>
+            We use cookies to enhance your browsing experience and analyze our
+            traffic.
           </Typography>
 
-          <Divider sx={{ my: 2 }} />
-
           {/* Necessary Cookies */}
-          <Box sx={{ mb: 2 }}>
+          <Box sx={{ mb: 1.5, py: 0.5 }}>
             <Box
               sx={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                mb: 1,
               }}>
-              <Typography
-                variant="subtitle1"
-                fontWeight={600}>
-                Necessary Cookies
-              </Typography>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={cookiePreferences.necessary}
-                    disabled={true}
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <Typography
+                  variant="body1"
+                  fontWeight={600}
+                  sx={{ fontSize: "0.9rem" }}>
+                  Necessary
+                </Typography>
+                <Tooltip title="Required for the website to function">
+                  <InfoOutlinedIcon
+                    sx={{ ml: 0.5, fontSize: 14, color: "text.secondary" }}
                   />
-                }
-                label="Required"
-                labelPlacement="start"
-                sx={{
-                  mx: 0,
-                  "& .MuiFormControlLabel-label": {
-                    visibility: "hidden",
-                    width: 0,
-                  },
-                }}
+                </Tooltip>
+              </Box>
+              <Switch
+                checked={cookiePreferences.necessary}
+                disabled={true}
+                size="small"
               />
             </Box>
-            <Typography
-              variant="body2"
-              color="text.secondary">
-              These cookies are required for the website to function and cannot
-              be disabled.
-            </Typography>
           </Box>
 
           {/* Analytics Cookies */}
-          <Box sx={{ mb: 2 }}>
+          <Box sx={{ mb: 1.5, py: 0.5 }}>
             <Box
               sx={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                mb: 1,
               }}>
               <Box sx={{ display: "flex", alignItems: "center" }}>
                 <Typography
-                  variant="subtitle1"
-                  fontWeight={600}>
-                  Analytics Cookies
+                  variant="body1"
+                  fontWeight={600}
+                  sx={{ fontSize: "0.9rem" }}>
+                  Analytics
                 </Typography>
-                <Tooltip title="These cookies help us understand how visitors interact with our website">
+                <Tooltip title="Help us understand how visitors interact with our website">
                   <InfoOutlinedIcon
-                    sx={{ ml: 1, fontSize: 16, color: "text.secondary" }}
+                    sx={{ ml: 0.5, fontSize: 14, color: "text.secondary" }}
                   />
                 </Tooltip>
               </Box>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={cookiePreferences.analytics}
-                    onChange={handlePreferenceChange("analytics")}
-                  />
-                }
-                label="Analytics"
-                labelPlacement="start"
-                sx={{
-                  mx: 0,
-                  "& .MuiFormControlLabel-label": {
-                    visibility: "hidden",
-                    width: 0,
-                  },
-                }}
+              <Switch
+                checked={cookiePreferences.analytics}
+                onChange={handlePreferenceChange("analytics")}
+                size="small"
               />
             </Box>
-            <Typography
-              variant="body2"
-              color="text.secondary">
-              Help us improve our website by collecting anonymous information.
-            </Typography>
           </Box>
 
           {/* Marketing Cookies */}
-          <Box sx={{ mb: 2 }}>
+          <Box sx={{ mb: 1.5, py: 0.5 }}>
             <Box
               sx={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                mb: 1,
               }}>
               <Box sx={{ display: "flex", alignItems: "center" }}>
                 <Typography
-                  variant="subtitle1"
-                  fontWeight={600}>
-                  Marketing Cookies
+                  variant="body1"
+                  fontWeight={600}
+                  sx={{ fontSize: "0.9rem" }}>
+                  Marketing
                 </Typography>
-                <Tooltip title="These cookies are used to track visitors across websites to display relevant advertisements">
+                <Tooltip title="Used to display relevant advertisements">
                   <InfoOutlinedIcon
-                    sx={{ ml: 1, fontSize: 16, color: "text.secondary" }}
+                    sx={{ ml: 0.5, fontSize: 14, color: "text.secondary" }}
                   />
                 </Tooltip>
               </Box>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={cookiePreferences.marketing}
-                    onChange={handlePreferenceChange("marketing")}
-                  />
-                }
-                label="Marketing"
-                labelPlacement="start"
-                sx={{
-                  mx: 0,
-                  "& .MuiFormControlLabel-label": {
-                    visibility: "hidden",
-                    width: 0,
-                  },
-                }}
+              <Switch
+                checked={cookiePreferences.marketing}
+                onChange={handlePreferenceChange("marketing")}
+                size="small"
               />
             </Box>
-            <Typography
-              variant="body2"
-              color="text.secondary">
-              Used to deliver advertisements more relevant to you and your
-              interests.
-            </Typography>
           </Box>
 
           {/* Preference Cookies */}
-          <Box sx={{ mb: 2 }}>
+          <Box sx={{ mb: 0.5, py: 0.5 }}>
             <Box
               sx={{
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                mb: 1,
               }}>
               <Box sx={{ display: "flex", alignItems: "center" }}>
                 <Typography
-                  variant="subtitle1"
-                  fontWeight={600}>
-                  Preference Cookies
+                  variant="body1"
+                  fontWeight={600}
+                  sx={{ fontSize: "0.9rem" }}>
+                  Preferences
                 </Typography>
-                <Tooltip title="These cookies remember your settings and preferences">
+                <Tooltip title="Remember your settings and preferences">
                   <InfoOutlinedIcon
-                    sx={{ ml: 1, fontSize: 16, color: "text.secondary" }}
+                    sx={{ ml: 0.5, fontSize: 14, color: "text.secondary" }}
                   />
                 </Tooltip>
               </Box>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={cookiePreferences.preferences}
-                    onChange={handlePreferenceChange("preferences")}
-                  />
-                }
-                label="Preferences"
-                labelPlacement="start"
-                sx={{
-                  mx: 0,
-                  "& .MuiFormControlLabel-label": {
-                    visibility: "hidden",
-                    width: 0,
-                  },
-                }}
+              <Switch
+                checked={cookiePreferences.preferences}
+                onChange={handlePreferenceChange("preferences")}
+                size="small"
               />
             </Box>
-            <Typography
-              variant="body2"
-              color="text.secondary">
-              Allow the website to remember choices you make (such as your user
-              name, language, or region).
-            </Typography>
           </Box>
         </DialogContent>
 
-        <DialogActions sx={{ px: 3, pb: 3, pt: 1 }}>
+        <Divider />
+
+        <DialogActions sx={{ p: 2, justifyContent: "flex-end" }}>
           <Button
-            variant="outlined"
+            variant="text"
             onClick={handleCloseModal}
-            sx={{ borderRadius: 1.5 }}>
+            sx={{
+              borderRadius: 2,
+              textTransform: "none",
+              fontWeight: 500,
+              minWidth: "70px",
+            }}>
             Cancel
           </Button>
           <Button
             variant="contained"
             onClick={handleSavePreferences}
-            sx={{ borderRadius: 1.5, fontWeight: 600 }}>
-            Save Preferences
+            sx={{
+              borderRadius: 2,
+              fontWeight: 500,
+              textTransform: "none",
+              boxShadow: "none",
+              minWidth: "70px",
+              "&:hover": {
+                boxShadow: "none",
+              },
+            }}>
+            Save
           </Button>
         </DialogActions>
       </Dialog>

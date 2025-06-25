@@ -1,3 +1,6 @@
+// users.resolver.ts
+// GraphQL resolver for user management: queries, mutations, and subscriptions
+
 import {
   Resolver,
   Query,
@@ -19,10 +22,18 @@ import { PUB_SUB } from '../common/constants/injection-tokens';
 import { PubSub } from 'graphql-subscriptions';
 import { USER_STATUS_CHANGED } from './constants/pubsub-triggers';
 
+/**
+ * Payload type for user status change subscription events
+ */
 interface UserStatusChangedPayload {
   userStatusChanged: User;
 }
 
+/**
+ * UsersResolver
+ *
+ * Handles user creation, updates, status changes, and real-time status subscriptions.
+ */
 @Resolver(() => User)
 export class UsersResolver {
   constructor(
@@ -30,6 +41,12 @@ export class UsersResolver {
     @Inject(PUB_SUB) private readonly pubSub: PubSub,
   ) {}
 
+  /**
+   * Creates a new user
+   *
+   * @param createUserInput - User creation data
+   * @returns Newly created user entity
+   */
   @Mutation(() => User)
   async createUser(
     @Args('createUserInput') createUserInput: CreateUserInput,
@@ -37,18 +54,37 @@ export class UsersResolver {
     return this.usersService.create(createUserInput);
   }
 
+  /**
+   * Retrieves all users
+   *
+   * @returns Array of all user entities
+   */
   @Query(() => [User], { name: 'users' })
   @UseGuards(GqlAuthGuard)
   async findAll(): Promise<User[]> {
     return this.usersService.findAll();
   }
 
+  /**
+   * Finds a user by ID
+   *
+   * @param _id - User ID to find
+   * @returns User entity if found
+   */
   @Query(() => User, { name: 'user' })
   @UseGuards(GqlAuthGuard)
   async findOne(@Args('_id') _id: string): Promise<User> {
     return this.usersService.findOne(_id);
   }
 
+  /**
+   * Searches for users by email
+   *
+   * @param searchTerm - Email search term (partial match)
+   * @param limit - Maximum number of results to return
+   * @param user - Current authenticated user
+   * @returns Array of matching user entities
+   */
   @Query(() => [User], { name: 'searchUsers' })
   @UseGuards(GqlAuthGuard)
   async searchUsers(
@@ -60,6 +96,13 @@ export class UsersResolver {
     return this.usersService.searchByEmail(searchTerm, user._id, limit);
   }
 
+  /**
+   * Updates a user's profile information
+   *
+   * @param updateUserInput - User update data
+   * @param user - Current authenticated user
+   * @returns Updated user entity
+   */
   @Mutation(() => User)
   @UseGuards(GqlAuthGuard)
   async updateUser(
@@ -69,12 +112,24 @@ export class UsersResolver {
     return this.usersService.update(user._id, updateUserInput);
   }
 
+  /**
+   * Removes the current user's account
+   *
+   * @param user - Current authenticated user
+   * @returns Removed user entity
+   */
   @Mutation(() => User)
   @UseGuards(GqlAuthGuard)
   async removeUser(@CurrentUser() user: TokenPayload): Promise<User> {
     return this.usersService.remove(user._id);
   }
 
+  /**
+   * Gets the current authenticated user's profile
+   *
+   * @param user - Current authenticated user
+   * @returns Current user entity with up-to-date information
+   */
   @Query(() => User, { name: 'me' })
   @UseGuards(GqlAuthGuard)
   async getMe(@CurrentUser() user: TokenPayload) {
@@ -82,6 +137,13 @@ export class UsersResolver {
     return this.usersService.findOne(user._id);
   }
 
+  /**
+   * Updates a user's status and broadcasts the change
+   *
+   * @param updateStatusInput - New status information
+   * @param user - Current authenticated user
+   * @returns Updated user entity with new status
+   */
   @Mutation(() => User)
   @UseGuards(GqlAuthGuard)
   async updateUserStatus(
@@ -101,6 +163,12 @@ export class UsersResolver {
     return updatedUser;
   }
 
+  /**
+   * Subscribes to user status change events
+   *
+   * @param userIds - Array of user IDs to monitor for status changes
+   * @returns AsyncIterator for status change events
+   */
   @Subscription(() => User, {
     filter: (
       payload: UserStatusChangedPayload,
@@ -113,7 +181,6 @@ export class UsersResolver {
   })
   userStatusChanged(
     // The userIds parameter is used in the filter function above
-    // It's required for the GraphQL schema even though we don't use it directly in the method body
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Args('userIds', { type: () => [String] }) userIds: string[],
   ) {

@@ -1,3 +1,6 @@
+/**
+ * Authentication Service
+ */
 import {
   Injectable,
   UnauthorizedException,
@@ -17,6 +20,11 @@ import * as crypto from 'crypto';
 import { UsersService } from '../users/users.service';
 import { EmailService } from '../common/email/email.service';
 
+/**
+ * Provides core authentication functionality for the Apollo Chat application.
+ * Handles user login, token management, OTP verification, and password reset flows.
+ * Implements secure JWT-based authentication with refresh token rotation.
+ */
 @Injectable()
 export class AuthService {
   constructor(
@@ -31,6 +39,15 @@ export class AuthService {
     private readonly emailService: EmailService,
   ) {}
 
+  /**
+   * Authenticates a user and sets authentication cookies
+   *
+   * @param user - The authenticated user entity
+   * @param response - Express response object for setting cookies
+   * @param request - Optional Express request object for tracking client info
+   * @returns Object indicating success status
+   * @throws UnauthorizedException if login process fails
+   */
   async login(
     user: User,
     response: Response,
@@ -57,6 +74,12 @@ export class AuthService {
     }
   }
 
+  /**
+   * Generates a JWT access token for a user
+   *
+   * @param user - The user entity to generate token for
+   * @returns JWT token string
+   */
   private generateAccessToken(user: User): string {
     const tokenPayload: TokenPayload = {
       _id: user._id.toHexString(),
@@ -68,6 +91,14 @@ export class AuthService {
     return this.jwtService.sign(tokenPayload);
   }
 
+  /**
+   * Generates a refresh token and stores it in the database
+   *
+   * @param userId - User ID to associate with the token
+   * @param userAgent - Optional user agent string for tracking client
+   * @param ipAddress - Optional IP address for tracking client
+   * @returns Generated refresh token string
+   */
   private async generateRefreshToken(
     userId: string,
     userAgent?: string,
@@ -94,6 +125,13 @@ export class AuthService {
     return token;
   }
 
+  /**
+   * Sets authentication and refresh token cookies on the response
+   *
+   * @param response - Express response object
+   * @param accessToken - JWT access token to set
+   * @param refreshToken - Refresh token to set
+   */
   private setTokenCookies(
     response: Response,
     accessToken: string,
@@ -129,6 +167,15 @@ export class AuthService {
     });
   }
 
+  /**
+   * Refreshes authentication tokens using a valid refresh token
+   *
+   * @param refreshToken - Current refresh token
+   * @param response - Express response object for setting new cookies
+   * @param request - Optional Express request object for tracking client info
+   * @returns Object indicating success status
+   * @throws UnauthorizedException if refresh token is invalid or expired
+   */
   async refresh(refreshToken: string, response: Response, request?: Request) {
     // Find valid refresh token
     const tokenDoc = await this.refreshTokenModel
@@ -165,6 +212,13 @@ export class AuthService {
     return { success: true };
   }
 
+  /**
+   * Verifies WebSocket connection authentication from cookies
+   *
+   * @param request - Express request object containing cookies
+   * @returns TokenPayload object with user information
+   * @throws Error if authentication cookie is missing or invalid
+   */
   verifyWs(request: Request): TokenPayload {
     if (!request.headers.cookie) {
       throw new Error('No cookies found');
@@ -203,6 +257,13 @@ export class AuthService {
     return tokenPayload;
   }
 
+  /**
+   * Logs out a user by revoking their refresh token and clearing cookies
+   *
+   * @param refreshToken - Current refresh token to revoke
+   * @param response - Express response object for clearing cookies
+   * @returns Object indicating success status
+   */
   async logout(refreshToken: string, response: Response) {
     try {
       // Revoke the refresh token if provided
@@ -232,7 +293,11 @@ export class AuthService {
     }
   }
 
-  // Method to revoke all refresh tokens for a user (for logout from all devices)
+  /**
+   * Revokes all active refresh tokens for a user (logout from all devices)
+   *
+   * @param userId - ID of the user whose tokens should be revoked
+   */
   async revokeAllUserTokens(userId: string): Promise<void> {
     await this.refreshTokenModel
       .updateMany(
@@ -242,7 +307,12 @@ export class AuthService {
       .exec();
   }
 
-  // Method to get all active sessions for a user
+  /**
+   * Retrieves all active sessions for a user
+   *
+   * @param userId - ID of the user whose sessions to retrieve
+   * @returns Array of session information including user agent and IP
+   */
   async getUserSessions(userId: string): Promise<any[]> {
     const sessions = await this.refreshTokenModel
       .find({
@@ -256,7 +326,12 @@ export class AuthService {
     return sessions;
   }
 
-  // OTP Methods
+  /**
+   * Generates and sends a one-time password (OTP) to the user's email
+   *
+   * @param email - Email address to send OTP to
+   * @returns Boolean indicating if the OTP was successfully sent
+   */
   async generateAndSendOtp(email: string): Promise<boolean> {
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -289,6 +364,13 @@ export class AuthService {
     return emailSent;
   }
 
+  /**
+   * Verifies a one-time password (OTP) for a given email
+   *
+   * @param email - Email address associated with the OTP
+   * @param otp - The OTP code to verify
+   * @returns Boolean indicating if the OTP is valid
+   */
   async verifyOtp(email: string, otp: string): Promise<boolean> {
     const otpDoc = await this.otpModel.findOne({
       email,
@@ -308,6 +390,12 @@ export class AuthService {
     return true;
   }
 
+  /**
+   * Checks if an email has been verified with OTP
+   *
+   * @param email - Email address to check
+   * @returns Boolean indicating if the email has been verified
+   */
   async isEmailVerified(email: string): Promise<boolean> {
     const verifiedOtp = await this.otpModel.findOne({
       email,
@@ -317,12 +405,23 @@ export class AuthService {
     return !!verifiedOtp;
   }
 
-  // Send welcome email after successful verification
+  /**
+   * Sends a welcome email to a user after successful verification
+   *
+   * @param email - Email address to send welcome message to
+   * @param username - Username to personalize the welcome message
+   * @returns Boolean indicating if the email was sent successfully
+   */
   async sendWelcomeEmail(email: string, username: string): Promise<boolean> {
     return this.emailService.sendWelcomeEmail(email, username);
   }
 
-  // Forgot Password Methods
+  /**
+   * Initiates a password reset process by sending an OTP
+   *
+   * @param email - Email address for the account to reset
+   * @returns Boolean indicating if the reset process was initiated successfully
+   */
   async requestPasswordReset(email: string): Promise<boolean> {
     // Check if user exists
     const user = await this.usersService.findByEmail(email);
@@ -366,11 +465,25 @@ export class AuthService {
     return emailSent;
   }
 
+  /**
+   * Verifies an OTP for password reset
+   *
+   * @param email - Email address associated with the OTP
+   * @param otp - The OTP code to verify
+   * @returns Boolean indicating if the OTP is valid
+   */
   async verifyPasswordResetOtp(email: string, otp: string): Promise<boolean> {
     // Reuse the existing OTP verification
     return this.verifyOtp(email, otp);
   }
 
+  /**
+   * Resets a user's password after OTP verification
+   *
+   * @param email - Email address of the account
+   * @param newPassword - New password to set
+   * @returns Boolean indicating if the password was reset successfully
+   */
   async resetPassword(email: string, newPassword: string): Promise<boolean> {
     try {
       // Validate inputs

@@ -1,3 +1,5 @@
+//chats.service.ts
+// Business logic for chat operations: creation, retrieval, and real-time updates
 import {
   Injectable,
   NotFoundException,
@@ -16,7 +18,9 @@ import { UserDocument } from '../users/entities/user.document';
 import { User } from '../users/entities/user.entity';
 import { UserStatus } from '../users/constants/user-status.enum';
 
-// Define interface for chat with latest message that extends parts of ChatDocument
+/**
+ * Extended chat document with latest message and user data
+ */
 interface ChatWithLatestMessage {
   _id: Types.ObjectId;
   creatorId: string;
@@ -36,6 +40,16 @@ interface ChatWithLatestMessage {
   pinnedBy?: Map<string, boolean>;
 }
 
+/**
+ * ChatsService
+ *
+ * Provides core business logic for chat operations:
+ * - Creating and updating chats
+ * - Retrieving chats with filtering and pagination
+ * - Managing chat membership
+ * - Controlling chat visibility and types
+ * - Chat pinning functionality
+ */
 @Injectable()
 export class ChatsService {
   constructor(
@@ -43,6 +57,13 @@ export class ChatsService {
     private readonly usersService: UsersService,
   ) {}
 
+  /**
+   * Creates a new chat conversation
+   *
+   * @param createChatInput - DTO with chat details and optional members
+   * @param userId - ID of the user creating the chat
+   * @returns Newly created chat entity
+   */
   async create(
     createChatInput: CreateChatInput,
     userId: string,
@@ -71,6 +92,17 @@ export class ChatsService {
     return this.findOne(chatDocument._id.toString(), userId);
   }
 
+  /**
+   * Retrieves multiple chats with filtering and pagination
+   *
+   * Uses MongoDB aggregation pipeline for efficient querying and population
+   * of related data (latest message, creator, members).
+   *
+   * @param prePipeLineStages - Additional pipeline stages to apply before core stages
+   * @param paginationArgs - Optional pagination parameters
+   * @param userId - ID of the user requesting chats (for access control)
+   * @returns Array of chat entities with populated data
+   */
   async findMany(
     prePipeLineStages: PipelineStage[] = [],
     paginationArgs?: PaginationArgs,
@@ -193,6 +225,7 @@ export class ChatsService {
 
     const validChats: Chat[] = [];
 
+    // Process each chat to ensure proper structure and data
     for (const chat of chats) {
       // Handle latestMessage
       if (!chat.latestMessage?._id) {
@@ -301,6 +334,17 @@ export class ChatsService {
     return validChats;
   }
 
+  /**
+   * Retrieves a single chat by ID
+   *
+   * First attempts to use the aggregation pipeline for efficient data retrieval.
+   * Falls back to direct document lookup and manual population if needed.
+   *
+   * @param _id - ID of the chat to retrieve
+   * @param userId - ID of the user requesting the chat (for access control)
+   * @returns Chat entity with populated data
+   * @throws NotFoundException if chat doesn't exist or user lacks access
+   */
   async findOne(_id: string, userId?: string): Promise<Chat> {
     try {
       // First try using the aggregation pipeline
@@ -360,7 +404,13 @@ export class ChatsService {
   }
 
   /**
-   * Join a public or open chat
+   * Allows a user to join a public or open chat
+   *
+   * @param chatId - ID of the chat to join
+   * @param userId - ID of the user joining the chat
+   * @returns Updated chat entity
+   * @throws NotFoundException if chat doesn't exist
+   * @throws ForbiddenException if chat is private
    */
   async joinChat(chatId: string, userId: string): Promise<Chat> {
     // Find the chat and verify it's public or open
@@ -395,6 +445,17 @@ export class ChatsService {
     return this.findOne(chatId, userId);
   }
 
+  /**
+   * Adds a member to a chat
+   *
+   * Verifies that the current user has permission to add members
+   * (either as creator or for public/open chats).
+   *
+   * @param chatMemberInput - DTO with chat ID and user ID to add
+   * @param currentUserId - ID of the user performing the action
+   * @returns Updated chat entity
+   * @throws NotFoundException if chat doesn't exist or user lacks permission
+   */
   async addMember(
     chatMemberInput: ChatMemberInput,
     currentUserId: string,
@@ -427,6 +488,17 @@ export class ChatsService {
     return this.findOne(chatId, currentUserId);
   }
 
+  /**
+   * Removes a member from a chat
+   *
+   * Users can remove themselves, or the creator can remove any member.
+   * Handles special case for self-removal to return data before access is lost.
+   *
+   * @param chatMemberInput - DTO with chat ID and user ID to remove
+   * @param currentUserId - ID of the user performing the action
+   * @returns Updated chat entity
+   * @throws NotFoundException if chat doesn't exist or user lacks permission
+   */
   async removeMember(
     chatMemberInput: ChatMemberInput,
     currentUserId: string,
@@ -485,6 +557,16 @@ export class ChatsService {
     return this.findOne(chatId, currentUserId);
   }
 
+  /**
+   * Updates a chat's visibility type
+   *
+   * Only the creator can change a chat's type.
+   *
+   * @param chatTypeInput - DTO with chat ID and new type
+   * @param currentUserId - ID of the user performing the action
+   * @returns Updated chat entity
+   * @throws NotFoundException if chat doesn't exist or user isn't the creator
+   */
   async updateChatType(
     chatTypeInput: ChatTypeInput,
     currentUserId: string,
@@ -513,7 +595,15 @@ export class ChatsService {
   }
 
   /**
-   * Pin a chat for a specific user
+   * Pins a chat for a specific user
+   *
+   * Pinned chats appear at the top of the user's chat list.
+   * Pinning is user-specific and stored in a Map.
+   *
+   * @param chatId - ID of the chat to pin
+   * @param userId - ID of the user pinning the chat
+   * @returns Updated chat entity
+   * @throws NotFoundException if chat doesn't exist or user lacks access
    */
   async pinChat(chatId: string, userId: string): Promise<Chat> {
     // First check if the chat exists and the user has access to it
@@ -539,7 +629,12 @@ export class ChatsService {
   }
 
   /**
-   * Unpin a chat for a specific user
+   * Unpins a chat for a specific user
+   *
+   * @param chatId - ID of the chat to unpin
+   * @param userId - ID of the user unpinning the chat
+   * @returns Updated chat entity
+   * @throws NotFoundException if chat doesn't exist or user lacks access
    */
   async unpinChat(chatId: string, userId: string): Promise<Chat> {
     // First check if the chat exists and the user has access to it
@@ -565,10 +660,14 @@ export class ChatsService {
   }
 
   /**
-   * Update chat name
+   * Updates a chat's name
+   *
+   * Only the creator can update a chat's name.
+   *
    * @param updateChatInput - Input containing chatId and new name
    * @param userId - ID of the user performing the update
    * @returns Updated chat entity
+   * @throws NotFoundException if chat doesn't exist or user isn't the creator
    */
   async update(
     updateChatInput: UpdateChatInput,
@@ -598,10 +697,15 @@ export class ChatsService {
   }
 
   /**
-   * Delete a chat
+   * Deletes a chat
+   *
+   * Only the creator can delete a chat.
+   * Returns the deleted chat entity for notification purposes.
+   *
    * @param chatId - ID of the chat to delete
    * @param userId - ID of the user performing the deletion
    * @returns Deleted chat entity
+   * @throws NotFoundException if chat doesn't exist or user isn't the creator
    */
   async remove(chatId: string, userId: string): Promise<Chat> {
     // Only creator can delete a chat
@@ -632,12 +736,23 @@ export class ChatsService {
     return chatToDelete;
   }
 
+  /**
+   * Counts the total number of chats in the system
+   *
+   * @returns Promise resolving to the chat count
+   */
   async countChats() {
     return this.chatsRepository.model.countDocuments({});
   }
 
   /**
-   * Find all public and open chats for the explore page
+   * Finds all public and open chats for the explore page
+   *
+   * Excludes chats where the user is already a member or creator.
+   * Uses aggregation pipeline similar to findMany but with different filters.
+   *
+   * @param userId - ID of the current user (to exclude their chats)
+   * @returns Array of public chat entities
    */
   async findPublicChats(userId?: string): Promise<Chat[]> {
     // Only match public or open chats, and filter out chats where the user is a member or creator

@@ -1,3 +1,5 @@
+// users.module.ts
+// Module for user management: creation, profile handling, and status tracking
 import { Module, forwardRef } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UsersResolver } from './users.resolver';
@@ -9,6 +11,12 @@ import { UsersController } from './users.controller';
 import { S3Module } from '../common/s3/s3.module';
 import { AuthModule } from '../auth/auth.module';
 
+/**
+ * UsersModule
+ *
+ * Provides user-related features including account creation, authentication support,
+ * image uploads via S3, and GraphQL/REST API integration. Registers the User schema.
+ */
 @Module({
   imports: [
     DatabaseModule.forFeature([{ name: User.name, schema: UserSchema }]),

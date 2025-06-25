@@ -1,3 +1,6 @@
+/**
+ * OTP Throttler Guard
+ */
 import { ExecutionContext, Injectable } from '@nestjs/common';
 import {
   ThrottlerException,
@@ -7,10 +10,21 @@ import {
 import { ThrottlerBehindProxyGuard } from '../../common/guards/throttler-behind-proxy.guard';
 import { Request } from 'express';
 
+/**
+ * Guard that implements endpoint-specific rate limiting for OTP operations
+ *
+ * Different endpoints have different rate limits based on their sensitivity:
+ * - Send OTP: Strictest limit (1 request per minute)
+ * - Verify OTP: Moderate limit (5 attempts per minute)
+ * - Check email verified: Lenient limit (10 checks per minute)
+ */
 @Injectable()
 export class OtpThrottlerGuard extends ThrottlerBehindProxyGuard {
   /**
-   * Override the getTracker method to provide endpoint-specific rate limits
+   * Determines the rate limit options based on the endpoint path
+   *
+   * @param context - The execution context containing the request
+   * @returns ThrottlerOptions with appropriate ttl and limit values
    */
   protected getTrackerOptions(context: ExecutionContext): ThrottlerOptions {
     const request = this.getRequestResponse(context).req;
@@ -45,7 +59,11 @@ export class OtpThrottlerGuard extends ThrottlerBehindProxyGuard {
   }
 
   /**
-   * Override the throwThrottlingException method to provide a custom error message for OTP endpoints
+   * Provides custom error messages based on the endpoint being rate limited
+   *
+   * @param context - The execution context containing the request
+   * @param throttlerLimitDetail - Details about the rate limit that was exceeded
+   * @throws ThrottlerException with a context-specific error message
    */
   protected override async throwThrottlingException(
     context: ExecutionContext,

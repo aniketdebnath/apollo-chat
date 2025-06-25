@@ -18,7 +18,10 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "create-demo-user": "ts-node src/scripts/create-demo-user.ts"
+    "create-demo-user": "ts-node src/scripts/create-demo-user.ts",
+    "compodoc": "npx @compodoc/compodoc -p tsconfig.json -s",
+    "compodoc:serve": "npx @compodoc/compodoc -p tsconfig.json -s -w",
+    "compodoc:build": "npx @compodoc/compodoc -p tsconfig.json -d ../docs/backend/api-docs"
   },
   "dependencies": {
     "@apollo/server": "^4.12.1",
@@ -60,6 +63,7 @@
     "rxjs": "^7.8.1"
   },
   "devDependencies": {
+    "@compodoc/compodoc": "^1.1.26",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
     "@nestjs/cli": "^11.0.0",

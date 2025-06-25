@@ -11,19 +11,16 @@ export const getApiBaseUrl = (): string => {
 
 /**
  * Returns a full absolute URL for API requests (e.g., for redirects like Google OAuth).
- * - In development: prepends `/api` to the path
- * - In production: assumes your backend is already served under `/api`
+ * - Always prepends `/api` to the path regardless of environment
  *
- * @param path - API path (e.g., "/auth/google" or "auth/google")
+ * @param path - API path (e.g., "/auth/google")
  * @returns Fully-qualified URL (e.g., "http://localhost:3001/api/auth/google")
  */
 export const getFullApiUrl = (path: string): string => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   const base = getApiBaseUrl();
 
-  return process.env.NODE_ENV === "development"
-    ? `${base}/api${normalizedPath}`
-    : `${base}${normalizedPath}`; // already assumed to be under /api
+  return `${base}/api${normalizedPath}`;
 };
 
 /**

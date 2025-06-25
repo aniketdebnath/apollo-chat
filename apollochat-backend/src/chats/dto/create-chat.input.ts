@@ -1,3 +1,6 @@
+// create-chat.input.ts
+// Input data for chat creation operations
+
 import { InputType, Field } from '@nestjs/graphql';
 import {
   IsNotEmpty,
@@ -7,6 +10,13 @@ import {
   IsArray,
 } from 'class-validator';
 
+/**
+ * CreateChatInput
+ *
+ * Input DTO for creating new chat conversations.
+ * Supports optional chat name, type selection, and initial members.
+ * Validates inputs using class-validator decorators.
+ */
 @InputType()
 export class CreateChatInput {
   @Field({ nullable: true })
