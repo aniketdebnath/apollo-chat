@@ -8,10 +8,10 @@ Apollo Chat is a real-time messaging platform built with NestJS, GraphQL, and Mo
 
 - [API Architecture](./api-architecture.md) – Overview of REST, GraphQL, and WebSocket gateway design
 - [API Reference](./api-reference.md) – Detailed schema, endpoints, and resolver documentation
-- [Core Modules](../core/authentication.md) – Authentication, Users, Chats, and Messages modules
+- [Core Modules](../core) – Authentication, Users, Chats, and Messages modules
 - [Database](./database.md) – MongoDB schema design and indexing strategies
 - [PubSub System](./pubsub.md) – Event-driven communication with Redis and in-memory fallback
-- [Infrastructure > Deployment](../infra/deployment.md) – CI/CD, environment configs, and scaling
+- [Infrastructure > Deployment](../infra/deployment.md) – CI/CD, infrastructure, deployment
 - [Infrastructure > Security](../infra/security.md) – Guards, interceptors, validation, and threat mitigation
 
 ## Tech Stack
@@ -32,7 +32,6 @@ Apollo Chat is a real-time messaging platform built with NestJS, GraphQL, and Mo
 | Rate Limiting    | NestJS Throttler with proxy-aware guards  |
 | Documentation    | Compodoc                                  |
 | Testing          | Jest, Supertest                           |
-| Deployment Ready | Docker, NestJS ConfigModule, .env configs |
 
 ## Layered Architecture
 
