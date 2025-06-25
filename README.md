@@ -335,6 +335,7 @@ Comprehensive documentation is available in the `docs` directory:
 
 - **Backend**
 
+  - [Architecture](docs/backend/architecture.md)
   - [API Architecture](docs/backend/api-architecture.md)
   - [API Reference](docs/backend/api-reference.md)
   - [Database](docs/backend/database.md)
