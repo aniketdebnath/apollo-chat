@@ -29,6 +29,20 @@ graph TD;
 
     U[Database Module] --> V[Mongoose Connection]
     U --> W[DbMigrationService]
+
+    classDef database fill:#D4E6F1,stroke:#2874A6,stroke-width:1px,color:#000;
+    classDef collection fill:#D5F5E3,stroke:#1E8449,stroke-width:1px,color:#000;
+    classDef document fill:#FCF3CF,stroke:#B7950B,stroke-width:1px,color:#000;
+    classDef component fill:#F5CBA7,stroke:#A04000,stroke-width:1px,color:#000;
+    classDef repository fill:#D2B4DE,stroke:#6C3483,stroke-width:1px,color:#000;
+    classDef module fill:#FADBD8,stroke:#943126,stroke-width:1px,color:#000;
+
+    class A database;
+    class B,C,D,E collection;
+    class B1,C1,M1,O1 document;
+    class C2,C3,C4 component;
+    class R,S,T repository;
+    class U,V,W module;
 ```
 
 ### Class Diagram

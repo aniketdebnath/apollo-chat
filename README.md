@@ -34,7 +34,7 @@ Apollo Chat is a full-featured real-time messaging platform that demonstrates mo
 <summary><b>📸 Screenshots</b></summary>
 <br>
 
-_Coming soon_
+Screenshots of the application's key features are available in the detailed documentation. See the [Features](docs/frontend/features.md) section for visual examples of the user interface.
 
 </details>
 
@@ -169,46 +169,17 @@ graph TB
     Services --> SMTP
     Services --> OAuth
 
-    classDef clientLayer fill:#f9f9f9,stroke:#333,stroke-width:1px;
-    classDef apiLayer fill:#f9f,stroke:#333,stroke-width:1px;
-    classDef businessLayer fill:#bbf,stroke:#333,stroke-width:1px;
-    classDef dataLayer fill:#bfb,stroke:#333,stroke-width:1px;
-    classDef externalLayer fill:#fbb,stroke:#333,stroke-width:1px;
+    classDef clientLayer fill:#D4E6F1,stroke:#2874A6,stroke-width:1px,color:#000;
+    classDef apiLayer fill:#D5F5E3,stroke:#1E8449,stroke-width:1px,color:#000;
+    classDef businessLayer fill:#FCF3CF,stroke:#B7950B,stroke-width:1px,color:#000;
+    classDef dataLayer fill:#F5CBA7,stroke:#A04000,stroke-width:1px,color:#000;
+    classDef externalLayer fill:#D2B4DE,stroke:#6C3483,stroke-width:1px,color:#000;
 
     class Browser,Mobile clientLayer;
     class REST,GraphQL,WebSockets,Guards,Interceptors apiLayer;
     class Services,PubSub,Validation businessLayer;
     class Repositories,Entities,Migration dataLayer;
     class Database,Redis,S3,SMTP,OAuth externalLayer;
-```
-
-### Frontend Architecture
-
-The frontend uses Apollo Client for state management and GraphQL operations:
-
-```mermaid
-graph TD
-    Client[Browser Client] -->|HTTP/WS| ApolloClient[Apollo Client]
-    ApolloClient -->|GraphQL| API[Backend API]
-    ApolloClient -->|REST| API
-
-    ApolloClient --> Cache[Apollo Cache]
-    ApolloClient --> ReactiveVars[Reactive Variables]
-
-    ApolloClient --> ReactComponents[React Components]
-    ReactComponents --> Pages[Pages]
-    ReactComponents --> SharedComponents[Shared Components]
-
-    Pages --> Auth[Auth Pages]
-    Pages --> Chat[Chat Interface]
-    Pages --> Profile[Profile]
-    Pages --> Explore[Explore]
-
-    SharedComponents --> Header[Header]
-    SharedComponents --> StatusIndicator[Status Indicator]
-    SharedComponents --> ErrorBoundary[Error Boundary]
-
-    Cache --> UIComponents[UI Components]
 ```
 
 ### Backend Architecture
@@ -253,6 +224,59 @@ graph TB
 
     PS -->|Dev| Memory[In-Memory]
     PS -->|Prod| Redis[(Redis)]
+
+    classDef gateway fill:#D4E6F1,stroke:#2874A6,stroke-width:1px,color:#000;
+    classDef controllers fill:#D5F5E3,stroke:#1E8449,stroke-width:1px,color:#000;
+    classDef services fill:#FCF3CF,stroke:#B7950B,stroke-width:1px,color:#000;
+    classDef repositories fill:#F5CBA7,stroke:#A04000,stroke-width:1px,color:#000;
+    classDef database fill:#D2B4DE,stroke:#6C3483,stroke-width:1px,color:#000;
+
+    class Client,API gateway;
+    class REST,GQL,WS,UserC,ChatC,MsgC,UserR,ChatR,MsgR,SubR controllers;
+    class Auth,UserS,ChatS,MsgS,PS services;
+    class UR,CR repositories;
+    class DB,Memory,Redis database;
+```
+
+### Frontend Architecture
+
+The frontend uses Apollo Client for state management and GraphQL operations:
+
+```mermaid
+graph TD
+    Client[Browser Client] -->|HTTP/WS| ApolloClient[Apollo Client]
+    ApolloClient -->|GraphQL| API[Backend API]
+    ApolloClient -->|REST| API
+
+    ApolloClient --> Cache[Apollo Cache]
+    ApolloClient --> ReactiveVars[Reactive Variables]
+
+    ApolloClient --> ReactComponents[React Components]
+    ReactComponents --> Pages[Pages]
+    ReactComponents --> SharedComponents[Shared Components]
+
+    Pages --> Auth[Auth Pages]
+    Pages --> Chat[Chat Interface]
+    Pages --> Profile[Profile]
+    Pages --> Explore[Explore]
+
+    SharedComponents --> Header[Header]
+    SharedComponents --> StatusIndicator[Status Indicator]
+    SharedComponents --> ErrorBoundary[Error Boundary]
+
+    Cache --> UIComponents[UI Components]
+
+    classDef client fill:#D4E6F1,stroke:#2874A6,stroke-width:1px,color:#000;
+    classDef apollo fill:#D5F5E3,stroke:#1E8449,stroke-width:1px,color:#000;
+    classDef api fill:#FCF3CF,stroke:#B7950B,stroke-width:1px,color:#000;
+    classDef components fill:#F5CBA7,stroke:#A04000,stroke-width:1px,color:#000;
+    classDef pages fill:#D2B4DE,stroke:#6C3483,stroke-width:1px,color:#000;
+
+    class Client client;
+    class ApolloClient,Cache,ReactiveVars apollo;
+    class API api;
+    class ReactComponents,SharedComponents,UIComponents,Header,StatusIndicator,ErrorBoundary components;
+    class Pages,Auth,Chat,Profile,Explore pages;
 ```
 
 ## 🛠️ Tech Stack

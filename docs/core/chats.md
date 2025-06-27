@@ -93,19 +93,24 @@ flowchart TD
     CS --> CRepo
 
     %% Styles
-    classDef primary fill:#4285F4,stroke:#333,stroke-width:1px,color:white
-    classDef secondary fill:#34A853,stroke:#333,stroke-width:1px,color:white
-    classDef tertiary fill:#FBBC05,stroke:#333,stroke-width:1px,color:white
-    classDef quaternary fill:#EA4335,stroke:#333,stroke-width:1px,color:white
-    classDef client fill:#9C27B0,stroke:#333,stroke-width:1px,color:white
-    classDef db fill:#000000,stroke:#333,stroke-width:1px,color:white
+    classDef client fill:#D4E6F1,stroke:#2874A6,stroke-width:1px,color:#000;
+    classDef api fill:#D5F5E3,stroke:#1E8449,stroke-width:1px,color:#000;
+    classDef resolver fill:#FCF3CF,stroke:#B7950B,stroke-width:1px,color:#000;
+    classDef service fill:#F5CBA7,stroke:#A04000,stroke-width:1px,color:#000;
+    classDef repo fill:#D2B4DE,stroke:#6C3483,stroke-width:1px,color:#000;
+    classDef related fill:#FADBD8,stroke:#943126,stroke-width:1px,color:#000;
+    classDef realtime fill:#D6EAF8,stroke:#2E86C1,stroke-width:1px,color:#000;
+    classDef chattype fill:#E8DAEF,stroke:#8E44AD,stroke-width:1px,color:#000;
+    classDef db fill:#F4ECF7,stroke:#8E44AD,stroke-width:1px,color:#000;
 
     class UI client
-    class GQL,REST,CR,CC secondary
-    class CS primary
-    class CRepo,PCT,PUCT,OCT tertiary
-    class US,MS quaternary
-    class PS,SUB quaternary
+    class GQL,REST api
+    class CR,CC resolver
+    class CS service
+    class CRepo repo
+    class PCT,PUCT,OCT chattype
+    class US,MS related
+    class PS,SUB realtime
     class DB db
 ```
 

@@ -231,6 +231,18 @@ flowchart TD
     RESTCheck -->|Denied| Forbidden[403 Forbidden]
     GQLCheck -->|Denied| Forbidden
     WSCheck -->|Denied| Forbidden
+
+    classDef request fill:#D4E6F1,stroke:#2874A6,stroke-width:1px,color:#000;
+    classDef guards fill:#D5F5E3,stroke:#1E8449,stroke-width:1px,color:#000;
+    classDef decision fill:#FCF3CF,stroke:#B7950B,stroke-width:1px,color:#000;
+    classDef handler fill:#F5CBA7,stroke:#A04000,stroke-width:1px,color:#000;
+    classDef error fill:#F5B7B1,stroke:#943126,stroke-width:1px,color:#000;
+
+    class Request request;
+    class Guards,RESTGuards,GQLGuards,WSGuards guards;
+    class Authorized,TypeCheck,RESTCheck,GQLCheck,WSCheck decision;
+    class RESTHandler,GQLHandler,WSHandler handler;
+    class Reject,Forbidden error;
 ```
 
 #### Key Access Control Features

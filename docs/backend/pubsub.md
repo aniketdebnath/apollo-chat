@@ -17,6 +17,18 @@ graph TD
 
     subgraph "Note: PubSub.publish() does not push directly to clients. It triggers resolvers that filter and dispatch"
     end
+
+    classDef resolver fill:#D4E6F1,stroke:#2874A6,stroke-width:1px,color:#000;
+    classDef pubsub fill:#D5F5E3,stroke:#1E8449,stroke-width:1px,color:#000;
+    classDef provider fill:#FCF3CF,stroke:#B7950B,stroke-width:1px,color:#000;
+    classDef database fill:#F5CBA7,stroke:#A04000,stroke-width:1px,color:#000;
+    classDef client fill:#D2B4DE,stroke:#6C3483,stroke-width:1px,color:#000;
+
+    class A,F resolver;
+    class B pubsub;
+    class C,D provider;
+    class E database;
+    class G client;
 ```
 
 ### Event Flow

@@ -16,22 +16,22 @@ Apollo Chat is a real-time messaging platform built with NestJS, GraphQL, and Mo
 
 ## Tech Stack
 
-| Layer            | Technology                                |
-| ---------------- | ----------------------------------------- |
-| Language         | TypeScript                                |
-| Framework        | [NestJS](https://nestjs.com/)             |
-| API Layer        | GraphQL (Apollo Server 4), REST (Express) |
-| Realtime Engine  | GraphQL Subscriptions with PubSub         |
-| Database         | MongoDB (via Mongoose ODM)                |
-| Data Access      | AbstractRepository Pattern (custom)       |
-| Messaging Queue  | Redis (for PubSub events in production)   |
-| Auth & Identity  | JWT, Google OAuth 2.0, OTP Verification   |
-| Email Delivery   | Nodemailer with configurable SMTP         |
-| File Storage     | AWS S3 (via AWS SDK)                      |
-| Validation       | class-validator, GraphQL input types      |
-| Rate Limiting    | NestJS Throttler with proxy-aware guards  |
-| Documentation    | Compodoc                                  |
-| Testing          | Jest, Supertest                           |
+| Layer           | Technology                                |
+| --------------- | ----------------------------------------- |
+| Language        | TypeScript                                |
+| Framework       | [NestJS](https://nestjs.com/)             |
+| API Layer       | GraphQL (Apollo Server 4), REST (Express) |
+| Realtime Engine | GraphQL Subscriptions with PubSub         |
+| Database        | MongoDB (via Mongoose ODM)                |
+| Data Access     | AbstractRepository Pattern (custom)       |
+| Messaging Queue | Redis (for PubSub events in production)   |
+| Auth & Identity | JWT, Google OAuth 2.0, OTP Verification   |
+| Email Delivery  | Nodemailer with configurable SMTP         |
+| File Storage    | AWS S3 (via AWS SDK)                      |
+| Validation      | class-validator, GraphQL input types      |
+| Rate Limiting   | NestJS Throttler with proxy-aware guards  |
+| Documentation   | Compodoc                                  |
+| Testing         | Jest, Supertest                           |
 
 ## Layered Architecture
 
@@ -99,11 +99,11 @@ graph TB
     Services --> SMTP
     Services --> OAuth
 
-    classDef clientLayer fill:#f9f9f9,stroke:#333,stroke-width:1px;
-    classDef apiLayer fill:#f9f,stroke:#333,stroke-width:1px;
-    classDef businessLayer fill:#bbf,stroke:#333,stroke-width:1px;
-    classDef dataLayer fill:#bfb,stroke:#333,stroke-width:1px;
-    classDef externalLayer fill:#fbb,stroke:#333,stroke-width:1px;
+    classDef clientLayer fill:#D4E6F1,stroke:#2874A6,stroke-width:1px,color:#000;
+    classDef apiLayer fill:#D5F5E3,stroke:#1E8449,stroke-width:1px,color:#000;
+    classDef businessLayer fill:#FCF3CF,stroke:#B7950B,stroke-width:1px,color:#000;
+    classDef dataLayer fill:#F5CBA7,stroke:#A04000,stroke-width:1px,color:#000;
+    classDef externalLayer fill:#D2B4DE,stroke:#6C3483,stroke-width:1px,color:#000;
 
     class Browser,Mobile clientLayer;
     class REST,GraphQL,WebSockets,Guards,Interceptors apiLayer;
@@ -165,15 +165,15 @@ graph TB
     S3[S3 Module] --> AWS[AWS S3]
     Email[Email Module] --> SMTP[SMTP Server]
 
-    classDef apiLayer fill:#f9f,stroke:#333,stroke-width:2px;
-    classDef serviceLayer fill:#bbf,stroke:#333,stroke-width:1px;
-    classDef dataLayer fill:#bfb,stroke:#333,stroke-width:1px;
-    classDef externalLayer fill:#fbb,stroke:#333,stroke-width:1px;
+    classDef apiLayer fill:#D4E6F1,stroke:#2874A6,stroke-width:2px,color:#000;
+    classDef serviceLayer fill:#D5F5E3,stroke:#1E8449,stroke-width:1px,color:#000;
+    classDef dataLayer fill:#FCF3CF,stroke:#B7950B,stroke-width:1px,color:#000;
+    classDef externalLayer fill:#D2B4DE,stroke:#6C3483,stroke-width:1px,color:#000;
 
     class API,REST,GQL,WS apiLayer;
-    class Auth,UserS,ChatS,MsgS,PS serviceLayer;
+    class Auth,UserS,ChatS,MsgS,PS,JWT,Google,OTP,Security serviceLayer;
     class UR,CR,DB dataLayer;
-    class AWS,SMTP,Redis,Memory externalLayer;
+    class AWS,SMTP,Redis,Memory,S3,Email externalLayer;
 ```
 
 ## Core Architectural Principles
@@ -191,9 +191,12 @@ graph TB
 The Auth module provides comprehensive authentication and authorization:
 
 - **Multiple Authentication Strategies**: JWT, Local (username/password), and Google OAuth
-- **Token Management**: Access tokens and refresh tokens for secure sessions
-- **OTP Verification**: One-time passwords for email verification and password reset
-- **Guards**: Specialized guards for protecting routes and GraphQL operations
+- **Token Management**: Access tokens with HTTP-only cookies and refresh token rotation
+- **Cross-Protocol Authentication**: Unified authentication across REST, GraphQL, and WebSockets
+- **OTP Verification**: Time-limited one-time passwords for email verification and password reset
+- **Session Tracking**: Multi-device login support with cross-device revocation capabilities
+- **Guards**: Protocol-specific guards for protecting routes, resolvers, and subscriptions
+- **Rate Limiting**: Tiered rate limiting with proxy-aware IP detection
 
 For detailed information about the authentication architecture, see the [authentication documentation](../core/authentication.md).
 

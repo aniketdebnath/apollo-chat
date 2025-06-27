@@ -103,22 +103,23 @@ flowchart TD
     GOOGLE --> GOOGLE_S
 
     %% Styles
-    classDef primary fill:#4285F4,stroke:#333,stroke-width:1px,color:white
-    classDef secondary fill:#34A853,stroke:#333,stroke-width:1px,color:white
-    classDef tertiary fill:#FBBC05,stroke:#333,stroke-width:1px,color:white
-    classDef quaternary fill:#EA4335,stroke:#333,stroke-width:1px,color:white
-    classDef guards fill:#9C27B0,stroke:#333,stroke-width:1px,color:white
-    classDef client fill:#673AB7,stroke:#333,stroke-width:1px,color:white
-    classDef db fill:#000000,stroke:#333,stroke-width:1px,color:white
-    classDef external fill:#795548,stroke:#333,stroke-width:1px,color:white
+    classDef client fill:#D4E6F1,stroke:#2874A6,stroke-width:1px,color:#000;
+    classDef api fill:#D5F5E3,stroke:#1E8449,stroke-width:1px,color:#000;
+    classDef guards fill:#FCF3CF,stroke:#B7950B,stroke-width:1px,color:#000;
+    classDef logic fill:#F5CBA7,stroke:#A04000,stroke-width:1px,color:#000;
+    classDef data fill:#D2B4DE,stroke:#6C3483,stroke-width:1px,color:#000;
+    classDef services fill:#FADBD8,stroke:#943126,stroke-width:1px,color:#000;
+    classDef strategies fill:#D6EAF8,stroke:#2E86C1,stroke-width:1px,color:#000;
+    classDef external fill:#E8DAEF,stroke:#8E44AD,stroke-width:1px,color:#000;
+    classDef db fill:#F4ECF7,stroke:#8E44AD,stroke-width:1px,color:#000;
 
     class UI client
-    class GQL,REST,AC secondary
+    class GQL,REST,AC api
     class GQL_G,JWT_G,LOCAL_G,GOOGLE_G,OTP_G guards
-    class AS primary
-    class RT_REPO,OTP_REPO tertiary
-    class US,EMAIL quaternary
-    class JWT_S,LOCAL_S,GOOGLE_S quaternary
+    class AS logic
+    class RT_REPO,OTP_REPO data
+    class US,EMAIL services
+    class JWT_S,LOCAL_S,GOOGLE_S strategies
     class DB db
     class GOOGLE external
 ```

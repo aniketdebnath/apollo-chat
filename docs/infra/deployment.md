@@ -50,15 +50,19 @@ graph TD
     BEAPI --> |Stores Data| DB["Database"]
 
     %% Styling
-    classDef aws fill:#F58536,stroke:#232F3E,color:white
-    classDef github fill:#24292E,stroke:#1B1F23,color:white
-    classDef users fill:#A0C8F0,stroke:#2B6CB0,color:#1A365D
-    classDef service fill:#C7F5D9,stroke:#2F855A,color:#22543D
+    classDef github fill:#D4E6F1,stroke:#2874A6,stroke-width:1px,color:#000;
+    classDef workflow fill:#D5F5E3,stroke:#1E8449,stroke-width:1px,color:#000;
+    classDef aws fill:#FCF3CF,stroke:#B7950B,stroke-width:1px,color:#000;
+    classDef service fill:#F5CBA7,stroke:#A04000,stroke-width:1px,color:#000;
+    classDef users fill:#D2B4DE,stroke:#6C3483,stroke-width:1px,color:#000;
+    classDef domain fill:#FADBD8,stroke:#943126,stroke-width:1px,color:#000;
 
+    class GH,GHA github
+    class BEW,FEW workflow
     class BEEB,FEAMP,REDIS,CDN,S3USER,BES3,CERT aws
-    class GH,GHA,BEW,FEW github
+    class BEAPI,FEUI,DB service
     class USERS users
-    class BEAPI,FEUI,DB,DOMAIN service
+    class DOMAIN domain
 ```
 
 ## Infrastructure Components

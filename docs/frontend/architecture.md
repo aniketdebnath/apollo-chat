@@ -10,8 +10,8 @@ Apollo Chat's frontend is a modern single-page application built with React, Typ
 - [Features](./features.md) – Key user-facing functionality like chat, explore, profile, and OTP flow
 - [Hooks](./hooks.md) – Custom React hooks for encapsulating logic and improving reusability
 - [Lifecycle & Effects](./lifecycle-and-effect.md) – Effect cleanup, real-time subscriptions, and visibility tracking
-- [Infrastructure > Deployment](./infra/deployment.md) – Vercel, CI/CD, environment management
-- [Infrastructure > Security](./infra/security.md) – Input sanitization, session handling, and route guards
+- [Infrastructure > Deployment](../infra/deployment.md) – AWS Amplify, CI/CD pipelines, environment management
+- [Infrastructure > Security](../infra/security.md) – Token-based authentication, HTTP-only cookies, OTP verification, throttling protection
 
 ## Tech Stack
 
@@ -66,13 +66,12 @@ graph TD
     Cache --> UIComponents[UI Components]
 
     %% Style Definitions
-    classDef clientLayer fill:#f9f9f9,stroke:#666,stroke-width:1px;
-    classDef apolloLayer fill:#e9d5ff,stroke:#7c3aed,stroke-width:2px;
-    classDef apiLayer fill:#dbeafe,stroke:#2563eb,stroke-width:1px;
-    classDef stateLayer fill:#fef9c3,stroke:#ca8a04,stroke-width:1px;
-    classDef componentsLayer fill:#e0f2fe,stroke:#0284c7,stroke-width:1px;
-    classDef pagesLayer fill:#dcfce7,stroke:#15803d,stroke-width:1px;
-    classDef featureLayer fill:#fff7ed,stroke:#ea580c,stroke-width:1px;
+    classDef clientLayer fill:#D4E6F1,stroke:#2874A6,stroke-width:1px,color:#000;
+    classDef apolloLayer fill:#D5F5E3,stroke:#1E8449,stroke-width:2px,color:#000;
+    classDef apiLayer fill:#FCF3CF,stroke:#B7950B,stroke-width:1px,color:#000;
+    classDef componentsLayer fill:#F5CBA7,stroke:#A04000,stroke-width:1px,color:#000;
+    classDef pagesLayer fill:#D2B4DE,stroke:#6C3483,stroke-width:1px,color:#000;
+    classDef featureLayer fill:#FADBD8,stroke:#943126,stroke-width:1px,color:#000;
 
     %% Class Assignments
     class Client clientLayer;
@@ -99,6 +98,18 @@ graph LR
     ApolloClient <--> Backend[Backend API]
     Cache --> Components[UI Components]
     Components --> User
+
+    classDef user fill:#D4E6F1,stroke:#2874A6,stroke-width:1px,color:#000;
+    classDef events fill:#D5F5E3,stroke:#1E8449,stroke-width:1px,color:#000;
+    classDef logic fill:#FCF3CF,stroke:#B7950B,stroke-width:1px,color:#000;
+    classDef data fill:#F5CBA7,stroke:#A04000,stroke-width:1px,color:#000;
+    classDef api fill:#D2B4DE,stroke:#6C3483,stroke-width:1px,color:#000;
+
+    class User,Components user;
+    class UIEvents events;
+    class Hooks,Operations logic;
+    class ApolloClient,Cache data;
+    class Backend api;
 ```
 
 ## Core Architectural Principles
@@ -116,10 +127,12 @@ graph LR
 
 Handles user authentication and account management:
 
-- **Multiple Auth Methods**: Email/password login and Google OAuth
-- **Token Management**: HTTP-only cookies for secure authentication
-- **Session Handling**: Auto-refresh of expired tokens
-- **Demo User Support**: Special handling for demo accounts
+- **Multiple Auth Methods**: Email/password login and Google OAuth integration
+- **Token-based Authentication**: JWT with HTTP-only cookies and automatic refresh rotation
+- **Session Management**: Cross-device login tracking with revocation capabilities
+- **OTP Verification**: Time-limited one-time passwords for email verification
+- **Secure Demo Mode**: Special handling for demo accounts with restricted permissions
+- **Rate Limiting Protection**: Throttled authentication attempts with proxy-aware detection
 
 For detailed information about the authentication implementation, see the [security documentation](../infra/security.md).
 
