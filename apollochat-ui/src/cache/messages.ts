@@ -36,6 +36,7 @@ export const updateMessages = (cache: ApolloCache<any>, message: Message) => {
       });
     }
   } catch (error) {
-    console.error("Error updating messages cache:", error);
+    
   }
 };
+

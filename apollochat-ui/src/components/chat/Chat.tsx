@@ -136,7 +136,7 @@ const Chat = () => {
           limit: PAGE_SIZE,
         },
       }).catch((error) => {
-        console.error("Error loading more messages:", error);
+        
       });
     }, 0);
   }, [messages?.messages, messagesLoading, messagesCount, fetchMore, chatId]);
@@ -187,7 +187,7 @@ const Chat = () => {
         });
       }
     } catch (error) {
-      console.error("Error toggling pin status:", error);
+      
       snackVar({
         message: "Failed to update pin status",
         type: "error",
@@ -653,3 +653,4 @@ const Chat = () => {
 };
 
 export default Chat;
+

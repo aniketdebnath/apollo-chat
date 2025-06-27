@@ -24,7 +24,7 @@ export const useAddChatMember = () => {
       });
       return data?.addChatMember;
     } catch (err) {
-      console.error("Error adding chat member:", err);
+      
       throw err;
     }
   };
@@ -35,3 +35,4 @@ export const useAddChatMember = () => {
     error,
   };
 };
+

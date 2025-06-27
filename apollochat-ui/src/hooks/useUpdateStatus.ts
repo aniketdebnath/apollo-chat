@@ -32,7 +32,7 @@ export const useUpdateStatus = () => {
 
       return data?.updateUserStatus;
     } catch (err) {
-      console.error("Error updating status:", err);
+      
       snackVar({
         message: "Failed to update status",
         type: "error",
@@ -47,3 +47,4 @@ export const useUpdateStatus = () => {
     error,
   };
 };
+

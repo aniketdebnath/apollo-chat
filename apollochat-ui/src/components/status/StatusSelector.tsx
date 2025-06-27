@@ -99,7 +99,7 @@ export const StatusSelector: React.FC<StatusSelectorProps> = ({
       await updateStatus(status);
       handleClose();
     } catch (error) {
-      console.error("Failed to update status:", error);
+      
     }
   };
 
@@ -268,3 +268,4 @@ export const StatusSelector: React.FC<StatusSelectorProps> = ({
     </>
   );
 };
+

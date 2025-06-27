@@ -51,11 +51,11 @@ export const updateChatAdded = (cache: ApolloCache<any>, chat: Chat) => {
           });
         }
       } catch (error) {
-        console.error("Error updating public chats cache:", error);
+        
       }
     }
   } catch (error) {
-    console.error("Error updating chat added:", error);
+    
   }
 };
 
@@ -99,12 +99,10 @@ export const updateChatDeleted = (cache: ApolloCache<any>, chatId: string) => {
         });
       }
     } catch (error) {
-      console.error(
-        "Error updating public chats cache for deleted chat:",
-        error
-      );
+      
     }
   } catch (error) {
-    console.error("Error updating chat deleted:", error);
+    
   }
 };
+

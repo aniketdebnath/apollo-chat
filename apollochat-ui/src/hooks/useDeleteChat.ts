@@ -24,7 +24,7 @@ export const useDeleteChat = () => {
       navigate("/");
       return data?.removeChat;
     } catch (err) {
-      console.error("Error deleting chat:", err);
+      
       throw err;
     }
   };
@@ -35,3 +35,4 @@ export const useDeleteChat = () => {
     error,
   };
 };
+

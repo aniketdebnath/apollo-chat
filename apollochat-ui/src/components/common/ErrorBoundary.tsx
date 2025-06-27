@@ -33,7 +33,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error("Uncaught error:", error, errorInfo);
+    
 
     // Show error in snackbar
     snackVar({
@@ -169,3 +169,4 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error }) => {
 };
 
 export default ErrorBoundary;
+

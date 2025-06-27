@@ -12,7 +12,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  FormControlLabel,
   Switch,
   Divider,
   IconButton,
@@ -58,9 +57,7 @@ const CookieConsent: React.FC = () => {
           ...cookiePreferences,
           ...JSON.parse(savedPreferences),
         });
-      } catch (e) {
-        console.error("Error parsing saved cookie preferences");
-      }
+      } catch (e) {}
     }
 
     // Show the banner after a short delay if not accepted

@@ -34,9 +34,7 @@ const debugLink = onError(
         ) {
           // Only log critical errors in production
           if (process.env.NODE_ENV !== "production") {
-            console.error(
-              `[SKIP ERROR] in operation: ${operation.operationName}`
-            );
+            
           }
         }
       });
@@ -161,3 +159,4 @@ const client = new ApolloClient({
 });
 
 export default client;
+

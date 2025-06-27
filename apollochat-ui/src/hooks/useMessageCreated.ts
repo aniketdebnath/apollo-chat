@@ -41,14 +41,10 @@ export const useMessageCreated = (
 
     // Clean up previous subscription if chat IDs changed
     if (subscriptionRef && currentChatIdsStr !== prevChatIdsStr) {
-      console.log("Chat IDs changed, cleaning up previous subscription");
       subscriptionRef.unsubscribe();
     }
 
     // Create new subscription
-    console.log(
-      `Creating message subscription for chats: ${variables.chatIds.join(", ")}`
-    );
     const subscription = client
       .subscribe({
         query: messageCreatedDocument,
@@ -62,11 +58,11 @@ export const useMessageCreated = (
               updateLatestMessage(client.cache, data.messageCreated);
             }
           } catch (error) {
-            console.error("Error in messageCreated handler:", error);
+            
           }
         },
         error: (error) => {
-          console.error("Subscription error:", error);
+          
         },
       });
 
@@ -77,11 +73,6 @@ export const useMessageCreated = (
     // Cleanup on unmount or variables change
     return () => {
       if (subscription) {
-        console.log(
-          `Cleaning up message subscription for chats: ${variables.chatIds.join(
-            ", "
-          )}`
-        );
         subscription.unsubscribe();
       }
     };
@@ -94,3 +85,4 @@ export const useMessageCreated = (
     error: null,
   };
 };
+

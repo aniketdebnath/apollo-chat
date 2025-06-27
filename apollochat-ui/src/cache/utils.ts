@@ -24,7 +24,7 @@ export const writeSortedChatsToCache = (
       },
     });
   } catch (error) {
-    console.error("Error writing sorted chats to cache:", error);
+    
   }
 };
 
@@ -42,7 +42,8 @@ export const readChatsFromCache = (
     });
     return queryResult?.chats;
   } catch (error) {
-    console.error("Error reading chats from cache:", error);
+    
     return undefined;
   }
 };
+

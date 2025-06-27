@@ -29,6 +29,7 @@ export const updateChatPinStatus = (
     // Write sorted chats back to cache
     writeSortedChatsToCache(cache, updatedChats);
   } catch (error) {
-    console.error("Error updating chat pin status:", error);
+    
   }
 };
+

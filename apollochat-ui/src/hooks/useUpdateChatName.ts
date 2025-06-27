@@ -56,10 +56,11 @@ export const useUpdateChatName = () => {
 
       return data?.updateChat;
     } catch (error) {
-      console.error("Error updating chat name:", error);
+      
       throw error;
     }
   };
 
   return { updateChatName, loading };
 };
+

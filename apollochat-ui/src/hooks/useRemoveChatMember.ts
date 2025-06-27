@@ -53,10 +53,11 @@ export const useRemoveChatMember = () => {
 
       return data?.removeChatMember;
     } catch (error) {
-      console.error("Error removing chat member:", error);
+      
       throw error;
     }
   };
 
   return { removeChatMember, loading };
 };
+

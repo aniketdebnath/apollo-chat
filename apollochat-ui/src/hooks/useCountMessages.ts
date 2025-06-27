@@ -15,9 +15,7 @@ const useCountMessages = (chatId: string) => {
         getRelativeApiUrl(`/messages/count?chatId=${chatId}`)
       );
       if (!response.ok) {
-        console.error(
-          `Error response: ${response.status} ${response.statusText}`
-        );
+        
         snackVar(UNKNOWN_ERROR_SNACK_MESSAGE);
         return;
       }
@@ -26,7 +24,6 @@ const useCountMessages = (chatId: string) => {
 
       // Handle empty or whitespace-only responses
       if (!text || text.trim() === "") {
-        console.log("No messages for this chat yet");
         setMessagesCount(0);
         return;
       }
@@ -40,12 +37,12 @@ const useCountMessages = (chatId: string) => {
           setMessagesCount(data.messages || 0);
         }
       } catch (parseError) {
-        console.error(`Failed to parse JSON: "${text}"`, parseError);
+        
         // Set count to 0 instead of showing an error
         setMessagesCount(0);
       }
     } catch (error) {
-      console.error("Error counting messages:", error);
+      
       // Set count to 0 instead of showing an error
       setMessagesCount(0);
     }
@@ -55,3 +52,4 @@ const useCountMessages = (chatId: string) => {
 };
 
 export { useCountMessages };
+

@@ -334,6 +334,36 @@ The Email module handles all outbound communications:
 - **Templating**: Consistent email templates
 - **Configuration**: Environment-specific SMTP settings
 
+## Logging Architecture
+
+Apollo Chat implements a comprehensive logging system using Pino logger integrated with NestJS:
+
+- **Environment-Specific Configuration**:
+
+  - Production: JSON-formatted logs with 'info' level
+  - Development: Human-readable logs with 'pino-pretty' formatter and 'debug' level
+
+- **Layered Logging Strategy**:
+
+  - **Repository Layer**: Each repository extends AbstractRepository with a protected logger
+  - **Service Layer**: Service-specific loggers for operation tracking and error handling
+  - **API Layer**: Request logging and error tracking
+  - **Security Layer**: Dedicated logging for authentication and security events
+
+- **Specialized Loggers**:
+
+  - **WebSocket Authentication**: Tracks connection and token refresh events
+  - **Email Service**: Logs email delivery attempts and failures
+  - **S3 Service**: Tracks file upload operations
+  - **Security Interceptor**: Logs potential security threats
+
+- **Database Operations Logging**:
+  - Document creation/update/deletion tracking
+  - Query failure logging with context
+  - Migration operation logging
+
+The logging system is designed to provide comprehensive visibility into application behavior while maintaining performance in production environments.
+
 ## Scalability Considerations
 
 1. **Horizontal Scaling**: Stateless design enables multiple instances
@@ -341,16 +371,6 @@ The Email module handles all outbound communications:
 3. **Connection Pooling**: Efficient database connection management
 4. **Pagination**: All list operations support skip/limit pagination
 5. **Indexing Strategy**: Optimized MongoDB indexes for common queries
-
-## Environment Configuration
-
-The application adapts to different environments:
-
-- **Development**: Simplified setup with in-memory PubSub
-- **Production**: Optimized for performance and scalability
-- **Testing**: Isolated environment for automated tests
-
-Configuration is managed through environment variables and appropriate NestJS configuration providers.
 
 ## Testing
 

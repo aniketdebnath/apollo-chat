@@ -40,8 +40,6 @@ export const useChatSubscriptions = () => {
 
   // Setup chat added subscription with proper cleanup
   useEffect(() => {
-    console.log("Creating chat added subscription");
-
     // Create new subscription
     const subscription = client
       .subscribe({
@@ -54,11 +52,11 @@ export const useChatSubscriptions = () => {
               updateChatAdded(client.cache, data.chatAdded);
             }
           } catch (error) {
-            console.error("Error in chatAdded handler:", error);
+            
           }
         },
         error: (error) => {
-          console.error("Chat added subscription error:", error);
+          
         },
       });
 
@@ -68,7 +66,6 @@ export const useChatSubscriptions = () => {
     // Cleanup on unmount
     return () => {
       if (subscription) {
-        console.log("Cleaning up chat added subscription");
         subscription.unsubscribe();
       }
     };
@@ -76,8 +73,6 @@ export const useChatSubscriptions = () => {
 
   // Setup chat deleted subscription with proper cleanup
   useEffect(() => {
-    console.log("Creating chat deleted subscription");
-
     // Create new subscription
     const subscription = client
       .subscribe({
@@ -90,11 +85,11 @@ export const useChatSubscriptions = () => {
               updateChatDeleted(client.cache, data.chatDeleted._id);
             }
           } catch (error) {
-            console.error("Error in chatDeleted handler:", error);
+            
           }
         },
         error: (error) => {
-          console.error("Chat deleted subscription error:", error);
+          
         },
       });
 
@@ -104,7 +99,6 @@ export const useChatSubscriptions = () => {
     // Cleanup on unmount
     return () => {
       if (subscription) {
-        console.log("Cleaning up chat deleted subscription");
         subscription.unsubscribe();
       }
     };
@@ -118,3 +112,4 @@ export const useChatSubscriptions = () => {
     chatDeletedError: null,
   };
 };
+

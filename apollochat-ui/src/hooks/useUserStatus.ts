@@ -37,14 +37,10 @@ export const useUserStatus = (userIds: string[]) => {
 
     // Clean up previous subscription if user IDs changed
     if (subscriptionRef && currentUserIdsStr !== prevUserIdsStr) {
-      console.log("User IDs changed, cleaning up previous subscription");
       subscriptionRef.unsubscribe();
     }
 
     // Create new subscription
-    console.log(
-      `Creating user status subscription for users: ${userIds.join(", ")}`
-    );
     const subscription = client
       .subscribe({
         query: USER_STATUS_SUBSCRIPTION,
@@ -55,15 +51,10 @@ export const useUserStatus = (userIds: string[]) => {
           try {
             if (data?.userStatusChanged) {
               // Data will be automatically updated in the cache
-              console.log("User status changed:", data.userStatusChanged);
             }
-          } catch (error) {
-            console.error("Error in userStatus handler:", error);
-          }
+          } catch (error) {}
         },
-        error: (error) => {
-          console.error("User status subscription error:", error);
-        },
+        error: (error) => {},
       });
 
     // Store reference and update previous user IDs
@@ -73,11 +64,6 @@ export const useUserStatus = (userIds: string[]) => {
     // Cleanup on unmount or variables change
     return () => {
       if (subscription) {
-        console.log(
-          `Cleaning up user status subscription for users: ${userIds.join(
-            ", "
-          )}`
-        );
         subscription.unsubscribe();
       }
     };

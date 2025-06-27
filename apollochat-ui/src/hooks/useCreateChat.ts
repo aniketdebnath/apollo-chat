@@ -31,7 +31,7 @@ export const useCreateChat = () => {
       });
       return data?.createChat;
     } catch (err) {
-      console.error("Error creating chat:", err);
+      
       throw err;
     }
   };
@@ -42,3 +42,4 @@ export const useCreateChat = () => {
     error,
   };
 };
+

@@ -74,7 +74,7 @@ const Explore = () => {
         navigate(`/chats/${result._id}`);
       }
     } catch (error) {
-      console.error("Error joining chat:", error);
+      
       snackVar({
         message: "Failed to join chat. Please try again.",
         type: "error",
@@ -478,3 +478,4 @@ const Explore = () => {
 };
 
 export default Explore;
+

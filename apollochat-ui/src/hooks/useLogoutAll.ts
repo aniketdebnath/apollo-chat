@@ -24,7 +24,7 @@ const useLogoutAll = () => {
       // Redirect to login page
       router.navigate("/login");
     } catch (error) {
-      console.error("Error logging out from all devices:", error);
+      
       throw error;
     }
   };
@@ -33,3 +33,4 @@ const useLogoutAll = () => {
 };
 
 export { useLogoutAll };
+

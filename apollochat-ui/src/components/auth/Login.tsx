@@ -50,7 +50,7 @@ const Login = () => {
           await demoLogin();
           navigate("/");
         } catch (error) {
-          console.error("Demo login failed:", error);
+          
           setDemoError(
             "Failed to log in to demo account. Please try again later."
           );
@@ -506,3 +506,4 @@ const Login = () => {
 };
 
 export default Login;
+

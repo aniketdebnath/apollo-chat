@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Button,
   Typography,
   Box,
@@ -7,75 +6,182 @@ import {
   Container,
   alpha,
   useTheme,
-  Card,
-  CardContent,
   CircularProgress,
   Skeleton,
-  Tooltip,
 } from "@mui/material";
 import { useGetMe } from "../../hooks/useGetMe";
-import { UploadFile, Email, Person, ArrowBack } from "@mui/icons-material";
+import { ArrowBack, UploadFile } from "@mui/icons-material";
 import { snackVar } from "../../constants/snack";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { stringToColor, getAvatarProps } from "../../utils/avatar";
 import { getRelativeApiUrl } from "../../utils/api-url";
+import { useUpdateUser } from "../../hooks/useUpdateUser";
+import { onLogout } from "../../utils/logout";
+import { ProfileAvatar } from "./ProfileAvatar";
+import { UserInfoCard } from "./UserInfoCard";
+import { UsernameDialog } from "./UsernameDialog";
+import { PasswordDialog } from "./PasswordDialog";
 
 export const Profile = () => {
   const { data, loading } = useGetMe();
-  const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
   const theme = useTheme();
+  const { updateUser, loading: updateLoading } = useUpdateUser();
 
-  const handleFileUpload = async (event: any) => {
+  // Username update states
+  const [usernameDialogOpen, setUsernameDialogOpen] = useState(false);
+
+  // Password update states
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [timeRemaining, setTimeRemaining] = useState(15 * 60); // 15 minutes in seconds
+  const [timerActive, setTimerActive] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Set email when data is loaded
+  useEffect(() => {
+    if (data?.me?.email) {
+      setEmail(data.me.email);
+    }
+  }, [data?.me?.email]);
+
+  const handleUsernameUpdate = async (newUsername: string) => {
     try {
-      if (!event.target.files || !event.target.files[0]) return;
-
-      setUploading(true);
-      const file = event.target.files[0];
-
-      // Validate file type
-      if (!file.type.match("image.*")) {
-        snackVar({ message: "Please select an image file", type: "error" });
-        setUploading(false);
-        return;
-      }
-
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        snackVar({ message: "Image must be less than 5MB", type: "error" });
-        setUploading(false);
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch(getRelativeApiUrl("/users/image"), {
-        method: "POST",
-        body: formData,
+      await updateUser({
+        variables: {
+          updateUserInput: {
+            username: newUsername,
+          },
+        },
       });
+      setUsernameDialogOpen(false);
+    } catch (error) {
+      throw error;
+    }
+  };
 
-      if (!res.ok) {
-        throw new Error("Image Upload Failed.");
+  const handleRequestOtp = async () => {
+    try {
+      setPasswordError("");
+
+      const response = await fetch(
+        getRelativeApiUrl("/auth/request-password-reset"),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to send verification code");
       }
+
+      setTimeRemaining(15 * 60); // 15 minutes
+      setTimerActive(true);
+      setResendCooldown(60); // 1 minute cooldown
+
+      // Start countdown timer for OTP expiration
+      const timerInterval = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev <= 1) {
+            clearInterval(timerInterval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      // Start cooldown timer for resend button
+      const cooldownInterval = setInterval(() => {
+        setResendCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(cooldownInterval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
 
       snackVar({
-        message: "Profile picture updated successfully",
+        message: "Verification code sent to your email",
+        type: "success",
+      });
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const handleVerifyOtp = async (otp: string) => {
+    try {
+      const response = await fetch(
+        getRelativeApiUrl("/auth/verify-reset-otp"),
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, otp }),
+          credentials: "include",
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Invalid or expired verification code");
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const handleResetPassword = async (
+    newPassword: string,
+    confirmPassword: string
+  ) => {
+    try {
+      // First, reset password via REST API
+      const response = await fetch(getRelativeApiUrl("/auth/reset-password"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          newPassword: newPassword,
+        }),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to reset password");
+      }
+
+      const data = await response.json();
+
+      snackVar({
+        message: "Password updated successfully. Please log in again.",
         type: "success",
       });
 
-      // Refresh data to show the new image
+      setPasswordDialogOpen(false);
+      setTimerActive(false);
+
+      // Log out user after password change (for security)
       setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+        onLogout();
+        navigate("/login");
+      }, 1500);
     } catch (error) {
-      snackVar({
-        message: "Error uploading image. Please try again.",
-        type: "error",
-      });
-    } finally {
-      setUploading(false);
+      throw error;
     }
   };
 
@@ -171,69 +277,10 @@ export const Profile = () => {
                   alignItems: "center",
                 }}>
                 {/* Profile Avatar */}
-                <Box sx={{ position: "relative", mb: 3 }}>
-                  {data?.me?.imageUrl ? (
-                    <Avatar
-                      src={data.me.imageUrl}
-                      sx={{
-                        width: 180,
-                        height: 180,
-                        border: "4px solid",
-                        borderColor: alpha(theme.palette.primary.main, 0.3),
-                      }}
-                    />
-                  ) : (
-                    <Avatar
-                      sx={{
-                        width: 180,
-                        height: 180,
-                        bgcolor: stringToColor(data?.me?.username || "User"),
-                        fontSize: "4rem",
-                        border: "4px solid",
-                        borderColor: alpha(theme.palette.primary.main, 0.3),
-                      }}>
-                      {data?.me?.username?.substring(0, 1).toUpperCase()}
-                    </Avatar>
-                  )}
-
-                  <Tooltip title="Upload profile picture">
-                    <Box
-                      component="label"
-                      sx={{
-                        position: "absolute",
-                        bottom: 0,
-                        right: 0,
-                        bgcolor: "background.paper",
-                        width: 50,
-                        height: 50,
-                        borderRadius: "50%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        boxShadow: theme.shadows[3],
-                        border: "1px solid",
-                        borderColor: "divider",
-                        transition: "all 0.2s",
-                        "&:hover": {
-                          bgcolor: alpha(theme.palette.primary.main, 0.1),
-                        },
-                      }}>
-                      {uploading ? (
-                        <CircularProgress size={24} />
-                      ) : (
-                        <UploadFile color="primary" />
-                      )}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        onChange={handleFileUpload}
-                        disabled={uploading}
-                      />
-                    </Box>
-                  </Tooltip>
-                </Box>
+                <ProfileAvatar
+                  imageUrl={data?.me?.imageUrl}
+                  username={data?.me?.username}
+                />
 
                 {/* User Info */}
                 <Typography
@@ -243,83 +290,38 @@ export const Profile = () => {
                   {data?.me?.username}
                 </Typography>
 
-                <Card
-                  elevation={0}
-                  sx={{
-                    maxWidth: 400,
-                    width: "100%",
-                    mt: 4,
-                    bgcolor: alpha(theme.palette.background.default, 0.6),
-                    borderRadius: 3,
-                    border: "1px solid",
-                    borderColor: "divider",
-                  }}>
-                  <CardContent>
-                    <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                      <Person
-                        color="action"
-                        sx={{ mr: 2 }}
-                      />
-                      <Box>
-                        <Typography
-                          variant="caption"
-                          color="text.secondary">
-                          Username
-                        </Typography>
-                        <Typography variant="body1">
-                          {data?.me?.username}
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                      <Email
-                        color="action"
-                        sx={{ mr: 2 }}
-                      />
-                      <Box>
-                        <Typography
-                          variant="caption"
-                          color="text.secondary">
-                          Email
-                        </Typography>
-                        <Typography variant="body1">
-                          {data?.me?.email}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </CardContent>
-                </Card>
-
-                <Button
-                  component="label"
-                  variant="contained"
-                  size="large"
-                  disabled={uploading}
-                  startIcon={
-                    uploading ? <CircularProgress size={20} /> : <UploadFile />
-                  }
-                  sx={{
-                    mt: 4,
-                    textTransform: "none",
-                    fontWeight: 600,
-                    borderRadius: 2,
-                    px: 3,
-                  }}>
-                  {uploading ? "Uploading..." : "Change Profile Picture"}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    onChange={handleFileUpload}
-                    disabled={uploading}
-                  />
-                </Button>
+                <UserInfoCard
+                  username={data?.me?.username || ""}
+                  email={data?.me?.email || ""}
+                  onEditUsername={() => setUsernameDialogOpen(true)}
+                  onChangePassword={() => setPasswordDialogOpen(true)}
+                />
               </Box>
             )}
           </Box>
         </Paper>
       </Box>
+
+      {/* Username Update Dialog */}
+      <UsernameDialog
+        open={usernameDialogOpen}
+        onClose={() => setUsernameDialogOpen(false)}
+        onUpdate={handleUsernameUpdate}
+        currentUsername={data?.me?.username || ""}
+        loading={updateLoading}
+      />
+
+      {/* Password Change Dialog */}
+      <PasswordDialog
+        open={passwordDialogOpen}
+        onClose={() => setPasswordDialogOpen(false)}
+        email={email}
+        onRequestOtp={handleRequestOtp}
+        onVerifyOtp={handleVerifyOtp}
+        onResetPassword={handleResetPassword}
+        timeRemaining={timeRemaining}
+        resendCooldown={resendCooldown}
+      />
     </Container>
   );
 };

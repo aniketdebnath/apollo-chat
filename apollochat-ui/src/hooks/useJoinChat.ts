@@ -27,7 +27,7 @@ export const useJoinChat = () => {
       });
       return data?.joinChat;
     } catch (err) {
-      console.error("Error joining chat:", err);
+      
       throw err;
     }
   };
@@ -38,3 +38,4 @@ export const useJoinChat = () => {
     error,
   };
 };
+

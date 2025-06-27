@@ -80,7 +80,7 @@ const ChatListItem = ({ chat, selected }: ChatListProps) => {
         }
       );
     } catch (error) {
-      console.error("Error formatting date:", error);
+      
       timeAgo = "";
     }
   }
@@ -231,3 +231,4 @@ const ChatListItem = ({ chat, selected }: ChatListProps) => {
   );
 };
 export default ChatListItem;
+

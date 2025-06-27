@@ -35,6 +35,7 @@ export const updateLatestMessage = (
     // Write sorted chats back to cache
     writeSortedChatsToCache(cache, updatedChats);
   } catch (error) {
-    console.error("Error updating latest message:", error);
+    
   }
 };
+
