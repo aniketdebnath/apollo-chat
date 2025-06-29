@@ -68,6 +68,7 @@ classDiagram
         +MessageDocument[] messages
         +ObjectId[] members
         +Map~string, boolean~ pinnedBy
+        +Map~string, BanInfo~ bannedUsers
     }
 
     class MessageDocument {
@@ -167,6 +168,12 @@ The database uses a combination of embedded documents and references:
   pinnedBy: {               // Map of user IDs to boolean for pinned status
     "userId1": true,
     "userId2": true
+  },
+  bannedUsers: {            // Map of banned user IDs to ban information
+    "userId1": {
+      until: Date | null,   // Ban expiration (null for permanent)
+      reason: string        // Reason for the ban
+    }
   }
 }
 ```

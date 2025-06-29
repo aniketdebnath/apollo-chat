@@ -16,13 +16,15 @@ const documents = {
     "\n  fragment ChatFragment on Chat {\n    _id\n    name\n    type\n    isPinned\n    latestMessage {\n      ...MessageFragment\n    }\n    creator {\n      ...UserFragment\n    }\n    members {\n      ...UserFragment\n    }\n  }\n": types.ChatFragmentFragmentDoc,
     "\n  fragment MessageFragment on Message {\n    _id\n    content\n    createdAt\n    chatId\n    user {\n      ...UserFragment\n    }\n  }\n": types.MessageFragmentFragmentDoc,
     "\n  fragment UserFragment on User {\n    _id\n    email\n    username\n    imageUrl\n    status\n  }\n": types.UserFragmentFragmentDoc,
-    "\n  mutation AddChatMember($chatMemberInput: ChatMemberInput!) {\n    addChatMember(chatMemberInput: $chatMemberInput) {\n      ...ChatFragment\n    }\n  }\n": types.AddChatMemberDocument,
+    "\n  mutation AddChatMember($chatMemberInput: ChatMemberInput!) {\n    addChatMember(chatMemberInput: $chatMemberInput) {\n      _id\n      name\n      members {\n        _id\n        username\n        imageUrl\n        status\n      }\n    }\n  }\n": types.AddChatMemberDocument,
+    "\n  mutation BanChatUser($chatBanInput: ChatBanInput!) {\n    banChatUser(chatBanInput: $chatBanInput) {\n      _id\n      name\n      members {\n        ...UserFragment\n      }\n    }\n  }\n": types.BanChatUserDocument,
     "\n  subscription ChatAdded {\n    chatAdded {\n      ...ChatFragment\n    }\n  }\n": types.ChatAddedDocument,
     "\n  subscription ChatDeleted {\n    chatDeleted {\n      _id\n    }\n  }\n": types.ChatDeletedDocument,
     "\n  mutation CreateChat($createChatInput: CreateChatInput!) {\n    createChat(createChatInput: $createChatInput) {\n      ...ChatFragment\n    }\n  }\n": types.CreateChatDocument,
     "\n  mutation CreateMessage($createMessageInput: CreateMessageInput!) {\n    createMessage(createMessageInput: $createMessageInput) {\n      ...MessageFragment\n    }\n  }\n": types.CreateMessageDocument,
     "\n  mutation CreateUser($createUserInput: CreateUserInput!) {\n    createUser(createUserInput: $createUserInput) {\n      _id\n      email\n    }\n  }\n": types.CreateUserDocument,
     "\n  mutation RemoveChat($chatId: String!) {\n    removeChat(chatId: $chatId) {\n      _id\n    }\n  }\n": types.RemoveChatDocument,
+    "\n  query ChatBannedUsers($chatId: String!) {\n    chatBannedUsers(chatId: $chatId) {\n      user {\n        _id\n        username\n        imageUrl\n      }\n      until\n      reason\n    }\n  }\n": types.ChatBannedUsersDocument,
     "\n  query Chat($_id: String!) {\n    chat(_id: $_id) {\n      ...ChatFragment\n    }\n  }\n": types.ChatDocument,
     "\n  query Chats($skip: Int!, $limit: Int!) {\n    chats(skip: $skip, limit: $limit) {\n      ...ChatFragment\n    }\n  }\n": types.ChatsDocument,
     "\n  query Me {\n    me {\n      ...UserFragment\n    }\n  }\n": types.MeDocument,
@@ -33,6 +35,7 @@ const documents = {
     "\n  mutation PinChat($chatPinInput: ChatPinInput!) {\n    pinChat(chatPinInput: $chatPinInput) {\n      _id\n      name\n      isPinned\n    }\n  }\n": types.PinChatDocument,
     "\n  mutation RemoveChatMember($chatMemberInput: ChatMemberInput!) {\n    removeChatMember(chatMemberInput: $chatMemberInput) {\n      _id\n      name\n      members {\n        ...UserFragment\n      }\n    }\n  }\n": types.RemoveChatMemberDocument,
     "\n  query SearchUsers($searchTerm: String!, $limit: Int) {\n    searchUsers(searchTerm: $searchTerm, limit: $limit) {\n      ...UserFragment\n    }\n  }\n": types.SearchUsersDocument,
+    "\n  mutation UnbanChatUser($chatUnbanInput: ChatUnbanInput!) {\n    unbanChatUser(chatUnbanInput: $chatUnbanInput) {\n      _id\n      name\n      bannedUsers {\n        user {\n          ...UserFragment\n        }\n        until\n        reason\n      }\n    }\n  }\n": types.UnbanChatUserDocument,
     "\n  mutation UnpinChat($chatPinInput: ChatPinInput!) {\n    unpinChat(chatPinInput: $chatPinInput) {\n      _id\n      name\n      isPinned\n    }\n  }\n": types.UnpinChatDocument,
     "\n  mutation UpdateChat($updateChatInput: UpdateChatInput!) {\n    updateChat(updateChatInput: $updateChatInput) {\n      _id\n      name\n      type\n      creator {\n        _id\n        username\n      }\n    }\n  }\n": types.UpdateChatDocument,
     "\n  mutation UpdateUserStatus($updateStatusInput: UpdateStatusInput!) {\n    updateUserStatus(updateStatusInput: $updateStatusInput) {\n      ...UserFragment\n    }\n  }\n": types.UpdateUserStatusDocument,
@@ -69,7 +72,11 @@ export function graphql(source: "\n  fragment UserFragment on User {\n    _id\n 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  mutation AddChatMember($chatMemberInput: ChatMemberInput!) {\n    addChatMember(chatMemberInput: $chatMemberInput) {\n      ...ChatFragment\n    }\n  }\n"): (typeof documents)["\n  mutation AddChatMember($chatMemberInput: ChatMemberInput!) {\n    addChatMember(chatMemberInput: $chatMemberInput) {\n      ...ChatFragment\n    }\n  }\n"];
+export function graphql(source: "\n  mutation AddChatMember($chatMemberInput: ChatMemberInput!) {\n    addChatMember(chatMemberInput: $chatMemberInput) {\n      _id\n      name\n      members {\n        _id\n        username\n        imageUrl\n        status\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation AddChatMember($chatMemberInput: ChatMemberInput!) {\n    addChatMember(chatMemberInput: $chatMemberInput) {\n      _id\n      name\n      members {\n        _id\n        username\n        imageUrl\n        status\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation BanChatUser($chatBanInput: ChatBanInput!) {\n    banChatUser(chatBanInput: $chatBanInput) {\n      _id\n      name\n      members {\n        ...UserFragment\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation BanChatUser($chatBanInput: ChatBanInput!) {\n    banChatUser(chatBanInput: $chatBanInput) {\n      _id\n      name\n      members {\n        ...UserFragment\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -94,6 +101,10 @@ export function graphql(source: "\n  mutation CreateUser($createUserInput: Creat
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation RemoveChat($chatId: String!) {\n    removeChat(chatId: $chatId) {\n      _id\n    }\n  }\n"): (typeof documents)["\n  mutation RemoveChat($chatId: String!) {\n    removeChat(chatId: $chatId) {\n      _id\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query ChatBannedUsers($chatId: String!) {\n    chatBannedUsers(chatId: $chatId) {\n      user {\n        _id\n        username\n        imageUrl\n      }\n      until\n      reason\n    }\n  }\n"): (typeof documents)["\n  query ChatBannedUsers($chatId: String!) {\n    chatBannedUsers(chatId: $chatId) {\n      user {\n        _id\n        username\n        imageUrl\n      }\n      until\n      reason\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -134,6 +145,10 @@ export function graphql(source: "\n  mutation RemoveChatMember($chatMemberInput:
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query SearchUsers($searchTerm: String!, $limit: Int) {\n    searchUsers(searchTerm: $searchTerm, limit: $limit) {\n      ...UserFragment\n    }\n  }\n"): (typeof documents)["\n  query SearchUsers($searchTerm: String!, $limit: Int) {\n    searchUsers(searchTerm: $searchTerm, limit: $limit) {\n      ...UserFragment\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UnbanChatUser($chatUnbanInput: ChatUnbanInput!) {\n    unbanChatUser(chatUnbanInput: $chatUnbanInput) {\n      _id\n      name\n      bannedUsers {\n        user {\n          ...UserFragment\n        }\n        until\n        reason\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation UnbanChatUser($chatUnbanInput: ChatUnbanInput!) {\n    unbanChatUser(chatUnbanInput: $chatUnbanInput) {\n      _id\n      name\n      bannedUsers {\n        user {\n          ...UserFragment\n        }\n        until\n        reason\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

@@ -18,6 +18,9 @@ import { Inject } from '@nestjs/common';
 import { PUB_SUB } from '../common/constants/injection-tokens';
 import { PubSub } from 'graphql-subscriptions';
 import { CHAT_ADDED, CHAT_DELETED } from './constants/pubsub-triggers';
+import { ChatBanInput } from './dto/chat-ban.input';
+import { ChatUnbanInput } from './dto/chat-unban.input';
+import { BannedUser } from './entities/banned-user.entity';
 
 /**
  * Payload structure for chat-related subscriptions
@@ -276,5 +279,53 @@ export class ChatsResolver {
   })
   chatDeleted() {
     return this.pubSub.asyncIterableIterator(CHAT_DELETED);
+  }
+
+  /**
+   * Bans a user from a chat
+   *
+   * @param chatBanInput - DTO with chat ID, user ID, duration, and reason
+   * @param user - Current authenticated user from JWT
+   * @returns Updated chat entity
+   */
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Chat)
+  async banChatUser(
+    @Args('chatBanInput') chatBanInput: ChatBanInput,
+    @CurrentUser() user: TokenPayload,
+  ): Promise<Chat> {
+    return this.chatsService.banUser(chatBanInput, user._id);
+  }
+
+  /**
+   * Unbans a user from a chat
+   *
+   * @param chatUnbanInput - DTO with chat ID and user ID
+   * @param user - Current authenticated user from JWT
+   * @returns Updated chat entity
+   */
+  @UseGuards(GqlAuthGuard)
+  @Mutation(() => Chat)
+  async unbanChatUser(
+    @Args('chatUnbanInput') chatUnbanInput: ChatUnbanInput,
+    @CurrentUser() user: TokenPayload,
+  ): Promise<Chat> {
+    return this.chatsService.unbanUser(chatUnbanInput, user._id);
+  }
+
+  /**
+   * Gets a list of banned users for a chat
+   *
+   * @param chatId - ID of the chat to get banned users for
+   * @param user - Current authenticated user from JWT
+   * @returns Array of banned user entities
+   */
+  @UseGuards(GqlAuthGuard)
+  @Query(() => [BannedUser], { name: 'chatBannedUsers' })
+  async getChatBannedUsers(
+    @Args('chatId') chatId: string,
+    @CurrentUser() user: TokenPayload,
+  ): Promise<BannedUser[]> {
+    return this.chatsService.getBannedUsers(chatId, user._id);
   }
 }

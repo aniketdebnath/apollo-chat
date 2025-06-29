@@ -1,0 +1,249 @@
+# @name chatBanTest
+# This file tests the chat ban functionality
+
+# Test data:
+# Creator (Roy): 685f607ba066c648702bc0bd
+# Normal Member (Aniket): 6858131b0028a15924bdbbda
+# Chat: 68607e0282820ff0f47c2dea (Ban Test Chat, public)
+
+# ===== SECTION 1: SETUP - MEMBER JOINS CHAT =====
+
+# Test 1.1: Normal Member Joins the Chat
+# @name memberJoinsChat
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODU4MTMxYjAwMjhhMTU5MjRiZGJiZGEiLCJlbWFpbCI6InJrc3RhcmFuaWtldDM0QGdtYWlsLmNvbSIsInVzZXJuYW1lIjoiYXdkYSBhbmlrZXQiLCJpbWFnZVVybCI6Imh0dHBzOi8vYXBvbGxvLWNoYXQtdXNlcnMtdGVzdC5zMy5hbWF6b25hd3MuY29tLzY4NTgxMzFiMDAyOGExNTkyNGJkYmJkYS5qcGciLCJpYXQiOjE3NTExNTQyMDUsImV4cCI6MTc1MTE1NTEwNX0.iJHNWIfzVNDL6N7kwCTOFBNfMallOUIvKq7HQItYULE
+
+{
+  "query": "mutation JoinChat($chatId: String!) { joinChat(chatId: $chatId) { _id name type members { _id username } } }",
+  "variables": {
+    "chatId": "68607e0282820ff0f47c2dea"
+  }
+}
+
+###
+
+# Test 1.2: Verify Member is in Chat
+# @name verifyMembership
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQuanBnIiwiaWF0IjoxNzUxMTU0MTEyLCJleHAiOjE3NTExNTUwMTJ9.2jw4Uq8QmwCITLvf0dVTpKtm3KChTYZr5487Og-fGrc
+
+{
+  "query": "query VerifyMembership($id: String!) { chat(_id: $id) { _id name members { _id username } } }",
+  "variables": {
+    "id": "68607e0282820ff0f47c2dea"
+  }
+}
+
+###
+
+# ===== SECTION 2: BAN TESTS =====
+
+# Test 2.1: Creator Bans a Member
+# @name banMember
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQuanBnIiwiaWF0IjoxNzUxMTU0MTEyLCJleHAiOjE3NTExNTUwMTJ9.2jw4Uq8QmwCITLvf0dVTpKtm3KChTYZr5487Og-fGrc
+
+{
+  "query": "mutation BanMember($chatBanInput: ChatBanInput!) { banChatUser(chatBanInput: $chatBanInput) { _id name } }",
+  "variables": {
+    "chatBanInput": {
+      "chatId": "68607e0282820ff0f47c2dea",
+      "userId": "6858131b0028a15924bdbbda",
+      "duration": "1day",
+      "reason": "Testing ban functionality"
+    }
+  }
+}
+
+###
+
+# Test 2.2: Verify Member is Removed from Chat
+# @name verifyMemberRemoved
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQuanBnIiwiaWF0IjoxNzUxMTU0MTEyLCJleHAiOjE3NTExNTUwMTJ9.2jw4Uq8QmwCITLvf0dVTpKtm3KChTYZr5487Og-fGrc
+
+{
+  "query": "query VerifyMemberRemoved($id: String!) { chat(_id: $id) { _id name members { _id username } } }",
+  "variables": {
+    "id": "68607e0282820ff0f47c2dea"
+  }
+}
+
+###
+
+# Test 2.3: Get List of Banned Users
+# @name getBannedUsers
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQuanBnIiwiaWF0IjoxNzUxMTU0MTEyLCJleHAiOjE3NTExNTUwMTJ9.2jw4Uq8QmwCITLvf0dVTpKtm3KChTYZr5487Og-fGrc
+
+{
+  "query": "query GetBannedUsers($chatId: String!) { chatBannedUsers(chatId: $chatId) { user { _id username } until reason } }",
+  "variables": {
+    "chatId": "68607e0282820ff0f47c2dea"
+  }
+}
+
+###
+
+# Test 2.4: Banned Member Attempts to Rejoin (should fail)
+# @name bannedMemberRejoinAttempt
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODU4MTMxYjAwMjhhMTU5MjRiZGJiZGEiLCJlbWFpbCI6InJrc3RhcmFuaWtldDM0QGdtYWlsLmNvbSIsInVzZXJuYW1lIjoiYXdkYSBhbmlrZXQiLCJpbWFnZVVybCI6Imh0dHBzOi8vYXBvbGxvLWNoYXQtdXNlcnMtdGVzdC5zMy5hbWF6b25hd3MuY29tLzY4NTgxMzFiMDAyOGExNTkyNGJkYmJkYS5qcGciLCJpYXQiOjE3NTExNTQyMDUsImV4cCI6MTc1MTE1NTEwNX0.iJHNWIfzVNDL6N7kwCTOFBNfMallOUIvKq7HQItYULE
+
+{
+  "query": "mutation BannedMemberRejoinAttempt($chatId: String!) { joinChat(chatId: $chatId) { _id name type } }",
+  "variables": {
+    "chatId": "68607e0282820ff0f47c2dea"
+  }
+}
+
+###
+
+# Test 2.5: Creator Attempts to Add Banned Member (should fail)
+# @name addBannedMember
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQuanBnIiwiaWF0IjoxNzUxMTU0MTEyLCJleHAiOjE3NTExNTUwMTJ9.2jw4Uq8QmwCITLvf0dVTpKtm3KChTYZr5487Og-fGrc
+
+{
+  "query": "mutation AddBannedMember($input: ChatMemberInput!) { addChatMember(chatMemberInput: $input) { _id name } }",
+  "variables": {
+    "input": {
+      "chatId": "68607e0282820ff0f47c2dea",
+      "userId": "6858131b0028a15924bdbbda"
+    }
+  }
+}
+
+###
+
+# ===== SECTION 3: UNBAN TESTS =====
+
+# Test 3.1: Unban the Member
+# @name unbanMember
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQuanBnIiwiaWF0IjoxNzUxMTU0MTEyLCJleHAiOjE3NTExNTUwMTJ9.2jw4Uq8QmwCITLvf0dVTpKtm3KChTYZr5487Og-fGrc
+
+{
+  "query": "mutation UnbanMember($chatUnbanInput: ChatUnbanInput!) { unbanChatUser(chatUnbanInput: $chatUnbanInput) { _id name } }",
+  "variables": {
+    "chatUnbanInput": {
+      "chatId": "68607e0282820ff0f47c2dea",
+      "userId": "6858131b0028a15924bdbbda"
+    }
+  }
+}
+
+###
+
+# Test 3.2: Verify Banned Users List is Empty
+# @name verifyBannedUsersEmpty
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQuanBnIiwiaWF0IjoxNzUxMTU0MTEyLCJleHAiOjE3NTExNTUwMTJ9.2jw4Uq8QmwCITLvf0dVTpKtm3KChTYZr5487Og-fGrc
+
+{
+  "query": "query VerifyBannedUsersEmpty($chatId: String!) { chatBannedUsers(chatId: $chatId) { user { _id username } until reason } }",
+  "variables": {
+    "chatId": "68607e0282820ff0f47c2dea"
+  }
+}
+
+###
+
+# Test 3.3: Unbanned Member Successfully Rejoins
+# @name unbannedMemberRejoins
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODU4MTMxYjAwMjhhMTU5MjRiZGJiZGEiLCJlbWFpbCI6InJrc3RhcmFuaWtldDM0QGdtYWlsLmNvbSIsInVzZXJuYW1lIjoiYXdkYSBhbmlrZXQiLCJpbWFnZVVybCI6Imh0dHBzOi8vYXBvbGxvLWNoYXQtdXNlcnMtdGVzdC5zMy5hbWF6b25hd3MuY29tLzY4NTgxMzFiMDAyOGExNTkyNGJkYmJkYS5qcGciLCJpYXQiOjE3NTExNTQyMDUsImV4cCI6MTc1MTE1NTEwNX0.iJHNWIfzVNDL6N7kwCTOFBNfMallOUIvKq7HQItYULE
+
+{
+  "query": "mutation UnbannedMemberRejoins($chatId: String!) { joinChat(chatId: $chatId) { _id name type members { _id username } } }",
+  "variables": {
+    "chatId": "68607e0282820ff0f47c2dea"
+  }
+}
+
+###
+
+# ===== SECTION 4: EDGE CASES =====
+
+# Test 4.1: Non-Creator Attempts to Ban (should fail)
+# @name nonCreatorBanAttempt
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODU4MTMxYjAwMjhhMTU5MjRiZGJiZGEiLCJlbWFpbCI6InJrc3RhcmFuaWtldDM0QGdtYWlsLmNvbSIsInVzZXJuYW1lIjoiYXdkYSBhbmlrZXQiLCJpbWFnZVVybCI6Imh0dHBzOi8vYXBvbGxvLWNoYXQtdXNlcnMtdGVzdC5zMy5hbWF6b25hd3MuY29tLzY4NTgxMzFiMDAyOGExNTkyNGJkYmJkYS5qcGciLCJpYXQiOjE3NTExNTQyMDUsImV4cCI6MTc1MTE1NTEwNX0.iJHNWIfzVNDL6N7kwCTOFBNfMallOUIvKq7HQItYULE
+
+{
+  "query": "mutation NonCreatorBanAttempt($chatBanInput: ChatBanInput!) { banChatUser(chatBanInput: $chatBanInput) { _id name } }",
+  "variables": {
+    "chatBanInput": {
+      "chatId": "68607e0282820ff0f47c2dea",
+      "userId": "685f607ba066c648702bc0bd",
+      "duration": "1day",
+      "reason": "This should fail"
+    }
+  }
+}
+
+###
+
+# Test 4.2: Ban with Different Durations (permanent ban)
+# @name permanentBan
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQuanBnIiwiaWF0IjoxNzUxMTU0MTEyLCJleHAiOjE3NTExNTUwMTJ9.2jw4Uq8QmwCITLvf0dVTpKtm3KChTYZr5487Og-fGrc
+
+{
+  "query": "mutation PermanentBan($chatBanInput: ChatBanInput!) { banChatUser(chatBanInput: $chatBanInput) { _id name } }",
+  "variables": {
+    "chatBanInput": {
+      "chatId": "68607e0282820ff0f47c2dea",
+      "userId": "6858131b0028a15924bdbbda",
+      "duration": "permanent",
+      "reason": "Testing permanent ban"
+    }
+  }
+}
+
+###
+
+# Test 4.3: Verify Permanent Ban (until should be null)
+# @name verifyPermanentBan
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQuanBnIiwiaWF0IjoxNzUxMTU0MTEyLCJleHAiOjE3NTExNTUwMTJ9.2jw4Uq8QmwCITLvf0dVTpKtm3KChTYZr5487Og-fGrc
+
+{
+  "query": "query VerifyPermanentBan($chatId: String!) { chatBannedUsers(chatId: $chatId) { user { _id username } until reason } }",
+  "variables": {
+    "chatId": "68607e0282820ff0f47c2dea"
+  }
+}
+
+###
+
+# Test 4.4: Double Ban Attempt (should fail)
+# @name doubleBanAttempt
+POST http://localhost:3001/api/graphql
+Content-Type: application/json
+Cookie: Authentication=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQiLCJlbWFpbCI6InJveUB0ZXN0LmNvbSIsInVzZXJuYW1lIjoiUm95IiwiaW1hZ2VVcmwiOiJodHRwczovL2Fwb2xsby1jaGF0LXVzZXJzLXRlc3QuczMuYW1hem9uYXdzLmNvbS82ODVmNjA3YmEwNjZjNjQ4NzAyYmMwYmQuanBnIiwiaWF0IjoxNzUxMTU0MTEyLCJleHAiOjE3NTExNTUwMTJ9.2jw4Uq8QmwCITLvf0dVTpKtm3KChTYZr5487Og-fGrc
+
+{
+  "query": "mutation DoubleBanAttempt($chatBanInput: ChatBanInput!) { banChatUser(chatBanInput: $chatBanInput) { _id name } }",
+  "variables": {
+    "chatBanInput": {
+      "chatId": "68607e0282820ff0f47c2dea",
+      "userId": "6858131b0028a15924bdbbda",
+      "duration": "1week",
+      "reason": "This should fail as user is already banned"
+    }
+  }
+}

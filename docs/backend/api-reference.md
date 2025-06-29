@@ -90,11 +90,12 @@ Apollo Chat uses secure HTTP-only cookies for authentication across all protocol
 
 #### Queries
 
-| Operation     | Description                      | Auth Required |
-| ------------- | -------------------------------- | ------------- |
-| `chats`       | Get user's chats with pagination | JWT           |
-| `publicChats` | Get all public chats             | JWT           |
-| `chat`        | Get chat by ID                   | JWT           |
+| Operation         | Description                      | Auth Required |
+| ----------------- | -------------------------------- | ------------- |
+| `chats`           | Get user's chats with pagination | JWT           |
+| `publicChats`     | Get all public chats             | JWT           |
+| `chat`            | Get chat by ID                   | JWT           |
+| `chatBannedUsers` | Get banned users for a chat      | JWT           |
 
 #### Mutations
 
@@ -109,6 +110,8 @@ Apollo Chat uses secure HTTP-only cookies for authentication across all protocol
 | `unpinChat`        | Unpin chat for current user            | JWT           |
 | `updateChat`       | Update chat name                       | JWT           |
 | `removeChat`       | Delete chat                            | JWT           |
+| `banChatUser`      | Ban user from chat                     | JWT           |
+| `unbanChatUser`    | Unban user from chat                   | JWT           |
 
 #### Subscriptions
 
@@ -151,21 +154,23 @@ Apollo Chat uses secure HTTP-only cookies for authentication across all protocol
 
 ### Input Types
 
-| Input Type            | Purpose                                              |
-| --------------------- | ---------------------------------------------------- |
-| CreateUserInput       | Register new user (email, username, password)        |
-| UpdateUserInput       | Update user profile (username, etc.)                 |
-| UpdateStatusInput     | Change user status (ONLINE, AWAY, DND, OFFLINE)      |
-| CreateChatInput       | Create new chat (name, type, memberIds)              |
-| ChatMemberInput       | Add/remove chat members (chatId, userId)             |
-| ChatTypeInput         | Change chat type (chatId, type)                      |
-| ChatPinInput          | Pin/unpin chat (chatId)                              |
-| UpdateChatInput       | Update chat details (chatId, name)                   |
-| CreateMessageInput    | Send message (content, chatId)                       |
-| GetMessagesArgs       | Fetch messages with pagination (chatId, limit, skip) |
-| PaginationArgs        | Common pagination parameters (limit, skip)           |
-| MessageCreatedArgs    | Subscribe to messages (chatIds)                      |
-| UserStatusChangedArgs | Subscribe to user status changes (userIds)           |
+| Input Type            | Purpose                                               |
+| --------------------- | ----------------------------------------------------- |
+| CreateUserInput       | Register new user (email, username, password)         |
+| UpdateUserInput       | Update user profile (username, etc.)                  |
+| UpdateStatusInput     | Change user status (ONLINE, AWAY, DND, OFFLINE)       |
+| CreateChatInput       | Create new chat (name, type, memberIds)               |
+| ChatMemberInput       | Add/remove chat members (chatId, userId)              |
+| ChatTypeInput         | Change chat type (chatId, type)                       |
+| ChatPinInput          | Pin/unpin chat (chatId)                               |
+| UpdateChatInput       | Update chat details (chatId, name)                    |
+| ChatBanInput          | Ban user from chat (chatId, userId, duration, reason) |
+| ChatUnbanInput        | Unban user from chat (chatId, userId)                 |
+| CreateMessageInput    | Send message (content, chatId)                        |
+| GetMessagesArgs       | Fetch messages with pagination (chatId, limit, skip)  |
+| PaginationArgs        | Common pagination parameters (limit, skip)            |
+| MessageCreatedArgs    | Subscribe to messages (chatIds)                       |
+| UserStatusChangedArgs | Subscribe to user status changes (userIds)            |
 
 ## Error Handling
 

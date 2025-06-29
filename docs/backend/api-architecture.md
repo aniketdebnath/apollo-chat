@@ -62,6 +62,9 @@ export class Chat extends AbstractEntity {
 
   @Field(() => [Message], { nullable: true })
   messages?: Message[];
+
+  @Field(() => [BannedUser], { nullable: true })
+  bannedUsers?: BannedUser[];
 }
 ```
 

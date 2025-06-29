@@ -45,6 +45,7 @@ Apollo Chat's frontend is built with a rich set of interactive components that p
 
         ViewChatInfo --> ManageMembers{"Is Creator?"}
         ManageMembers -->|Yes| AddRemoveMembers["Add/Remove Members"]
+        ManageMembers -->|Yes| ManageBans["Ban/Unban Users"]
         ManageMembers -->|Yes| DeleteChat["Delete Chat"]
         ManageMembers -->|No| LeaveChat["Leave Chat"]
 
@@ -54,6 +55,7 @@ Apollo Chat's frontend is built with a rich set of interactive components that p
             TogglePin
             ManageMembers
             AddRemoveMembers
+            ManageBans
             DeleteChat
             LeaveChat
         end
@@ -93,6 +95,7 @@ The chat interface provides a full-featured messaging experience with real-time 
    - Chat settings modification (name, type)
    - Leave/delete chat options
    - Member activity visibility
+   - Ban management system (ban/unban users with configurable durations)
 
 4. **Chat Creation**
    - Multiple chat types (private, public, open)

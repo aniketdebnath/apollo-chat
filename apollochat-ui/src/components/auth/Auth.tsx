@@ -87,7 +87,7 @@ const Auth = ({
   const [taglineIndex, setTaglineIndex] = useState(0);
   const taglines = [
     "Connect. Communicate. Collaborate.",
-    "Secure. Simple. Seamless.",
+    "Seamless. Synchronous. Secure.",
     "Modern Messaging for Teams.",
   ];
 

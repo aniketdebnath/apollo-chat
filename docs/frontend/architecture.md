@@ -144,6 +144,7 @@ Manages chat conversations and messages:
 - **Real-time Updates**: Live message delivery via subscriptions
 - **Infinite Scrolling**: Efficient message pagination
 - **Chat Management**: Create, join, and manage chat rooms
+- **Ban System**: Configurable user bans with different durations (1 day, 1 week, 1 month, permanent)
 
 For detailed information about chat functionality, see the [features documentation](./features.md) and [caching architecture](./caching.md).
 

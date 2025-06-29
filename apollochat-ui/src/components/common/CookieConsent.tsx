@@ -130,29 +130,36 @@ const CookieConsent: React.FC = () => {
               left: 16,
               right: 16,
               zIndex: 2000,
+              display: "flex",
+              justifyContent: "center",
             }}>
             <Paper
               elevation={3}
               sx={{
-                p: { xs: 2, sm: 2 },
-                mx: "auto",
-                maxWidth: "800px",
+                p: { xs: 1.5, sm: 2 },
+                maxWidth: { xs: "100%", sm: "800px" },
+                width: "100%",
                 borderRadius: 3,
                 backgroundColor: alpha(theme.palette.background.paper, 0.95),
                 backdropFilter: "blur(8px)",
                 border: "1px solid",
                 borderColor: alpha(theme.palette.divider, 0.1),
                 display: "flex",
-                flexDirection: isMobile ? "column" : "row",
+                flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "space-between",
-                gap: 2,
+                gap: { xs: 1, sm: 2 },
               }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: { xs: 1, sm: 1.5 },
+                }}>
                 <CookieIcon
                   color="primary"
                   sx={{
-                    fontSize: 24,
+                    fontSize: { xs: 20, sm: 24 },
                     opacity: 0.9,
                   }}
                 />
@@ -160,13 +167,19 @@ const CookieConsent: React.FC = () => {
                   <Typography
                     variant="subtitle1"
                     fontWeight={600}
-                    sx={{ mb: 0.2 }}>
+                    sx={{
+                      mb: 0.2,
+                      fontSize: { xs: "0.75rem", sm: "1rem" },
+                    }}>
                     We use cookies
                   </Typography>
                   <Typography
                     variant="body2"
                     color="text.secondary"
-                    sx={{ fontSize: "0.8rem" }}>
+                    sx={{
+                      fontSize: { xs: "0.65rem", sm: "0.8rem" },
+                      display: { xs: "none", sm: "block" },
+                    }}>
                     To enhance your experience.{" "}
                     <Link
                       href="/privacy"
@@ -174,23 +187,34 @@ const CookieConsent: React.FC = () => {
                       Privacy Policy
                     </Link>
                   </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{
+                      fontSize: "0.65rem",
+                      display: { xs: "block", sm: "none" },
+                    }}>
+                    <Link href="/privacy">Privacy Policy</Link>
+                  </Typography>
                 </Box>
               </Box>
               <Box
                 sx={{
                   display: "flex",
-                  gap: 1,
-                  mt: isMobile ? 1 : 0,
-                  alignSelf: isMobile ? "flex-end" : "center",
+                  gap: { xs: 0.5, sm: 1 },
+                  alignSelf: "center",
+                  flexShrink: 0,
                 }}>
                 <Button
                   variant="text"
                   size="small"
                   onClick={handleCustomize}
                   sx={{
-                    minWidth: "80px",
+                    minWidth: { xs: "60px", sm: "80px" },
+                    px: { xs: 0.5, sm: 2 },
                     borderRadius: 2,
                     textTransform: "none",
+                    fontSize: { xs: "0.7rem", sm: "0.875rem" },
                   }}>
                   Customize
                 </Button>
@@ -199,16 +223,18 @@ const CookieConsent: React.FC = () => {
                   size="small"
                   onClick={handleAccept}
                   sx={{
-                    minWidth: "80px",
+                    minWidth: { xs: "60px", sm: "80px" },
+                    px: { xs: 0.5, sm: 2 },
                     borderRadius: 2,
                     fontWeight: 500,
                     textTransform: "none",
                     boxShadow: "none",
+                    fontSize: { xs: "0.7rem", sm: "0.875rem" },
                     "&:hover": {
                       boxShadow: "none",
                     },
                   }}>
-                  Accept All
+                  Accept
                 </Button>
               </Box>
             </Paper>

@@ -4,6 +4,8 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
+  ConflictException,
 } from '@nestjs/common';
 import { CreateChatInput } from './dto/create-chat.input';
 import { UpdateChatInput } from './dto/update-chat.input';
@@ -17,6 +19,10 @@ import { ChatTypeInput } from './dto/chat-type.input';
 import { UserDocument } from '../users/entities/user.document';
 import { User } from '../users/entities/user.entity';
 import { UserStatus } from '../users/constants/user-status.enum';
+import { ChatBanInput } from './dto/chat-ban.input';
+import { ChatUnbanInput } from './dto/chat-unban.input';
+import { BanDuration } from './constants/ban-duration.enum';
+import { BannedUser } from './entities/banned-user.entity';
 
 /**
  * Extended chat document with latest message and user data
@@ -68,25 +74,24 @@ export class ChatsService {
     createChatInput: CreateChatInput,
     userId: string,
   ): Promise<Chat> {
-    // Initialize the members array with creator
-    const members = [new Types.ObjectId(userId)];
+    // Convert memberIds to ObjectIds
+    const memberIds = createChatInput.memberIds || [];
+    const members = memberIds.map((id) => new Types.ObjectId(id));
 
-    // Add additional members if specified
-    if (createChatInput.memberIds?.length) {
-      createChatInput.memberIds.forEach((memberId) => {
-        if (memberId !== userId) {
-          members.push(new Types.ObjectId(memberId));
-        }
-      });
+    // Always add the creator as a member
+    if (!members.some((member) => member.toString() === userId)) {
+      members.push(new Types.ObjectId(userId));
     }
 
+    // Create the chat document
     const chatDocument = await this.chatsRepository.create({
       ...createChatInput,
       creatorId: userId,
       members,
-      type: createChatInput.type || 'private',
       messages: [],
       pinnedBy: new Map<string, boolean>(),
+      bannedUsers: {},
+      type: createChatInput.type || 'private',
     });
 
     return this.findOne(chatDocument._id.toString(), userId);
@@ -429,6 +434,22 @@ export class ChatsService {
       );
     }
 
+    // Check if user is banned
+    if (chat.bannedUsers && chat.bannedUsers[userId]) {
+      const banInfo = chat.bannedUsers[userId];
+
+      // Check if ban has expired
+      if (banInfo.until && new Date(banInfo.until) < new Date()) {
+        // Ban expired, remove from banned list
+        await this.chatsRepository.model.updateOne(
+          { _id: new Types.ObjectId(chatId) },
+          { $unset: { [`bannedUsers.${userId}`]: '' } },
+        );
+      } else {
+        throw new ForbiddenException('You are banned from this chat.');
+      }
+    }
+
     // Check if the user is already a member
     if (chat.members.some((member) => member.toString() === userId)) {
       // User is already a member, just return the chat
@@ -474,6 +495,13 @@ export class ChatsService {
     if (!chat) {
       throw new NotFoundException(
         `Chat not found or you don't have permission to add members`,
+      );
+    }
+
+    // Check if user is banned
+    if (chat.bannedUsers && chat.bannedUsers[userId]) {
+      throw new ForbiddenException(
+        `This user is banned from the chat and cannot be added`,
       );
     }
 
@@ -755,7 +783,7 @@ export class ChatsService {
    * @returns Array of public chat entities
    */
   async findPublicChats(userId?: string): Promise<Chat[]> {
-    // Only match public or open chats, and filter out chats where the user is a member or creator
+    // Only match public or open chats, and filter out chats where the user is a member, creator, or banned
     const publicFilter = {
       type: { $in: ['public', 'open'] },
       ...(userId
@@ -763,6 +791,7 @@ export class ChatsService {
             $and: [
               { members: { $ne: new Types.ObjectId(userId) } },
               { creatorId: { $ne: userId } },
+              { [`bannedUsers.${userId}`]: { $exists: false } },
             ],
           }
         : {}),
@@ -949,5 +978,184 @@ export class ChatsService {
     }
 
     return processedChats;
+  }
+
+  /**
+   * Bans a user from a chat
+   *
+   * Only the creator can ban users.
+   * Banned users are removed from the members list and cannot rejoin.
+   *
+   * @param chatBanInput - DTO with chat ID, user ID, duration, and reason
+   * @param currentUserId - ID of the user performing the ban
+   * @returns Updated chat entity
+   * @throws NotFoundException if chat doesn't exist or user isn't the creator
+   * @throws ConflictException if user is already banned
+   */
+  async banUser(
+    chatBanInput: ChatBanInput,
+    currentUserId: string,
+  ): Promise<Chat> {
+    const { chatId, userId, duration, reason } = chatBanInput;
+
+    // Only creator can ban users
+    const chat = await this.chatsRepository.model.findOne({
+      _id: new Types.ObjectId(chatId),
+      creatorId: currentUserId,
+    });
+
+    if (!chat) {
+      throw new NotFoundException(
+        `Chat not found or you don't have permission to ban users`,
+      );
+    }
+
+    // Prevent double banning
+    if (chat.bannedUsers?.[userId]) {
+      throw new ConflictException('User is already banned.');
+    }
+
+    // Check if user is already a member
+    const isMember = chat.members.some(
+      (memberId) => memberId.toString() === userId,
+    );
+
+    if (!isMember) {
+      throw new BadRequestException('User is not a member of this chat.');
+    }
+
+    // Calculate ban expiration date
+    let banUntil: Date | null = null;
+    switch (duration) {
+      case BanDuration.OneDay:
+        banUntil = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        break;
+      case BanDuration.OneWeek:
+        banUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+        break;
+      case BanDuration.OneMonth:
+        banUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+        break;
+      case BanDuration.Permanent:
+        banUntil = null;
+        break;
+    }
+
+    // Ensure bannedUsers exists
+    if (!chat.bannedUsers) {
+      chat.bannedUsers = {};
+    }
+
+    // Update banned users object and remove from members
+    await this.chatsRepository.model.updateOne(
+      { _id: new Types.ObjectId(chatId) },
+      {
+        $set: {
+          [`bannedUsers.${userId}`]: {
+            until: banUntil,
+            reason: reason || 'No reason provided',
+          },
+        },
+        $pull: {
+          members: { $in: [userId, new Types.ObjectId(userId)] },
+        },
+      },
+    );
+
+    return this.findOne(chatId, currentUserId);
+  }
+
+  /**
+   * Unbans a user from a chat
+   *
+   * Only the creator can unban users.
+   * Unbanned users can rejoin the chat.
+   *
+   * @param chatUnbanInput - DTO with chat ID and user ID
+   * @param currentUserId - ID of the user performing the unban
+   * @returns Updated chat entity
+   * @throws NotFoundException if chat doesn't exist or user isn't the creator
+   * @throws BadRequestException if user is not currently banned
+   */
+  async unbanUser(
+    chatUnbanInput: ChatUnbanInput,
+    currentUserId: string,
+  ): Promise<Chat> {
+    const { chatId, userId } = chatUnbanInput;
+
+    // Only creator can unban users
+    const chat = await this.chatsRepository.model.findOne({
+      _id: new Types.ObjectId(chatId),
+      creatorId: currentUserId,
+    });
+
+    if (!chat) {
+      throw new NotFoundException(
+        `Chat not found or you don't have permission to unban users`,
+      );
+    }
+
+    // Prevent unbanning non-banned users
+    if (!chat.bannedUsers?.[userId]) {
+      throw new BadRequestException('User is not currently banned.');
+    }
+
+    // Remove user from banned list using $unset
+    await this.chatsRepository.model.updateOne(
+      { _id: new Types.ObjectId(chatId) },
+      { $unset: { [`bannedUsers.${userId}`]: '' } },
+    );
+
+    return this.findOne(chatId, currentUserId);
+  }
+
+  /**
+   * Gets a list of banned users for a chat
+   *
+   * Only the creator can view banned users.
+   *
+   * @param chatId - ID of the chat to get banned users for
+   * @param currentUserId - ID of the user requesting the list
+   * @returns Array of banned user entities
+   * @throws NotFoundException if chat doesn't exist or user isn't the creator
+   */
+  async getBannedUsers(
+    chatId: string,
+    currentUserId: string,
+  ): Promise<BannedUser[]> {
+    // Only creator can see banned users
+    const chat = await this.chatsRepository.model.findOne({
+      _id: new Types.ObjectId(chatId),
+      creatorId: currentUserId,
+    });
+
+    if (!chat) {
+      throw new NotFoundException(
+        `Chat not found or you don't have permission to view banned users`,
+      );
+    }
+
+    if (!chat.bannedUsers) {
+      return [];
+    }
+
+    const bannedUsers: BannedUser[] = [];
+
+    for (const [userId, banInfo] of Object.entries(chat.bannedUsers)) {
+      try {
+        const user = await this.usersService.findOne(userId);
+        if (user) {
+          bannedUsers.push({
+            user,
+            until: banInfo.until,
+            reason: banInfo.reason,
+          });
+        }
+      } catch {
+        // Skip if user not found
+      }
+    }
+
+    return bannedUsers;
   }
 }

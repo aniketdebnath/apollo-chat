@@ -171,6 +171,9 @@ export class ChatDocument extends AbstractEntity {
 
   @Prop({ type: Map, of: Boolean, default: {} })
   pinnedBy: Map<string, boolean>;
+
+  @Prop({ type: Object, default: {} })
+  bannedUsers: Record<string, { until: Date | null; reason: string }>;
 }
 ```
 
@@ -232,6 +235,24 @@ export class ChatsService {
 
   // Find public chats for discovery
   async findPublicChats(userId?: string): Promise<Chat[]>;
+
+  // Ban a user from a chat
+  async banUser(
+    chatBanInput: ChatBanInput,
+    currentUserId: string
+  ): Promise<Chat>;
+
+  // Unban a user from a chat
+  async unbanUser(
+    chatUnbanInput: ChatUnbanInput,
+    currentUserId: string
+  ): Promise<Chat>;
+
+  // Get banned users for a chat
+  async getBannedUsers(
+    chatId: string,
+    currentUserId: string
+  ): Promise<BannedUser[]>;
 }
 ```
 
@@ -629,3 +650,42 @@ subscription {
 - Embedded messages for reduced query complexity
 - User-specific pinning with Map data structure
 - Pagination for large chat lists
+
+## Chat Ban System
+
+The Chat Ban System allows chat creators to ban users with configurable durations.
+
+### Ban Duration Options
+
+```typescript
+export enum BanDuration {
+  OneDay = "1day", // 24 hours
+  OneWeek = "1week", // 7 days
+  OneMonth = "1month", // 30 days
+  Permanent = "permanent", // No expiration
+}
+```
+
+### BannedUser Entity
+
+```typescript
+@ObjectType()
+export class BannedUser {
+  @Field(() => User)
+  user: User;
+
+  @Field(() => Date, { nullable: true })
+  until: Date | null; // null for permanent bans
+
+  @Field()
+  reason: string;
+}
+```
+
+### Ban System Features
+
+1. **User Banning**: Chat creators can ban members with a specified duration and reason
+2. **Automatic Member Removal**: Banned users are automatically removed from the chat's member list
+3. **Rejoin Prevention**: Banned users cannot rejoin the chat until their ban expires or they are unbanned
+4. **Ban Expiration**: Temporary bans automatically expire after their duration
+5. **Ban Management**: Chat creators can view and manage banned users

@@ -217,6 +217,7 @@ Handles chat rooms, conversations, and membership:
 - **Chat Types**: Private, public, and open chat rooms
 - **Membership Management**: Add/remove members, join requests
 - **Chat Pinning**: User-specific chat pinning functionality
+- **Ban System**: Configurable user bans (1 day, 1 week, 1 month, permanent)
 
 For detailed information about the chats architecture, see the [chats documentation](../core/chats.md).
 

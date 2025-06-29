@@ -36,6 +36,9 @@ export class ChatDocument extends AbstractEntity {
 
   @Prop({ type: Map, of: Boolean, default: {} })
   pinnedBy: Map<string, boolean>;
+
+  @Prop({ type: Object, default: {} })
+  bannedUsers: Record<string, { until: Date | null; reason: string }>;
 }
 
 export const ChatSchema = SchemaFactory.createForClass(ChatDocument);

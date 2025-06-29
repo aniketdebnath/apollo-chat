@@ -500,7 +500,7 @@ const Header = () => {
         <Box
           sx={{
             position: "fixed",
-            bottom: 20, // slight padding from bottom
+            bottom: { xs: 10, sm: 20 }, // less padding on mobile
             left: 0,
             right: 0,
             zIndex: 9999,
@@ -511,14 +511,15 @@ const Header = () => {
             "& > div": {
               backgroundColor: "rgba(255, 175, 32, 0.95)",
               color: "rgba(0, 0, 0, 0.8)",
-              padding: "10px 16px",
+              padding: { xs: "4px 8px", sm: "10px 16px" }, // smaller padding on mobile
               display: "flex",
               alignItems: "center",
-              borderRadius: "8px",
+              borderRadius: { xs: "4px", sm: "8px" }, // smaller radius on mobile
               boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)",
               border: "1px solid rgba(255, 255, 255, 0.3)",
               backdropFilter: "blur(5px)",
               animation: "pulse 2s infinite",
+              maxWidth: { xs: "85%", sm: "none" }, // limit width on mobile
             },
 
             "@keyframes pulse": {
@@ -528,9 +529,21 @@ const Header = () => {
             },
           }}>
           <Box>
-            <WarningAmberOutlinedIcon sx={{ mr: 1 }} />
-            <Typography fontWeight={600}>
-              Demo Mode - Read-only access. Changes will not be saved.
+            <WarningAmberOutlinedIcon
+              sx={{
+                mr: { xs: 0.5, sm: 1 },
+                fontSize: { xs: "0.9rem", sm: "1.5rem" },
+              }}
+            />
+            <Typography
+              fontWeight={600}
+              sx={{
+                fontSize: { xs: "0.6rem", sm: "0.875rem" },
+                lineHeight: { xs: 1.2, sm: 1.5 },
+              }}>
+              {isMobile
+                ? "Demo Mode - Read-only"
+                : "Demo Mode - Read-only access. Changes will not be saved."}
             </Typography>
           </Box>
         </Box>

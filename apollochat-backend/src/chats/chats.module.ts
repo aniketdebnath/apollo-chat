@@ -1,16 +1,18 @@
 // chats.module.ts
 // Module definition for chat functionality
 
-import { forwardRef, Module } from '@nestjs/common';
-import { ChatsService } from './chats.service';
+import { Module, forwardRef } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
 import { ChatsResolver } from './chats.resolver';
+import { ChatsService } from './chats.service';
 import { ChatsRepository } from './chats.repository';
-import { DatabaseModule } from '../common/database/database.module';
-import { Chat } from './entities/chat.entity';
-import { MessagesModule } from './messages/messages.module';
 import { ChatSchema } from './entities/chat.document';
+import { PubSubModule } from '../common/pubsub/pubsub.module';
+import { MessagesModule } from './messages/messages.module';
 import { ChatsController } from './chats.controller';
 import { UsersModule } from '../users/users.module';
+import { BanCleanupService } from './ban-cleanup.service';
+import { Chat } from './entities/chat.entity';
 
 /**
  * ChatsModule
@@ -26,11 +28,12 @@ import { UsersModule } from '../users/users.module';
  */
 @Module({
   imports: [
-    DatabaseModule.forFeature([{ name: Chat.name, schema: ChatSchema }]),
+    MongooseModule.forFeature([{ name: Chat.name, schema: ChatSchema }]),
+    PubSubModule,
     forwardRef(() => MessagesModule),
     UsersModule,
   ],
-  providers: [ChatsResolver, ChatsService, ChatsRepository],
+  providers: [ChatsResolver, ChatsService, ChatsRepository, BanCleanupService],
   exports: [ChatsRepository],
   controllers: [ChatsController],
 })

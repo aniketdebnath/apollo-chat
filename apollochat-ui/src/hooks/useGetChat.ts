@@ -11,7 +11,11 @@ const getChatDocument = graphql(`
 `);
 
 const useGetChat = (variables: ChatQueryVariables) => {
-  return useQuery(getChatDocument, { variables });
+  return useQuery(getChatDocument, {
+    variables,
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+  });
 };
 
 export { useGetChat };

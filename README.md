@@ -2,15 +2,18 @@
 
 <div align="center">
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-4.9-blue)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-4.9-blue?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white)](https://reactjs.org/)
 [![NestJS](https://img.shields.io/badge/NestJS-9-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com/)
 [![GraphQL](https://img.shields.io/badge/GraphQL-16-E10098?logo=graphql&logoColor=white)](https://graphql.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-5-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Apollo](https://img.shields.io/badge/Apollo-Client_&_Server-311C87?logo=apollo-graphql&logoColor=white)](https://www.apollographql.com/)
+[![AWS](https://img.shields.io/badge/AWS-Cloud_Services-FF9900?logo=amazon-aws&logoColor=white)](https://aws.amazon.com/)
+[![Material UI](https://img.shields.io/badge/Material_UI-5-0081CB?logo=mui&logoColor=white)](https://mui.com/)
 
 **A modern real-time chat platform built with React, NestJS, GraphQL, and MongoDB**
 
-[Features](#features) • [Architecture](#architecture) • [Tech Stack](#tech-stack) • [Documentation](#documentation)
+[✨ Features](#-features) • [🏗️ Architecture](#️-architecture) • [🛠️ Tech Stack](#️-tech-stack) • [📚 Documentation](#-documentation) • [🔗 Live Demo](https://apollo-chat.aniketdebnath.com)
 
 </div>
 
@@ -55,7 +58,7 @@ Screenshots of the application's key features are available in the detailed docu
       <h3>👥 Chat Management</h3>
       <ul>
         <li>Create private or public chats</li>
-        <li>Add/remove members and delete chats</li>
+        <li>Add/remove members and moderate chats with ban system</li>
         <li>Pin important conversations</li>
         <li>Discover and join public chats</li>
       </ul>

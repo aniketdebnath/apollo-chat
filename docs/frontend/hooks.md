@@ -8,8 +8,8 @@ Apollo Chat implements a comprehensive suite of custom React hooks that encapsul
 
 ```mermaid
 graph LR
-    DataFetching["Data Fetching<br/>(useGetChats, useGetMessages)"]
-    DataMutation["Data Mutation<br/>(useCreateChat, usePinChat)"]
+    DataFetching["Data Fetching<br/>(useGetChats, useGetMessages, useGetPublicChats, useGetBannedUsers)"]
+    DataMutation["Data Mutation<br/>(useCreateChat, usePinChat, useBanUser, useUnbanUser)"]
     Subscription["Subscriptions<br/>(useMessageCreated)"]
     Auth["Authentication<br/>(useLogin, useLogout)"]
     Utility["Utility<br/>(useCountMessages)"]
@@ -99,6 +99,27 @@ export const useGetPublicChats = () => {
 
   return {
     publicChats: data?.publicChats || [],
+    loading,
+    error,
+    refetch,
+  };
+};
+```
+
+### useGetBannedUsers
+
+Fetches banned users for a specific chat.
+
+```typescript
+export const useGetBannedUsers = (chatId: string) => {
+  const { data, loading, error, refetch } = useQuery(GET_BANNED_USERS, {
+    variables: { chatId },
+    fetchPolicy: "network-only", // Don't use cache for this query
+    skip: !chatId,
+  });
+
+  return {
+    bannedUsers: data?.chatBannedUsers || [],
     loading,
     error,
     refetch,
@@ -203,6 +224,103 @@ export const usePinChat = () => {
   };
 
   return { pinChat };
+};
+```
+
+### useBanUser
+
+Handles banning a user from a chat with a specified duration and reason.
+
+```typescript
+export const useBanUser = () => {
+  const [banUserMutation, { loading, error }] = useMutation(BAN_CHAT_USER, {
+    onError: (error) => {
+      snackVar({
+        message: `Error: ${error.message}`,
+        type: "error",
+      });
+    },
+  });
+
+  const banUser = async (
+    chatId: string,
+    userId: string,
+    duration: BanDuration,
+    reason?: string
+  ) => {
+    try {
+      const { data } = await banUserMutation({
+        variables: {
+          chatBanInput: {
+            chatId,
+            userId,
+            duration,
+            reason: reason || "No reason provided",
+          },
+        },
+      });
+
+      snackVar({
+        message: "User banned successfully",
+        type: "success",
+      });
+
+      return data?.banChatUser;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  return {
+    banUser,
+    loading,
+    error,
+  };
+};
+```
+
+### useUnbanUser
+
+Handles unbanning a user from a chat.
+
+```typescript
+export const useUnbanUser = () => {
+  const [unbanUserMutation, { loading, error }] = useMutation(UNBAN_CHAT_USER, {
+    onError: (error) => {
+      snackVar({
+        message: `Error: ${error.message}`,
+        type: "error",
+      });
+    },
+  });
+
+  const unbanUser = async (chatId: string, userId: string) => {
+    try {
+      const { data } = await unbanUserMutation({
+        variables: {
+          chatUnbanInput: {
+            chatId,
+            userId,
+          },
+        },
+      });
+
+      snackVar({
+        message: "User unbanned successfully",
+        type: "success",
+      });
+
+      return data?.unbanChatUser;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  return {
+    unbanUser,
+    loading,
+    error,
+  };
 };
 ```
 

@@ -6,6 +6,7 @@ import { ObjectType, Field } from '@nestjs/graphql';
 import { AbstractEntity } from '../../common/database/abstract.entity';
 import { Message } from '../messages/entities/message.entity';
 import { User } from '../../users/entities/user.entity';
+import { BannedUser } from './banned-user.entity';
 
 /**
  * Chat
@@ -28,4 +29,6 @@ export class Chat extends AbstractEntity {
   creator: User;
   @Field(() => Boolean, { defaultValue: false })
   isPinned: boolean;
+  @Field(() => [BannedUser], { nullable: true })
+  bannedUsers?: BannedUser[];
 }

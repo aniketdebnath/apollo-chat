@@ -194,6 +194,68 @@ export const updateMessages = (cache: ApolloCache<any>, message: Message) => {
 };
 ```
 
+### Ban System Cache Management
+
+The ban system requires special cache handling due to the dual-nature of its operations:
+
+1. **Member Removal**: When a user is banned, they are removed from the members list
+2. **Banned Users List**: The user is added to a separate banned users list
+
+This is handled through separate GraphQL queries and mutations:
+
+```javascript
+// Ban mutation returns updated members list to automatically update the cache
+export const BAN_CHAT_USER = graphql(`
+  mutation BanChatUser($chatBanInput: ChatBanInput!) {
+    banChatUser(chatBanInput: $chatBanInput) {
+      _id
+      name
+      members {
+        ...UserFragment
+      }
+    }
+  }
+`);
+
+// Separate query for banned users
+export const GET_BANNED_USERS = graphql(`
+  query ChatBannedUsers($chatId: String!) {
+    chatBannedUsers(chatId: $chatId) {
+      user {
+        ...UserFragment
+      }
+      until
+      reason
+    }
+  }
+`);
+```
+
+The ban system uses a network-only fetch policy for banned users to ensure fresh data:
+
+```javascript
+export const useGetBannedUsers = (chatId: string) => {
+  const { data, loading, error, refetch } = useQuery(GET_BANNED_USERS, {
+    variables: { chatId },
+    fetchPolicy: "network-only", // Always fetch fresh data
+    skip: !chatId,
+  });
+
+  return {
+    bannedUsers: data?.chatBannedUsers || [],
+    loading,
+    error,
+    refetch,
+  };
+};
+```
+
+This approach ensures that:
+
+1. The members list is immediately updated when a user is banned (via cache)
+2. The banned users list is always fresh when viewed (via network)
+3. No manual cache manipulation is needed for ban operations
+
 ### Latest Message Updates
 
 When a new message is received, the latest message in the chat list is also updated:
