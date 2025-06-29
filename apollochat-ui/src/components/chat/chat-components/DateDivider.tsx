@@ -3,16 +3,20 @@ import { Box, Typography } from "@mui/material";
 
 interface DateDividerProps {
   date: string;
+  isSmallScreen?: boolean;
 }
 
-const DateDivider: React.FC<DateDividerProps> = ({ date }) => {
+const DateDivider: React.FC<DateDividerProps> = ({
+  date,
+  isSmallScreen = false,
+}) => {
   return (
     <Box
       sx={{
         display: "flex",
         justifyContent: "center",
         position: "relative",
-        my: 3,
+        my: isSmallScreen ? 2 : 3,
         "&::before": {
           content: '""',
           position: "absolute",
@@ -28,16 +32,17 @@ const DateDivider: React.FC<DateDividerProps> = ({ date }) => {
         variant="caption"
         sx={{
           bgcolor: "background.paper",
-          px: 2,
-          py: 0.5,
+          px: isSmallScreen ? 1.5 : 2,
+          py: isSmallScreen ? 0.3 : 0.5,
           borderRadius: 1,
           position: "relative",
           zIndex: 1,
+          fontSize: isSmallScreen ? "0.7rem" : "0.75rem",
         }}>
         {new Date(date).toLocaleDateString(undefined, {
-          weekday: "long",
+          weekday: isSmallScreen ? "short" : "long",
           year: "numeric",
-          month: "long",
+          month: isSmallScreen ? "short" : "long",
           day: "numeric",
         })}
       </Typography>

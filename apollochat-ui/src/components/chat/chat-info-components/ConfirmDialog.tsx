@@ -19,6 +19,7 @@ interface ConfirmDialogProps {
   isLoading: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  isSmallScreen?: boolean;
 }
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -29,6 +30,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   isLoading,
   onClose,
   onConfirm,
+  isSmallScreen = false,
 }) => {
   const theme = useTheme();
 
@@ -40,7 +42,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 3,
+          borderRadius: isSmallScreen ? 2 : 3,
           backgroundImage: `linear-gradient(135deg, ${alpha(
             theme.palette.background.paper,
             0.95
@@ -49,18 +51,39 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
         },
       }}>
-      <DialogTitle sx={{ fontWeight: 600 }}>{title}</DialogTitle>
-      <DialogContent>
-        <Typography>{content}</Typography>
+      <DialogTitle
+        sx={{
+          fontWeight: 600,
+          pt: isSmallScreen ? 2 : 3,
+          pb: isSmallScreen ? 1 : 2,
+          px: isSmallScreen ? 2 : 3,
+          fontSize: isSmallScreen ? "1.1rem" : "1.25rem",
+        }}>
+        {title}
+      </DialogTitle>
+      <DialogContent
+        sx={{
+          px: isSmallScreen ? 2 : 3,
+          py: isSmallScreen ? 1 : 2,
+        }}>
+        <Typography variant={isSmallScreen ? "body2" : "body1"}>
+          {content}
+        </Typography>
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 3 }}>
+      <DialogActions
+        sx={{
+          px: isSmallScreen ? 2 : 3,
+          pb: isSmallScreen ? 2 : 3,
+          pt: isSmallScreen ? 1 : 2,
+        }}>
         <Button
           onClick={onClose}
           sx={{
             fontWeight: 500,
             textTransform: "none",
             borderRadius: 2,
-            px: 2,
+            px: isSmallScreen ? 1.5 : 2,
+            fontSize: isSmallScreen ? "0.875rem" : "inherit",
           }}>
           Cancel
         </Button>
@@ -73,13 +96,18 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             fontWeight: 600,
             textTransform: "none",
             borderRadius: 2,
-            px: 2,
+            px: isSmallScreen ? 1.5 : 2,
+            fontSize: isSmallScreen ? "0.875rem" : "inherit",
             boxShadow: "none",
             "&:hover": {
               boxShadow: "0 4px 12px rgba(255, 101, 132, 0.2)",
             },
           }}>
-          {isLoading ? <CircularProgress size={24} /> : confirmText}
+          {isLoading ? (
+            <CircularProgress size={isSmallScreen ? 20 : 24} />
+          ) : (
+            confirmText
+          )}
         </Button>
       </DialogActions>
     </Dialog>

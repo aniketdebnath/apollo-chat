@@ -13,11 +13,13 @@ import SendIcon from "@mui/icons-material/Send";
 interface MessageInputProps {
   onSendMessage: (message: string) => Promise<void>;
   sendingMessage: boolean;
+  isSmallScreen?: boolean;
 }
 
 const MessageInput: React.FC<MessageInputProps> = ({
   onSendMessage,
   sendingMessage,
+  isSmallScreen = false,
 }) => {
   const [message, setMessage] = useState("");
   const theme = useTheme();
@@ -30,14 +32,14 @@ const MessageInput: React.FC<MessageInputProps> = ({
   };
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ p: isSmallScreen ? 1.5 : 2 }}>
       <Paper
         elevation={0}
         sx={{
-          p: "8px 16px",
+          p: isSmallScreen ? "6px 12px" : "8px 16px",
           display: "flex",
           alignItems: "center",
-          borderRadius: 3,
+          borderRadius: isSmallScreen ? 2 : 3,
           border: "1px solid",
           borderColor: "divider",
           backgroundColor: alpha(theme.palette.background.paper, 0.8),
@@ -47,7 +49,11 @@ const MessageInput: React.FC<MessageInputProps> = ({
           transition: "all 0.2s ease",
         }}>
         <InputBase
-          sx={{ ml: 1, flex: 1 }}
+          sx={{
+            ml: isSmallScreen ? 0.5 : 1,
+            flex: 1,
+            fontSize: isSmallScreen ? "0.875rem" : "1rem",
+          }}
           placeholder="Type a message..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -58,11 +64,11 @@ const MessageInput: React.FC<MessageInputProps> = ({
             }
           }}
           multiline
-          maxRows={4}
+          maxRows={isSmallScreen ? 3 : 4}
         />
         <IconButton
           sx={{
-            p: "10px",
+            p: isSmallScreen ? "8px" : "10px",
             color: theme.palette.primary.main,
             "&:disabled": {
               color: alpha(theme.palette.primary.main, 0.5),
@@ -72,11 +78,11 @@ const MessageInput: React.FC<MessageInputProps> = ({
           onClick={handleCreateMessage}>
           {sendingMessage ? (
             <CircularProgress
-              size={24}
+              size={isSmallScreen ? 20 : 24}
               color="inherit"
             />
           ) : (
-            <SendIcon />
+            <SendIcon fontSize={isSmallScreen ? "small" : "medium"} />
           )}
         </IconButton>
       </Paper>

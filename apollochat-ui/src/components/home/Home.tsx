@@ -26,6 +26,7 @@ import {
 import { useGetChats } from "../../hooks/useGetChats";
 import { useState } from "react";
 import ChatListAdd from "../chat-list/chat-list-add/ChatListAdd";
+import { useResponsive } from "../../hooks/useResponsive";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -34,6 +35,7 @@ const Home = () => {
   const { data: userData } = useGetMe();
   const { data: chatsData } = useGetChats();
   const [chatAddVisible, setChatAddVisible] = useState(false);
+  const { isXs, isSm, isMd } = useResponsive();
 
   const handleAddChat = () => {
     setChatAddVisible(true);
@@ -87,15 +89,15 @@ const Home = () => {
               backgroundImage:
                 "radial-gradient(circle at 30% 30%, rgba(108, 99, 255, 0.15) 0%, transparent 70%), radial-gradient(circle at 70% 70%, rgba(255, 101, 132, 0.15) 0%, transparent 70%)",
               textAlign: "center",
-              p: 3,
-              py: 8,
+              p: isXs ? 2 : 3,
+              py: isXs ? 6 : 8,
             }}>
             <Box sx={{ maxWidth: 700, width: "100%" }}>
               <Typography
                 variant="h2"
                 fontWeight={800}
                 sx={{
-                  mb: 2,
+                  mb: isXs ? 1.5 : 2,
                   backgroundImage: "linear-gradient(90deg, #6C63FF, #FF6584)",
                   backgroundClip: "text",
                   color: "transparent",
@@ -105,18 +107,18 @@ const Home = () => {
               </Typography>
 
               <Typography
-                variant="h6"
+                variant={isXs ? "subtitle1" : "h6"}
                 color="text.secondary"
-                sx={{ mb: 4 }}>
+                sx={{ mb: isXs ? 3 : 4 }}>
                 A modern chat application built with React, Material UI, and
                 Apollo GraphQL
               </Typography>
 
               <Grid
                 container
-                spacing={3}
+                spacing={isXs ? 2 : 3}
                 justifyContent="center"
-                sx={{ mb: 4 }}>
+                sx={{ mb: isXs ? 3 : 4 }}>
                 <Grid
                   item
                   xs={12}
@@ -124,9 +126,9 @@ const Home = () => {
                   <Paper
                     elevation={0}
                     sx={{
-                      p: 3,
+                      p: isXs ? 2 : 3,
                       height: "100%",
-                      borderRadius: 3,
+                      borderRadius: isXs ? 2 : 3,
                       border: "1px solid",
                       borderColor: "divider",
                       backgroundColor: alpha(
@@ -136,16 +138,16 @@ const Home = () => {
                     }}>
                     <ChatBubbleOutline
                       color="primary"
-                      fontSize="large"
-                      sx={{ mb: 2 }}
+                      fontSize={isXs ? "medium" : "large"}
+                      sx={{ mb: isXs ? 1.5 : 2 }}
                     />
                     <Typography
-                      variant="h6"
+                      variant={isXs ? "subtitle1" : "h6"}
                       gutterBottom>
                       Real-time Messaging
                     </Typography>
                     <Typography
-                      variant="body2"
+                      variant={isXs ? "caption" : "body2"}
                       color="text.secondary">
                       Instant message delivery with a modern interface
                     </Typography>
@@ -159,9 +161,9 @@ const Home = () => {
                   <Paper
                     elevation={0}
                     sx={{
-                      p: 3,
+                      p: isXs ? 2 : 3,
                       height: "100%",
-                      borderRadius: 3,
+                      borderRadius: isXs ? 2 : 3,
                       border: "1px solid",
                       borderColor: "divider",
                       backgroundColor: alpha(
@@ -171,16 +173,16 @@ const Home = () => {
                     }}>
                     <Person
                       color="secondary"
-                      fontSize="large"
-                      sx={{ mb: 2 }}
+                      fontSize={isXs ? "medium" : "large"}
+                      sx={{ mb: isXs ? 1.5 : 2 }}
                     />
                     <Typography
-                      variant="h6"
+                      variant={isXs ? "subtitle1" : "h6"}
                       gutterBottom>
                       User Profiles
                     </Typography>
                     <Typography
-                      variant="body2"
+                      variant={isXs ? "caption" : "body2"}
                       color="text.secondary">
                       Personalize your experience with custom avatars
                     </Typography>
@@ -188,33 +190,38 @@ const Home = () => {
                 </Grid>
               </Grid>
 
-              <Box sx={{ display: "flex", gap: 2, justifyContent: "center" }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: isXs ? 1 : 2,
+                  justifyContent: "center",
+                }}>
                 <Button
                   variant="contained"
-                  size="large"
+                  size={isXs ? "medium" : "large"}
                   onClick={() => navigate("/login")}
                   sx={{
-                    borderRadius: 2,
-                    px: 4,
-                    py: 1.5,
+                    borderRadius: isXs ? 1.5 : 2,
+                    px: isXs ? 3 : 4,
+                    py: isXs ? 1 : 1.5,
                     textTransform: "none",
                     fontWeight: 600,
-                    fontSize: "1rem",
+                    fontSize: isXs ? "0.875rem" : "1rem",
                   }}>
                   Sign In
                 </Button>
 
                 <Button
                   variant="outlined"
-                  size="large"
+                  size={isXs ? "medium" : "large"}
                   onClick={() => navigate("/signup")}
                   sx={{
-                    borderRadius: 2,
-                    px: 4,
-                    py: 1.5,
+                    borderRadius: isXs ? 1.5 : 2,
+                    px: isXs ? 3 : 4,
+                    py: isXs ? 1 : 1.5,
                     textTransform: "none",
                     fontWeight: 600,
-                    fontSize: "1rem",
+                    fontSize: isXs ? "0.875rem" : "1rem",
                   }}>
                   Create Account
                 </Button>
@@ -241,16 +248,16 @@ const Home = () => {
         }}>
         <ScrollableContainer>
           <Container maxWidth="lg">
-            <Box sx={{ py: 6, px: 2 }}>
-              <Box sx={{ mb: 4 }}>
+            <Box sx={{ py: isXs ? 4 : 6, px: isXs ? 1 : 2 }}>
+              <Box sx={{ mb: isXs ? 3 : 4 }}>
                 <Typography
-                  variant="h4"
+                  variant={isXs ? "h5" : "h4"}
                   fontWeight={700}
                   gutterBottom>
                   Welcome back, {userData?.me?.username || "User"}!
                 </Typography>
                 <Typography
-                  variant="body1"
+                  variant={isXs ? "body2" : "body1"}
                   color="text.secondary">
                   Check your recent chats or start a new conversation
                 </Typography>
@@ -258,7 +265,7 @@ const Home = () => {
 
               <Grid
                 container
-                spacing={3}>
+                spacing={isXs ? 2 : 3}>
                 <Grid
                   item
                   xs={12}
@@ -266,25 +273,31 @@ const Home = () => {
                   <Paper
                     elevation={0}
                     sx={{
-                      p: 3,
-                      borderRadius: 3,
+                      p: isXs ? 2 : 3,
+                      borderRadius: isXs ? 2 : 3,
                       border: "1px solid",
                       borderColor: "divider",
-                      mb: 3,
+                      mb: isXs ? 2 : 3,
                     }}>
                     <Typography
-                      variant="h6"
+                      variant={isXs ? "subtitle1" : "h6"}
                       fontWeight={600}
-                      sx={{ mb: 2 }}>
+                      sx={{ mb: isXs ? 1.5 : 2 }}>
                       Recent Chats
                     </Typography>
 
                     {chatsData?.chats?.length === 0 ? (
-                      <Box sx={{ textAlign: "center", py: 4 }}>
+                      <Box sx={{ textAlign: "center", py: isXs ? 3 : 4 }}>
                         <ChatBubbleOutline
-                          sx={{ fontSize: 48, color: "text.disabled", mb: 2 }}
+                          sx={{
+                            fontSize: isXs ? 36 : 48,
+                            color: "text.disabled",
+                            mb: isXs ? 1.5 : 2,
+                          }}
                         />
-                        <Typography color="text.secondary">
+                        <Typography
+                          color="text.secondary"
+                          variant={isXs ? "body2" : "body1"}>
                           You don't have any chats yet
                         </Typography>
                         <Button
@@ -292,9 +305,10 @@ const Home = () => {
                           color="primary"
                           onClick={handleAddChat}
                           startIcon={<AddCircleOutline />}
+                          size={isXs ? "small" : "medium"}
                           sx={{
-                            mt: 2,
-                            borderRadius: 2,
+                            mt: isXs ? 1.5 : 2,
+                            borderRadius: isXs ? 1.5 : 2,
                             textTransform: "none",
                           }}>
                           Start a Chat
@@ -303,7 +317,7 @@ const Home = () => {
                     ) : (
                       <Grid
                         container
-                        spacing={2}>
+                        spacing={isXs ? 1 : 2}>
                         {chatsData?.chats?.slice(0, 3).map((chat) => (
                           <Grid
                             item
@@ -314,7 +328,7 @@ const Home = () => {
                             <Card
                               elevation={0}
                               sx={{
-                                borderRadius: 2,
+                                borderRadius: isXs ? 1.5 : 2,
                                 border: "1px solid",
                                 borderColor: "divider",
                                 transition: "all 0.2s",
@@ -326,15 +340,15 @@ const Home = () => {
                               }}>
                               <CardActionArea
                                 onClick={() => navigate(`/chats/${chat._id}`)}
-                                sx={{ p: 2 }}>
-                                <CardContent sx={{ p: 1 }}>
+                                sx={{ p: isXs ? 1.5 : 2 }}>
+                                <CardContent sx={{ p: isXs ? 0.5 : 1 }}>
                                   <Typography
-                                    variant="h6"
+                                    variant={isXs ? "subtitle1" : "h6"}
                                     noWrap>
                                     {chat.name}
                                   </Typography>
                                   <Typography
-                                    variant="body2"
+                                    variant={isXs ? "caption" : "body2"}
                                     color="text.secondary"
                                     noWrap>
                                     {chat.latestMessage?.content ||
@@ -352,8 +366,8 @@ const Home = () => {
                   <Paper
                     elevation={0}
                     sx={{
-                      p: 3,
-                      borderRadius: 3,
+                      p: isXs ? 2 : 3,
+                      borderRadius: isXs ? 2 : 3,
                       border: "1px solid",
                       borderColor: "divider",
                       backgroundColor: alpha(
@@ -366,27 +380,29 @@ const Home = () => {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
-                        mb: 2,
+                        mb: isXs ? 1.5 : 2,
                       }}>
                       <Typography
-                        variant="h6"
+                        variant={isXs ? "subtitle1" : "h6"}
                         fontWeight={600}>
                         Start a New Chat
                       </Typography>
                       <Button
                         variant="contained"
                         startIcon={<AddCircleOutline />}
-                        size="small"
+                        size={isXs ? "small" : "medium"}
                         onClick={handleAddChat}
                         sx={{
-                          borderRadius: 2,
+                          borderRadius: isXs ? 1.5 : 2,
                           textTransform: "none",
                           fontWeight: 500,
                         }}>
                         Create
                       </Button>
                     </Box>
-                    <Typography color="text.secondary">
+                    <Typography
+                      color="text.secondary"
+                      variant={isXs ? "body2" : "body1"}>
                       Start a new conversation with friends and colleagues
                     </Typography>
                   </Paper>
@@ -399,8 +415,8 @@ const Home = () => {
                   <Paper
                     elevation={0}
                     sx={{
-                      p: 3,
-                      borderRadius: 3,
+                      p: isXs ? 2 : 3,
+                      borderRadius: isXs ? 2 : 3,
                       border: "1px solid",
                       borderColor: "divider",
                       backgroundImage: `linear-gradient(135deg, ${alpha(
@@ -409,19 +425,20 @@ const Home = () => {
                       )}, ${alpha(theme.palette.secondary.main, 0.1)})`,
                     }}>
                     <Typography
-                      variant="h6"
+                      variant={isXs ? "subtitle1" : "h6"}
                       fontWeight={600}
-                      sx={{ mb: 3 }}>
+                      sx={{ mb: isXs ? 2 : 3 }}>
                       Your Profile
                     </Typography>
 
-                    <Box sx={{ textAlign: "center", mb: 3 }}>
+                    <Box sx={{ textAlign: "center", mb: isXs ? 2 : 3 }}>
                       <Button
                         variant="outlined"
                         onClick={() => navigate("/profile")}
                         startIcon={<Person />}
+                        size={isXs ? "small" : "medium"}
                         sx={{
-                          borderRadius: 2,
+                          borderRadius: isXs ? 1.5 : 2,
                           textTransform: "none",
                           fontWeight: 500,
                         }}>
@@ -430,33 +447,33 @@ const Home = () => {
                     </Box>
 
                     <Typography
-                      variant="body2"
+                      variant={isXs ? "caption" : "body2"}
                       color="text.secondary"
-                      sx={{ mb: 3 }}>
+                      sx={{ mb: isXs ? 2 : 3 }}>
                       Update your profile picture and manage your account
                       settings
                     </Typography>
 
                     {/* Quick Navigation Links */}
-                    <Box sx={{ mt: 4 }}>
+                    <Box sx={{ mt: isXs ? 3 : 4 }}>
                       <Typography
-                        variant="subtitle2"
+                        variant={isXs ? "body2" : "subtitle2"}
                         fontWeight={600}
-                        sx={{ mb: 2 }}>
+                        sx={{ mb: isXs ? 1.5 : 2 }}>
                         Quick Links
                       </Typography>
 
                       <Grid
                         container
-                        spacing={2}>
+                        spacing={isXs ? 1 : 2}>
                         <Grid
                           item
                           xs={6}>
                           <Paper
                             elevation={0}
                             sx={{
-                              p: { xs: 1, sm: 1.5 },
-                              borderRadius: 2,
+                              p: isXs ? 1 : 1.5,
+                              borderRadius: isXs ? 1.5 : 2,
                               textAlign: "center",
                               border: "1px solid",
                               borderColor: "divider",
@@ -473,7 +490,7 @@ const Home = () => {
                             onClick={() => navigate("/explore")}>
                             <ExploreOutlined
                               color="primary"
-                              sx={{ mb: 0.5 }}
+                              sx={{ mb: 0.5, fontSize: isXs ? 18 : 24 }}
                             />
                             <Typography
                               variant="body2"
@@ -494,8 +511,8 @@ const Home = () => {
                           <Paper
                             elevation={0}
                             sx={{
-                              p: { xs: 1, sm: 1.5 },
-                              borderRadius: 2,
+                              p: isXs ? 1 : 1.5,
+                              borderRadius: isXs ? 1.5 : 2,
                               textAlign: "center",
                               border: "1px solid",
                               borderColor: "divider",
@@ -512,7 +529,7 @@ const Home = () => {
                             onClick={() => navigate("/notifications")}>
                             <NotificationsOutlined
                               color="primary"
-                              sx={{ mb: 0.5 }}
+                              sx={{ mb: 0.5, fontSize: isXs ? 18 : 24 }}
                             />
                             <Typography
                               variant="body2"
@@ -533,8 +550,8 @@ const Home = () => {
                           <Paper
                             elevation={0}
                             sx={{
-                              p: { xs: 1, sm: 1.5 },
-                              borderRadius: 2,
+                              p: isXs ? 1 : 1.5,
+                              borderRadius: isXs ? 1.5 : 2,
                               textAlign: "center",
                               border: "1px solid",
                               borderColor: "divider",
@@ -551,7 +568,7 @@ const Home = () => {
                             onClick={() => navigate("/favorites")}>
                             <StarOutlined
                               color="primary"
-                              sx={{ mb: 0.5 }}
+                              sx={{ mb: 0.5, fontSize: isXs ? 18 : 24 }}
                             />
                             <Typography
                               variant="body2"
@@ -572,8 +589,8 @@ const Home = () => {
                           <Paper
                             elevation={0}
                             sx={{
-                              p: { xs: 1, sm: 1.5 },
-                              borderRadius: 2,
+                              p: isXs ? 1 : 1.5,
+                              borderRadius: isXs ? 1.5 : 2,
                               textAlign: "center",
                               border: "1px solid",
                               borderColor: "divider",
@@ -590,7 +607,7 @@ const Home = () => {
                             onClick={handleAddChat}>
                             <AddCircleOutline
                               color="primary"
-                              sx={{ mb: 0.5 }}
+                              sx={{ mb: 0.5, fontSize: isXs ? 18 : 24 }}
                             />
                             <Typography
                               variant="body2"

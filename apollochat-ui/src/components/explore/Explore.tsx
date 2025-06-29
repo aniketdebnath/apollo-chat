@@ -22,7 +22,6 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNowStrict } from "date-fns";
 import LockIcon from "@mui/icons-material/Lock";
-import GroupIcon from "@mui/icons-material/Group";
 import PublicIcon from "@mui/icons-material/Public";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import CloseIcon from "@mui/icons-material/Close";
@@ -35,6 +34,7 @@ import { stringToColor } from "../../utils/avatar";
 import { Chat } from "../../gql/graphql";
 import { snackVar } from "../../constants/snack";
 import { useChatSubscriptions } from "../../hooks/useChatSubscriptions";
+import { useResponsive } from "../../hooks/useResponsive";
 
 const Explore = () => {
   const { publicChats, loading, error, refetch } = useGetPublicChats();
@@ -44,6 +44,7 @@ const Explore = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const prevChatsCountRef = useRef(0);
+  const { isXs } = useResponsive();
 
   // Subscribe to chat added/deleted events
   useChatSubscriptions();
@@ -74,7 +75,6 @@ const Explore = () => {
         navigate(`/chats/${result._id}`);
       }
     } catch (error) {
-      
       snackVar({
         message: "Failed to join chat. Please try again.",
         type: "error",
@@ -97,22 +97,33 @@ const Explore = () => {
     }
   };
 
+  // Function to truncate chat name
+  const truncateName = (
+    name: string | null | undefined,
+    maxLength: number = 25
+  ) => {
+    if (!name) return "Unnamed Chat";
+    return name.length > maxLength
+      ? `${name.substring(0, maxLength)}...`
+      : name;
+  };
+
   return (
     <Container
       maxWidth="md"
-      sx={{ py: 3 }}>
+      sx={{ py: isXs ? 2 : 3 }}>
       <Paper
         elevation={0}
         sx={{
-          p: 3,
+          p: isXs ? 2 : 3,
           borderRadius: 3,
           border: "1px solid",
           borderColor: "divider",
           backgroundColor: alpha(theme.palette.background.paper, 0.8),
-          mb: 3,
+          mb: isXs ? 2 : 3,
         }}>
         <Typography
-          variant="h5"
+          variant={isXs ? "h6" : "h5"}
           gutterBottom
           sx={{
             fontWeight: 600,
@@ -124,9 +135,9 @@ const Explore = () => {
           Explore Public Chats
         </Typography>
         <Typography
-          variant="body1"
+          variant={isXs ? "body2" : "body1"}
           color="text.secondary"
-          sx={{ mb: 2 }}>
+          sx={{ mb: isXs ? 1 : 2 }}>
           Discover and join public conversations from the Apollo Chat community
         </Typography>
         <Typography
@@ -140,8 +151,8 @@ const Explore = () => {
           <Box
             component="span"
             sx={{
-              width: 8,
-              height: 8,
+              width: isXs ? 6 : 8,
+              height: isXs ? 6 : 8,
               borderRadius: "50%",
               backgroundColor: theme.palette.success.main,
               display: "inline-block",
@@ -214,7 +225,7 @@ const Explore = () => {
         <Paper
           elevation={0}
           sx={{
-            p: 4,
+            p: isXs ? 3 : 4,
             borderRadius: 3,
             textAlign: "center",
             border: "1px solid",
@@ -227,20 +238,21 @@ const Explore = () => {
             alt="No public chats"
             sx={{
               width: "100%",
-              maxWidth: 300,
+              maxWidth: isXs ? 200 : 300,
               height: "auto",
-              mb: 3,
+              mb: isXs ? 2 : 3,
               mx: "auto",
             }}
           />
           <Typography
-            variant="h6"
+            variant={isXs ? "subtitle1" : "h6"}
             gutterBottom>
             No public chats available
           </Typography>
           <Typography
+            variant={isXs ? "body2" : "body1"}
             color="text.secondary"
-            sx={{ mb: 3 }}>
+            sx={{ mb: isXs ? 2 : 3 }}>
             There are no public or open chats to join at the moment.
           </Typography>
         </Paper>
@@ -250,22 +262,23 @@ const Explore = () => {
             sx={{
               display: "flex",
               justifyContent: "flex-end",
-              mb: 2,
+              mb: isXs ? 1 : 2,
             }}>
             <Button
-              startIcon={<RefreshIcon />}
+              startIcon={<RefreshIcon fontSize={isXs ? "small" : "medium"} />}
               onClick={() => refetch()}
-              size="small"
+              size={isXs ? "small" : "medium"}
               sx={{
                 borderRadius: 2,
                 textTransform: "none",
+                fontSize: isXs ? "0.75rem" : "inherit",
               }}>
               Refresh
             </Button>
           </Box>
           <Grid
             container
-            spacing={2}>
+            spacing={isXs ? 1 : 2}>
             {publicChats.map((chat: Chat) => (
               <Grid
                 item
@@ -287,7 +300,7 @@ const Explore = () => {
                 <Paper
                   elevation={0}
                   sx={{
-                    p: 3,
+                    p: isXs ? 2 : 3,
                     borderRadius: 3,
                     border: "1px solid",
                     borderColor: "divider",
@@ -307,28 +320,46 @@ const Explore = () => {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      mb: 2,
+                      mb: isXs ? 1 : 2,
+                      flexWrap: "nowrap",
                     }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: isXs ? 1 : 2,
+                        minWidth: 0,
+                        flexGrow: 1,
+                        mr: isXs ? 1 : 2,
+                      }}>
                       <Avatar
                         sx={{
                           bgcolor: stringToColor(chat.name || "Chat"),
-                          width: 48,
-                          height: 48,
+                          width: isXs ? 36 : 48,
+                          height: isXs ? 36 : 48,
+                          flexShrink: 0,
                         }}>
                         {(chat.name?.[0] || "C").toUpperCase()}
                       </Avatar>
-                      <Box>
-                        <Typography
-                          variant="h6"
-                          fontWeight={600}>
-                          {chat.name || "Unnamed Chat"}
-                        </Typography>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Tooltip title={chat.name || "Unnamed Chat"}>
+                          <Typography
+                            variant={isXs ? "subtitle1" : "h6"}
+                            fontWeight={600}
+                            sx={{
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}>
+                            {truncateName(chat.name, isXs ? 20 : 25)}
+                          </Typography>
+                        </Tooltip>
                         <Box
                           sx={{
                             display: "flex",
                             alignItems: "center",
                             gap: 1,
+                            flexWrap: isXs ? "wrap" : "nowrap",
                           }}>
                           <Tooltip
                             title={
@@ -344,12 +375,26 @@ const Explore = () => {
                               size="small"
                               color="primary"
                               variant="outlined"
-                              sx={{ borderRadius: 1 }}
+                              sx={{
+                                borderRadius: 1,
+                                height: isXs ? 20 : 24,
+                                "& .MuiChip-label": {
+                                  fontSize: isXs ? "0.65rem" : "0.75rem",
+                                  px: isXs ? 0.5 : 1,
+                                },
+                                "& .MuiChip-icon": {
+                                  fontSize: isXs ? "0.75rem" : "1rem",
+                                  ml: isXs ? 0.5 : 0.75,
+                                },
+                              }}
                             />
                           </Tooltip>
                           <Typography
                             variant="caption"
-                            color="text.secondary">
+                            color="text.secondary"
+                            sx={{
+                              fontSize: isXs ? "0.65rem" : "0.75rem",
+                            }}>
                             {chat.members.length} member
                             {chat.members.length !== 1 ? "s" : ""}
                           </Typography>
@@ -364,13 +409,18 @@ const Explore = () => {
                       sx={{
                         borderRadius: 2,
                         textTransform: "none",
-                        px: 2,
-                        py: 1,
+                        px: isXs ? 1 : 2,
+                        py: isXs ? 0.5 : 1,
                         fontWeight: 600,
+                        fontSize: isXs ? "0.75rem" : "inherit",
+                        whiteSpace: "nowrap",
+                        flexShrink: 0,
+                        minWidth: isXs ? "auto" : "100px",
+                        height: isXs ? 32 : "auto",
                       }}>
                       {joinLoading && joiningChatId === chat._id ? (
                         <CircularProgress
-                          size={24}
+                          size={isXs ? 16 : 20}
                           color="inherit"
                         />
                       ) : (
@@ -381,20 +431,20 @@ const Explore = () => {
 
                   {chat.latestMessage && (
                     <>
-                      <Divider sx={{ my: 2 }} />
+                      <Divider sx={{ my: isXs ? 1 : 2 }} />
                       <Box>
                         <Box
                           sx={{
                             display: "flex",
                             alignItems: "center",
-                            gap: 1,
-                            mb: 0.5,
+                            gap: isXs ? 0.5 : 1,
+                            mb: isXs ? 0.25 : 0.5,
                           }}>
                           <Avatar
                             src={chat.latestMessage.user.imageUrl || undefined}
                             sx={{
-                              width: 24,
-                              height: 24,
+                              width: isXs ? 20 : 24,
+                              height: isXs ? 20 : 24,
                               bgcolor: !chat.latestMessage.user.imageUrl
                                 ? stringToColor(
                                     chat.latestMessage.user.username
@@ -404,7 +454,7 @@ const Explore = () => {
                             {chat.latestMessage.user.username[0].toUpperCase()}
                           </Avatar>
                           <Typography
-                            variant="subtitle2"
+                            variant={isXs ? "caption" : "subtitle2"}
                             fontWeight={500}
                             color="text.primary">
                             {chat.latestMessage.user.username}
@@ -412,7 +462,10 @@ const Explore = () => {
                           <Typography
                             variant="caption"
                             color="text.secondary"
-                            sx={{ ml: "auto" }}>
+                            sx={{
+                              ml: "auto",
+                              fontSize: isXs ? "0.65rem" : "0.75rem",
+                            }}>
                             {formatDistanceToNowStrict(
                               new Date(chat.latestMessage.createdAt),
                               { addSuffix: true }
@@ -420,10 +473,10 @@ const Explore = () => {
                           </Typography>
                         </Box>
                         <Typography
-                          variant="body2"
+                          variant={isXs ? "caption" : "body2"}
                           color="text.secondary"
                           sx={{
-                            ml: 4,
+                            ml: isXs ? 3 : 4,
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                             display: "-webkit-box",
@@ -441,19 +494,22 @@ const Explore = () => {
                       sx={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 1,
-                        mt: 2,
+                        gap: isXs ? 0.5 : 1,
+                        mt: isXs ? 1 : 2,
                       }}>
                       <Typography
                         variant="caption"
-                        color="text.secondary">
+                        color="text.secondary"
+                        sx={{
+                          fontSize: isXs ? "0.65rem" : "0.75rem",
+                        }}>
                         Created by
                       </Typography>
                       <Avatar
                         src={chat.creator.imageUrl || undefined}
                         sx={{
-                          width: 20,
-                          height: 20,
+                          width: isXs ? 16 : 20,
+                          height: isXs ? 16 : 20,
                           bgcolor: !chat.creator.imageUrl
                             ? stringToColor(chat.creator.username)
                             : undefined,
@@ -462,7 +518,10 @@ const Explore = () => {
                       </Avatar>
                       <Typography
                         variant="caption"
-                        fontWeight={500}>
+                        fontWeight={500}
+                        sx={{
+                          fontSize: isXs ? "0.65rem" : "0.75rem",
+                        }}>
                         {chat.creator.username}
                       </Typography>
                     </Box>
@@ -478,4 +537,3 @@ const Explore = () => {
 };
 
 export default Explore;
-

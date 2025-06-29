@@ -19,9 +19,6 @@ import {
   Typography,
   Avatar,
   ListItemIcon,
-  Alert,
-  Menu,
-  MenuItem,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
@@ -49,7 +46,6 @@ import { UNKNOWN_ERROR_SNACK_MESSAGE } from "../../constants/error";
 import { useGetMe } from "../../hooks/useGetMe";
 import { StatusSelector } from "../status/StatusSelector";
 import { UserStatus } from "../../constants/userStatus";
-import InfoIcon from "@mui/icons-material/Info";
 import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined";
 
 const pages: Pages[] = [

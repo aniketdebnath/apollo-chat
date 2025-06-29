@@ -28,6 +28,7 @@ interface ChatDetailsCardProps {
   isPrivateChat: boolean;
   updateChatName: (chatId: string, name: string) => Promise<void>;
   updatingChatName: boolean;
+  isSmallScreen?: boolean;
 }
 
 const ChatDetailsCard: React.FC<ChatDetailsCardProps> = ({
@@ -36,6 +37,7 @@ const ChatDetailsCard: React.FC<ChatDetailsCardProps> = ({
   isPrivateChat,
   updateChatName,
   updatingChatName,
+  isSmallScreen = false,
 }) => {
   const theme = useTheme();
   const [isEditingName, setIsEditingName] = useState(false);
@@ -60,8 +62,8 @@ const ChatDetailsCard: React.FC<ChatDetailsCardProps> = ({
     <Card
       elevation={0}
       sx={{
-        mb: 3,
-        borderRadius: 2.5,
+        mb: isSmallScreen ? 2 : 3,
+        borderRadius: isSmallScreen ? 2 : 2.5,
         backgroundColor: alpha(theme.palette.background.default, 0.4),
         backdropFilter: "blur(8px)",
         transition: "all 0.3s ease",
@@ -70,17 +72,26 @@ const ChatDetailsCard: React.FC<ChatDetailsCardProps> = ({
           boxShadow: "0 8px 24px rgba(0, 0, 0, 0.12)",
         },
       }}>
-      <CardContent sx={{ p: 2.5 }}>
-        <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+      <CardContent sx={{ p: isSmallScreen ? 2 : 2.5 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            mb: isSmallScreen ? 1.5 : 2,
+          }}>
           <Avatar
             sx={{
-              width: 56,
-              height: 56,
-              mr: 2,
+              width: isSmallScreen ? 48 : 56,
+              height: isSmallScreen ? 48 : 56,
+              mr: isSmallScreen ? 1.5 : 2,
               backgroundColor: alpha(theme.palette.primary.main, 0.15),
               color: theme.palette.primary.main,
             }}>
-            {isPrivateChat ? <LockIcon /> : <PublicIcon />}
+            {isPrivateChat ? (
+              <LockIcon fontSize={isSmallScreen ? "small" : "medium"} />
+            ) : (
+              <PublicIcon fontSize={isSmallScreen ? "small" : "medium"} />
+            )}
           </Avatar>
           <Box sx={{ flex: 1 }}>
             {isEditingName ? (
@@ -96,6 +107,7 @@ const ChatDetailsCard: React.FC<ChatDetailsCardProps> = ({
                     mr: 1,
                     "& .MuiOutlinedInput-root": {
                       borderRadius: 2,
+                      fontSize: isSmallScreen ? "0.875rem" : "inherit",
                     },
                   }}
                 />
@@ -108,10 +120,11 @@ const ChatDetailsCard: React.FC<ChatDetailsCardProps> = ({
                     minWidth: "auto",
                     borderRadius: 2,
                     textTransform: "none",
+                    fontSize: isSmallScreen ? "0.75rem" : "inherit",
                   }}>
                   {updatingChatName ? (
                     <CircularProgress
-                      size={20}
+                      size={isSmallScreen ? 16 : 20}
                       color="inherit"
                     />
                   ) : (
@@ -129,6 +142,7 @@ const ChatDetailsCard: React.FC<ChatDetailsCardProps> = ({
                     ml: 1,
                     minWidth: "auto",
                     color: "text.secondary",
+                    fontSize: isSmallScreen ? "0.75rem" : "inherit",
                   }}>
                   Cancel
                 </Button>
@@ -136,7 +150,7 @@ const ChatDetailsCard: React.FC<ChatDetailsCardProps> = ({
             ) : (
               <Box sx={{ display: "flex", alignItems: "center", mb: 0.5 }}>
                 <Typography
-                  variant="h6"
+                  variant={isSmallScreen ? "subtitle1" : "h6"}
                   fontWeight={600}
                   sx={{ mr: 1 }}>
                   {chat.name || "Unnamed Chat"}
@@ -156,7 +170,7 @@ const ChatDetailsCard: React.FC<ChatDetailsCardProps> = ({
                           ),
                         },
                       }}>
-                      <EditIcon fontSize="small" />
+                      <EditIcon fontSize={isSmallScreen ? "small" : "medium"} />
                     </IconButton>
                   </Tooltip>
                 )}
@@ -183,15 +197,25 @@ const ChatDetailsCard: React.FC<ChatDetailsCardProps> = ({
                 color={chat.type === ChatType.PRIVATE ? "default" : "primary"}
                 sx={{
                   borderRadius: 4,
-                  height: 24,
-                  "& .MuiChip-label": { px: 1 },
+                  height: isSmallScreen ? 20 : 24,
+                  "& .MuiChip-label": {
+                    px: isSmallScreen ? 0.5 : 1,
+                    fontSize: isSmallScreen ? "0.65rem" : "0.75rem",
+                  },
+                  "& .MuiChip-icon": {
+                    fontSize: isSmallScreen ? "0.75rem" : "1rem",
+                    ml: isSmallScreen ? 0.5 : 0.75,
+                  },
                 }}
               />
 
               {!isPrivateChat && (
                 <Typography
                   variant="caption"
-                  color="text.secondary">
+                  color="text.secondary"
+                  sx={{
+                    fontSize: isSmallScreen ? "0.65rem" : "0.75rem",
+                  }}>
                   Anyone can join
                 </Typography>
               )}
@@ -206,9 +230,10 @@ const ChatDetailsCard: React.FC<ChatDetailsCardProps> = ({
             display: "flex",
             alignItems: "center",
             mt: 1,
+            fontSize: isSmallScreen ? "0.75rem" : "inherit",
           }}>
           <PersonIcon
-            fontSize="small"
+            fontSize={isSmallScreen ? "small" : "medium"}
             sx={{ mr: 0.5, opacity: 0.7 }}
           />
           Created by: {chat.creator?.username || "Unknown"}

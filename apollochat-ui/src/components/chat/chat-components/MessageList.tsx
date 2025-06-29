@@ -17,6 +17,7 @@ interface MessageListProps {
   messagesCount: number | undefined;
   handleLoadMore: () => void;
   isCurrentUser: (userId: string) => boolean;
+  isSmallScreen?: boolean;
 }
 
 const InfiniteScroll = InfiniteScrollComponent as any;
@@ -27,6 +28,7 @@ const MessageList: React.FC<MessageListProps> = ({
   messagesCount,
   handleLoadMore,
   isCurrentUser,
+  isSmallScreen = false,
 }) => {
   const theme = useTheme();
   const divRef = useRef<HTMLDivElement | null>(null);
@@ -37,10 +39,10 @@ const MessageList: React.FC<MessageListProps> = ({
       sx={{
         flex: 1,
         overflow: "auto",
-        p: 2,
+        p: isSmallScreen ? 1.5 : 2,
         backgroundColor: alpha(theme.palette.background.default, 0.5),
         "&::-webkit-scrollbar": {
-          width: "6px",
+          width: isSmallScreen ? "4px" : "6px",
         },
         "&::-webkit-scrollbar-thumb": {
           backgroundColor: alpha(theme.palette.primary.main, 0.2),
@@ -53,12 +55,19 @@ const MessageList: React.FC<MessageListProps> = ({
       id="messages-container"
       ref={messagesContainerRef}>
       {isLoading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", p: 4 }}>
-          <CircularProgress />
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            p: isSmallScreen ? 3 : 4,
+          }}>
+          <CircularProgress size={isSmallScreen ? 20 : 24} />
         </Box>
       ) : messages.length === 0 ? (
-        <Box sx={{ p: 4, textAlign: "center" }}>
-          <Typography color="text.secondary">
+        <Box sx={{ p: isSmallScreen ? 3 : 4, textAlign: "center" }}>
+          <Typography
+            color="text.secondary"
+            variant={isSmallScreen ? "body2" : "body1"}>
             No messages yet. Start the conversation!
           </Typography>
         </Box>
@@ -80,9 +89,13 @@ const MessageList: React.FC<MessageListProps> = ({
             isReverse={false}
             loader={
               <Box
-                sx={{ display: "flex", justifyContent: "center", p: 2 }}
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  p: isSmallScreen ? 1 : 2,
+                }}
                 key="loader">
-                <CircularProgress size={24} />
+                <CircularProgress size={isSmallScreen ? 20 : 24} />
               </Box>
             }>
             {messages.map((message, index) => {
@@ -94,10 +107,16 @@ const MessageList: React.FC<MessageListProps> = ({
 
               return (
                 <div key={message._id}>
-                  {showDateDivider && <DateDivider date={message.createdAt} />}
+                  {showDateDivider && (
+                    <DateDivider
+                      date={message.createdAt}
+                      isSmallScreen={isSmallScreen}
+                    />
+                  )}
                   <MessageItem
                     message={message}
                     isCurrentUser={isCurrentUser(message.user._id)}
+                    isSmallScreen={isSmallScreen}
                   />
                 </div>
               );

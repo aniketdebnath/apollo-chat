@@ -14,7 +14,6 @@ import {
   MenuItem,
   ListItemIcon,
   Divider,
-  Paper,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PeopleIcon from "@mui/icons-material/People";
@@ -32,6 +31,7 @@ interface MembersListProps {
   isPrivateChat: boolean;
   onRemoveMember: (member: User) => void;
   onBanMember?: (member: User) => void;
+  isSmallScreen?: boolean;
 }
 
 const MembersList: React.FC<MembersListProps> = ({
@@ -42,6 +42,7 @@ const MembersList: React.FC<MembersListProps> = ({
   isPrivateChat,
   onRemoveMember,
   onBanMember,
+  isSmallScreen = false,
 }) => {
   const theme = useTheme();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -91,22 +92,23 @@ const MembersList: React.FC<MembersListProps> = ({
   });
 
   return (
-    <Box sx={{ mt: 4 }}>
+    <Box sx={{ mt: isSmallScreen ? 3 : 4 }}>
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
-          mb: 2.5,
+          mb: isSmallScreen ? 2 : 2.5,
         }}>
         <PeopleIcon
           sx={{
-            mr: 1.5,
+            mr: isSmallScreen ? 1 : 1.5,
             color: theme.palette.primary.main,
             opacity: 0.8,
+            fontSize: isSmallScreen ? "1.25rem" : "1.5rem",
           }}
         />
         <Typography
-          variant="h6"
+          variant={isSmallScreen ? "subtitle1" : "h6"}
           fontWeight={600}>
           Members ({sortedMembers.length})
         </Typography>
@@ -116,15 +118,16 @@ const MembersList: React.FC<MembersListProps> = ({
         disablePadding
         sx={{
           backgroundColor: alpha(theme.palette.background.default, 0.3),
-          borderRadius: 3,
-          p: 1,
+          borderRadius: isSmallScreen ? 2 : 3,
+          p: isSmallScreen ? 0.75 : 1,
         }}>
         {sortedMembers.map((member) => (
           <ListItem
             key={member._id}
             sx={{
-              borderRadius: 2,
-              mb: 0.5,
+              borderRadius: isSmallScreen ? 1.5 : 2,
+              mb: isSmallScreen ? 0.3 : 0.5,
+              py: isSmallScreen ? 0.75 : 1,
               transition: "all 0.2s ease",
               "&:hover": {
                 backgroundColor: alpha(theme.palette.primary.main, 0.08),
@@ -146,7 +149,9 @@ const MembersList: React.FC<MembersListProps> = ({
                       },
                       transition: "all 0.2s ease",
                     }}>
-                    <MoreVertIcon fontSize="small" />
+                    <MoreVertIcon
+                      fontSize={isSmallScreen ? "small" : "medium"}
+                    />
                   </IconButton>
                 </Tooltip>
               ) : null
@@ -157,24 +162,28 @@ const MembersList: React.FC<MembersListProps> = ({
                 imageUrl={member.imageUrl}
                 status={member.status as unknown as UserStatus}
                 showStatus={true}
+                size={isSmallScreen ? "small" : "medium"}
                 sx={{ mr: 0.5 }}
               />
             </ListItemAvatar>
             <ListItemText
               primary={
-                <Typography fontWeight={500}>
+                <Typography
+                  fontWeight={500}
+                  fontSize={isSmallScreen ? "0.875rem" : "inherit"}>
                   {member.username}
                   {member._id === currentUserId && (
                     <Typography
                       component="span"
                       variant="caption"
                       sx={{
-                        ml: 1,
-                        px: 1,
+                        ml: isSmallScreen ? 0.5 : 1,
+                        px: isSmallScreen ? 0.75 : 1,
                         py: 0.2,
                         borderRadius: 1,
                         backgroundColor: alpha(theme.palette.info.main, 0.1),
                         color: theme.palette.info.main,
+                        fontSize: isSmallScreen ? "0.65rem" : "0.75rem",
                       }}>
                       You
                     </Typography>
@@ -184,8 +193,8 @@ const MembersList: React.FC<MembersListProps> = ({
                       component="span"
                       variant="caption"
                       sx={{
-                        ml: 1,
-                        px: 1,
+                        ml: isSmallScreen ? 0.5 : 1,
+                        px: isSmallScreen ? 0.75 : 1,
                         py: 0.2,
                         borderRadius: 1,
                         backgroundColor: alpha(
@@ -193,6 +202,7 @@ const MembersList: React.FC<MembersListProps> = ({
                           0.1
                         ),
                         color: theme.palette.secondary.main,
+                        fontSize: isSmallScreen ? "0.65rem" : "0.75rem",
                       }}>
                       Creator
                     </Typography>
@@ -220,9 +230,9 @@ const MembersList: React.FC<MembersListProps> = ({
           elevation: 3,
           sx: {
             overflow: "visible",
-            borderRadius: 2,
+            borderRadius: isSmallScreen ? 1.5 : 2,
             mt: 1.5,
-            width: 200,
+            width: isSmallScreen ? 180 : 200,
             "&:before": {
               content: '""',
               display: "block",
@@ -236,53 +246,48 @@ const MembersList: React.FC<MembersListProps> = ({
               zIndex: 0,
             },
             "& .MuiMenuItem-root": {
-              px: 2,
-              py: 1.5,
+              px: isSmallScreen ? 1.5 : 2,
+              py: isSmallScreen ? 1.25 : 1.5,
               borderRadius: 1,
               mx: 0.5,
               my: 0.25,
               typography: "body2",
               fontWeight: 500,
+              fontSize: isSmallScreen ? "0.875rem" : "inherit",
               transition: "all 0.15s ease",
             },
           },
         }}>
-        <Box sx={{ px: 2, py: 1 }}>
+        <Box sx={{ px: isSmallScreen ? 1.5 : 2, py: isSmallScreen ? 0.75 : 1 }}>
           <Typography
             variant="subtitle2"
-            color="text.secondary">
+            fontWeight={600}
+            sx={{
+              opacity: 0.7,
+              fontSize: isSmallScreen ? "0.8rem" : "0.875rem",
+            }}>
             {selectedMember?.username}
           </Typography>
         </Box>
         <Divider sx={{ my: 0.5 }} />
-        {isPrivateChat && (
-          <MenuItem
-            onClick={handleRemove}
-            sx={{
-              color: theme.palette.error.main,
-              "&:hover": {
-                backgroundColor: alpha(theme.palette.error.main, 0.08),
-              },
-            }}>
-            <ListItemIcon sx={{ color: "inherit", minWidth: 36 }}>
-              <DeleteIcon fontSize="small" />
+        <MenuItem onClick={handleRemove}>
+          <ListItemIcon>
+            <DeleteIcon
+              fontSize="small"
+              color="error"
+            />
+          </ListItemIcon>
+          <ListItemText primary="Remove" />
+        </MenuItem>
+        {onBanMember && isPrivateChat && (
+          <MenuItem onClick={handleBan}>
+            <ListItemIcon>
+              <BlockIcon
+                fontSize="small"
+                color="error"
+              />
             </ListItemIcon>
-            Remove from chat
-          </MenuItem>
-        )}
-        {onBanMember && (
-          <MenuItem
-            onClick={handleBan}
-            sx={{
-              color: theme.palette.error.dark,
-              "&:hover": {
-                backgroundColor: alpha(theme.palette.error.dark, 0.08),
-              },
-            }}>
-            <ListItemIcon sx={{ color: "inherit", minWidth: 36 }}>
-              <BlockIcon fontSize="small" />
-            </ListItemIcon>
-            Ban user
+            <ListItemText primary="Ban" />
           </MenuItem>
         )}
       </Menu>

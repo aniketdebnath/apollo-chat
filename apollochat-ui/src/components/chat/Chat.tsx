@@ -7,7 +7,6 @@ import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useGetMessages } from "../../hooks/useGetMessages";
 import { PAGE_SIZE } from "../../constants/page-size";
 import { useCountMessages } from "../../hooks/useCountMessages";
-import InfiniteScrollComponent from "react-infinite-scroller";
 import { usePinChat } from "../../hooks/usePinChat";
 import { useUnpinChat } from "../../hooks/useUnpinChat";
 import { snackVar } from "../../constants/snack";
@@ -18,25 +17,7 @@ import { ChatInfo } from "./ChatInfo";
 import ChatHeader from "./chat-components/ChatHeader";
 import MessageInput from "./chat-components/MessageInput";
 import MessageList from "./chat-components/MessageList";
-
-const InfiniteScroll = InfiniteScrollComponent as any;
-
-// Function to get a consistent color based on string input
-const stringToColor = (string: string) => {
-  let hash = 0;
-  for (let i = 0; i < string.length; i++) {
-    hash = string.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const colors = [
-    "#6C63FF", // primary
-    "#FF6584", // secondary
-    "#00B8A9", // success
-    "#0084FF", // info
-    "#FFAF20", // warning
-  ];
-  const index = Math.abs(hash) % colors.length;
-  return colors[index];
-};
+import { useResponsive } from "../../hooks/useResponsive";
 
 const Chat = () => {
   const params = useParams();
@@ -47,6 +28,7 @@ const Chat = () => {
   const { unpinChat } = useUnpinChat();
   const [isPinning, setIsPinning] = useState(false);
   const theme = useTheme();
+  const { isXs } = useResponsive();
   const [showChatInfo, setShowChatInfo] = useState(false);
   const { data: currentUser } = useGetMe();
   const divRef = useRef<HTMLDivElement | null>(null);
@@ -184,7 +166,7 @@ const Chat = () => {
         display: "flex",
         flexDirection: "column",
         height: "100%",
-        borderRadius: 3,
+        borderRadius: isXs ? 2 : 3,
         overflow: "hidden",
         backgroundColor: alpha(theme.palette.background.paper, 0.8),
         border: "1px solid",
@@ -198,6 +180,7 @@ const Chat = () => {
         showChatInfo={showChatInfo}
         toggleChatInfo={toggleChatInfo}
         handlePinToggle={handlePinToggle}
+        isSmallScreen={isXs}
       />
 
       {/* Chat Content - Show either messages or chat info */}
@@ -216,12 +199,14 @@ const Chat = () => {
             messagesCount={messagesCount}
             handleLoadMore={handleLoadMore}
             isCurrentUser={isCurrentUser}
+            isSmallScreen={isXs}
           />
 
           {/* Message Input */}
           <MessageInput
             onSendMessage={handleCreateMessage}
             sendingMessage={sendingMessage}
+            isSmallScreen={isXs}
           />
         </>
       )}

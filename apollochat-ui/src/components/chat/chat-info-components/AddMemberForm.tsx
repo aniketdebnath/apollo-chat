@@ -18,6 +18,7 @@ interface AddMemberFormProps {
   addingMember: boolean;
   onSearch: (term: string) => void;
   onAddMember: (user: User | null) => Promise<void>;
+  isSmallScreen?: boolean;
 }
 
 const AddMemberForm: React.FC<AddMemberFormProps> = ({
@@ -26,6 +27,7 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({
   addingMember,
   onSearch,
   onAddMember,
+  isSmallScreen = false,
 }) => {
   const theme = useTheme();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -52,12 +54,17 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({
   return (
     <Card
       sx={{
-        mb: 2,
-        p: 2,
-        borderRadius: 2.5,
+        mb: isSmallScreen ? 1.5 : 2,
+        p: isSmallScreen ? 1.5 : 2,
+        borderRadius: isSmallScreen ? 2 : 2.5,
         backgroundColor: alpha(theme.palette.background.default, 0.4),
       }}>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: isSmallScreen ? 0.5 : 1,
+        }}>
         <Autocomplete
           fullWidth
           options={searchResults}
@@ -74,17 +81,25 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({
               size="small"
               InputProps={{
                 ...params.InputProps,
+                style: {
+                  fontSize: isSmallScreen ? "0.875rem" : "inherit",
+                },
                 endAdornment: (
                   <>
                     {searching ? (
                       <CircularProgress
                         color="inherit"
-                        size={20}
+                        size={isSmallScreen ? 16 : 20}
                       />
                     ) : null}
                     {params.InputProps.endAdornment}
                   </>
                 ),
+              }}
+              InputLabelProps={{
+                style: {
+                  fontSize: isSmallScreen ? "0.875rem" : "inherit",
+                },
               }}
             />
           )}
@@ -92,11 +107,16 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({
             <Box
               component="li"
               {...props}
-              key={option._id}>
+              key={option._id}
+              sx={{
+                fontSize: isSmallScreen ? "0.875rem" : "inherit",
+                py: isSmallScreen ? 0.75 : 1,
+              }}>
               <UserAvatar
                 username={option.username}
                 imageUrl={option.imageUrl}
-                sx={{ mr: 1.5 }}
+                sx={{ mr: isSmallScreen ? 1 : 1.5 }}
+                size={isSmallScreen ? "small" : "medium"}
               />
               {option.username}
             </Box>
@@ -105,10 +125,17 @@ const AddMemberForm: React.FC<AddMemberFormProps> = ({
         <Button
           variant="contained"
           onClick={handleAddMember}
-          disabled={!selectedUser || addingMember}>
+          disabled={!selectedUser || addingMember}
+          size={isSmallScreen ? "small" : "medium"}
+          sx={{
+            px: isSmallScreen ? 1.5 : 2,
+            py: isSmallScreen ? 0.75 : 1,
+            fontSize: isSmallScreen ? "0.875rem" : "inherit",
+            minWidth: isSmallScreen ? "auto" : "64px",
+          }}>
           {addingMember ? (
             <CircularProgress
-              size={24}
+              size={isSmallScreen ? 20 : 24}
               color="inherit"
             />
           ) : (

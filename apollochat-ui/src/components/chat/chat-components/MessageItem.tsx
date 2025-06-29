@@ -7,11 +7,13 @@ import { Message } from "../../../gql/graphql";
 interface MessageItemProps {
   message: Message;
   isCurrentUser: boolean;
+  isSmallScreen?: boolean;
 }
 
 const MessageItem: React.FC<MessageItemProps> = ({
   message,
   isCurrentUser,
+  isSmallScreen = false,
 }) => {
   const theme = useTheme();
 
@@ -28,16 +30,16 @@ const MessageItem: React.FC<MessageItemProps> = ({
       sx={{
         display: "flex",
         flexDirection: isCurrentUser ? "row-reverse" : "row",
-        mb: 2,
-        px: 1,
+        mb: isSmallScreen ? 1.5 : 2,
+        px: isSmallScreen ? 0.5 : 1,
       }}>
       {!isCurrentUser && (
         <Box
           sx={{
             position: "relative",
             "& .MuiBadge-badge": {
-              right: 3,
-              bottom: 3,
+              right: isSmallScreen ? 2 : 3,
+              bottom: isSmallScreen ? 2 : 3,
             },
           }}>
           <UserAvatar
@@ -45,7 +47,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
             imageUrl={message.user.imageUrl}
             status={message.user.status as unknown as UserStatus}
             showStatus={true}
-            size="medium"
+            size={isSmallScreen ? "small" : "medium"}
             sx={{ mt: 0.5 }}
           />
         </Box>
@@ -53,7 +55,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
 
       <Box
         sx={{
-          maxWidth: "70%",
+          maxWidth: isSmallScreen ? "75%" : "70%",
           display: "flex",
           flexDirection: "column",
           alignItems: isCurrentUser ? "flex-end" : "flex-start",
@@ -62,10 +64,11 @@ const MessageItem: React.FC<MessageItemProps> = ({
           <Typography
             variant="caption"
             sx={{
-              ml: 1,
-              mb: 0.5,
+              ml: isSmallScreen ? 0.5 : 1,
+              mb: isSmallScreen ? 0.3 : 0.5,
               color: theme.palette.text.secondary,
               fontWeight: 500,
+              fontSize: isSmallScreen ? "0.65rem" : "0.75rem",
             }}>
             {message.user.username}
           </Typography>
@@ -75,8 +78,8 @@ const MessageItem: React.FC<MessageItemProps> = ({
           <Paper
             elevation={0}
             sx={{
-              ml: 1,
-              p: 1.5,
+              ml: isSmallScreen ? 0.5 : 1,
+              p: isSmallScreen ? 1.2 : 1.5,
               borderRadius: isCurrentUser
                 ? "18px 4px 18px 18px"
                 : "4px 18px 18px 18px",
@@ -94,10 +97,11 @@ const MessageItem: React.FC<MessageItemProps> = ({
               boxShadow: `0 1px 3px ${alpha(theme.palette.common.black, 0.05)}`,
             }}>
             <Typography
-              variant="body1"
+              variant={isSmallScreen ? "body2" : "body1"}
               sx={{
                 whiteSpace: "pre-wrap",
                 wordBreak: "break-word",
+                fontSize: isSmallScreen ? "0.875rem" : "inherit",
               }}>
               {message.content}
             </Typography>
@@ -109,9 +113,9 @@ const MessageItem: React.FC<MessageItemProps> = ({
               display: "block",
               textAlign: isCurrentUser ? "right" : "left",
               color: alpha(theme.palette.text.secondary, 0.7),
-              mt: 0.5,
-              mx: 0.5,
-              fontSize: "0.7rem",
+              mt: isSmallScreen ? 0.3 : 0.5,
+              mx: isSmallScreen ? 0.3 : 0.5,
+              fontSize: isSmallScreen ? "0.65rem" : "0.7rem",
             }}>
             {formatMessageTime(message.createdAt)}
           </Typography>
@@ -123,8 +127,8 @@ const MessageItem: React.FC<MessageItemProps> = ({
           sx={{
             position: "relative",
             "& .MuiBadge-badge": {
-              right: 3,
-              bottom: 3,
+              right: isSmallScreen ? 2 : 3,
+              bottom: isSmallScreen ? 2 : 3,
             },
           }}>
           <UserAvatar
@@ -132,7 +136,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
             imageUrl={message.user.imageUrl}
             status={message.user.status as unknown as UserStatus}
             showStatus={true}
-            size="medium"
+            size={isSmallScreen ? "small" : "medium"}
             sx={{ mt: 0.5 }}
           />
         </Box>

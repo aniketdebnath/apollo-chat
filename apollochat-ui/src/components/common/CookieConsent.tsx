@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
@@ -7,7 +7,6 @@ import {
   Link,
   useTheme,
   alpha,
-  useMediaQuery,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -33,7 +32,7 @@ const CookieConsent: React.FC = () => {
   const [showConsent, setShowConsent] = useState(false);
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const initializedRef = useRef(false);
 
   // Default cookie preferences
   const [cookiePreferences, setCookiePreferences] = useState<CookiePreferences>(
@@ -46,6 +45,10 @@ const CookieConsent: React.FC = () => {
   );
 
   useEffect(() => {
+    // Prevent this effect from running more than once
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
     // Check if user has already accepted cookies
     const hasAccepted = localStorage.getItem("cookieConsent") === "accepted";
     const savedPreferences = localStorage.getItem("cookiePreferences");
@@ -53,10 +56,10 @@ const CookieConsent: React.FC = () => {
     // If preferences exist, load them
     if (savedPreferences) {
       try {
-        setCookiePreferences({
-          ...cookiePreferences,
+        setCookiePreferences((prevPreferences) => ({
+          ...prevPreferences,
           ...JSON.parse(savedPreferences),
-        });
+        }));
       } catch (e) {}
     }
 
@@ -234,7 +237,7 @@ const CookieConsent: React.FC = () => {
                       boxShadow: "none",
                     },
                   }}>
-                  Accept
+                  Accept All
                 </Button>
               </Box>
             </Paper>

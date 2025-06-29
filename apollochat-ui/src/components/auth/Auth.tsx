@@ -7,10 +7,8 @@ import {
   Box,
   InputAdornment,
   IconButton,
-  alpha,
   useTheme,
   CircularProgress,
-  Divider,
   useMediaQuery,
 } from "@mui/material";
 import { useEffect, useState, useRef } from "react";
@@ -19,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import EmailIcon from "@mui/icons-material/Email";
-import { motion, Variants, AnimatePresence } from "framer-motion";
+import { motion, Variants } from "framer-motion";
 
 interface AuthProps {
   submitLabel: string;

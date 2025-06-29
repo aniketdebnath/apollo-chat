@@ -8,12 +8,14 @@ interface ActionButtonProps {
   isCreator: boolean;
   isLoading: boolean;
   onClick: () => void;
+  isSmallScreen?: boolean;
 }
 
 const ActionButton: React.FC<ActionButtonProps> = ({
   isCreator,
   isLoading,
   onClick,
+  isSmallScreen = false,
 }) => {
   const theme = useTheme();
 
@@ -22,42 +24,54 @@ const ActionButton: React.FC<ActionButtonProps> = ({
       fullWidth
       variant="outlined"
       color="error"
-      startIcon={<DeleteIcon />}
+      startIcon={<DeleteIcon fontSize={isSmallScreen ? "small" : "medium"} />}
       onClick={onClick}
       sx={{
-        py: 1.2,
+        py: isSmallScreen ? 1 : 1.2,
         borderRadius: 2,
         fontWeight: 600,
         textTransform: "none",
-        borderWidth: 1.5,
+        borderWidth: isSmallScreen ? 1 : 1.5,
+        fontSize: isSmallScreen ? "0.875rem" : "inherit",
         "&:hover": {
-          borderWidth: 1.5,
+          borderWidth: isSmallScreen ? 1 : 1.5,
           backgroundColor: alpha(theme.palette.error.main, 0.05),
         },
         transition: "all 0.2s ease",
       }}>
-      {isLoading ? <CircularProgress size={24} /> : "Delete Chat"}
+      {isLoading ? (
+        <CircularProgress size={isSmallScreen ? 20 : 24} />
+      ) : (
+        "Delete Chat"
+      )}
     </Button>
   ) : (
     <Button
       fullWidth
       variant="outlined"
       color="error"
-      startIcon={<ExitToAppIcon />}
+      startIcon={
+        <ExitToAppIcon fontSize={isSmallScreen ? "small" : "medium"} />
+      }
       onClick={onClick}
       sx={{
-        py: 1.2,
+        py: isSmallScreen ? 1 : 1.2,
         borderRadius: 2,
         fontWeight: 600,
         textTransform: "none",
-        borderWidth: 1.5,
+        borderWidth: isSmallScreen ? 1 : 1.5,
+        fontSize: isSmallScreen ? "0.875rem" : "inherit",
         "&:hover": {
-          borderWidth: 1.5,
+          borderWidth: isSmallScreen ? 1 : 1.5,
           backgroundColor: alpha(theme.palette.error.main, 0.05),
         },
         transition: "all 0.2s ease",
       }}>
-      {isLoading ? <CircularProgress size={24} /> : "Leave Chat"}
+      {isLoading ? (
+        <CircularProgress size={isSmallScreen ? 20 : 24} />
+      ) : (
+        "Leave Chat"
+      )}
     </Button>
   );
 };

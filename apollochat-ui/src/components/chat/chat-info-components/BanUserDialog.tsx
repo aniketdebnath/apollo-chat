@@ -30,6 +30,7 @@ interface BanUserDialogProps {
     reason: string
   ) => Promise<void>;
   isLoading: boolean;
+  isSmallScreen?: boolean;
 }
 
 const BanUserDialog: React.FC<BanUserDialogProps> = ({
@@ -38,6 +39,7 @@ const BanUserDialog: React.FC<BanUserDialogProps> = ({
   onClose,
   onBan,
   isLoading,
+  isSmallScreen = false,
 }) => {
   const theme = useTheme();
   const [duration, setDuration] = useState<BanDuration>(BanDuration.OneDay);
@@ -73,7 +75,7 @@ const BanUserDialog: React.FC<BanUserDialogProps> = ({
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 3,
+          borderRadius: isSmallScreen ? 2 : 3,
           backgroundImage: `linear-gradient(135deg, ${alpha(
             theme.palette.background.paper,
             0.95
@@ -82,30 +84,61 @@ const BanUserDialog: React.FC<BanUserDialogProps> = ({
           boxShadow: "0 8px 32px rgba(0, 0, 0, 0.2)",
         },
       }}>
-      <DialogTitle sx={{ fontWeight: 600 }}>Ban User</DialogTitle>
-      <DialogContent>
+      <DialogTitle
+        sx={{
+          fontWeight: 600,
+          pt: isSmallScreen ? 2 : 3,
+          pb: isSmallScreen ? 1 : 2,
+          px: isSmallScreen ? 2 : 3,
+          fontSize: isSmallScreen ? "1.1rem" : "1.25rem",
+        }}>
+        Ban User
+      </DialogTitle>
+      <DialogContent
+        sx={{
+          px: isSmallScreen ? 2 : 3,
+          py: isSmallScreen ? 1 : 2,
+        }}>
         {user && (
           <>
-            <Box sx={{ display: "flex", alignItems: "center", mb: 3, mt: 1 }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                mb: isSmallScreen ? 2 : 3,
+                mt: isSmallScreen ? 0.5 : 1,
+              }}>
               <UserAvatar
                 username={user.username}
                 imageUrl={user.imageUrl}
-                size="large"
-                sx={{ mr: 2 }}
+                size={isSmallScreen ? "medium" : "large"}
+                sx={{ mr: isSmallScreen ? 1.5 : 2 }}
               />
-              <Typography variant="h6">{user.username}</Typography>
+              <Typography variant={isSmallScreen ? "subtitle1" : "h6"}>
+                {user.username}
+              </Typography>
             </Box>
 
             <FormControl
               fullWidth
-              sx={{ mb: 3 }}>
-              <InputLabel id="ban-duration-label">Ban Duration</InputLabel>
+              sx={{ mb: isSmallScreen ? 2 : 3 }}>
+              <InputLabel
+                id="ban-duration-label"
+                sx={{ fontSize: isSmallScreen ? "0.875rem" : "inherit" }}>
+                Ban Duration
+              </InputLabel>
               <Select
                 labelId="ban-duration-label"
                 id="ban-duration"
                 value={duration}
                 label="Ban Duration"
-                onChange={(e) => setDuration(e.target.value as BanDuration)}>
+                onChange={(e) => setDuration(e.target.value as BanDuration)}
+                sx={{
+                  fontSize: isSmallScreen ? "0.875rem" : "inherit",
+                  "& .MuiSelect-select": {
+                    py: isSmallScreen ? 1 : 1.5,
+                  },
+                }}>
                 <MenuItem value={BanDuration.OneDay}>
                   {getDurationLabel(BanDuration.OneDay)}
                 </MenuItem>
@@ -127,21 +160,35 @@ const BanUserDialog: React.FC<BanUserDialogProps> = ({
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               multiline
-              rows={3}
+              rows={isSmallScreen ? 2 : 3}
               variant="outlined"
               placeholder="Provide a reason for banning this user"
+              sx={{
+                "& .MuiInputLabel-root": {
+                  fontSize: isSmallScreen ? "0.875rem" : "inherit",
+                },
+                "& .MuiOutlinedInput-input": {
+                  fontSize: isSmallScreen ? "0.875rem" : "inherit",
+                },
+              }}
             />
           </>
         )}
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 3 }}>
+      <DialogActions
+        sx={{
+          px: isSmallScreen ? 2 : 3,
+          pb: isSmallScreen ? 2 : 3,
+          pt: isSmallScreen ? 1 : 2,
+        }}>
         <Button
           onClick={onClose}
           sx={{
             fontWeight: 500,
             textTransform: "none",
             borderRadius: 2,
-            px: 2,
+            px: isSmallScreen ? 1.5 : 2,
+            fontSize: isSmallScreen ? "0.875rem" : "inherit",
           }}>
           Cancel
         </Button>
@@ -154,7 +201,8 @@ const BanUserDialog: React.FC<BanUserDialogProps> = ({
             fontWeight: 600,
             textTransform: "none",
             borderRadius: 2,
-            px: 2,
+            px: isSmallScreen ? 1.5 : 2,
+            fontSize: isSmallScreen ? "0.875rem" : "inherit",
             boxShadow: "none",
             "&:hover": {
               boxShadow: "0 4px 12px rgba(255, 101, 132, 0.2)",
@@ -162,7 +210,7 @@ const BanUserDialog: React.FC<BanUserDialogProps> = ({
           }}>
           {isLoading ? (
             <CircularProgress
-              size={24}
+              size={isSmallScreen ? 20 : 24}
               color="inherit"
             />
           ) : (

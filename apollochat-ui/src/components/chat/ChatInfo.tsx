@@ -26,6 +26,7 @@ import { useBanUser } from "../../hooks/useBanUser";
 import { useUnbanUser } from "../../hooks/useUnbanUser";
 import { useGetBannedUsers } from "../../hooks/useGetBannedUsers";
 import { BanDuration } from "../../constants/banDuration";
+import { useResponsive } from "../../hooks/useResponsive";
 
 // Import our components
 import ChatInfoHeader from "./chat-info-components/ChatInfoHeader";
@@ -49,6 +50,7 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
   onBack,
 }) => {
   const theme = useTheme();
+  const { isXs } = useResponsive();
   const navigate = useNavigate();
   const [confirmLeaveOpen, setConfirmLeaveOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
@@ -73,7 +75,7 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
   const { addMember: addChatMember, loading: addingMember } =
     useAddChatMember();
   const { banUser, loading: banningUser } = useBanUser();
-  const { unbanUser, loading: unbanningUser } = useUnbanUser();
+  const { unbanUser } = useUnbanUser();
   const {
     bannedUsers,
     loading: loadingBannedUsers,
@@ -211,23 +213,26 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
         display: "flex",
         flexDirection: "column",
         height: "100%",
-        borderRadius: 3,
+        borderRadius: isXs ? 2 : 3,
         overflow: "hidden",
         backgroundColor: alpha(theme.palette.background.paper, 0.8),
         backdropFilter: "blur(10px)",
         boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
       }}>
       {/* Chat Info Header */}
-      <ChatInfoHeader onBack={onBack} />
+      <ChatInfoHeader
+        onBack={onBack}
+        isSmallScreen={isXs}
+      />
 
       {/* Chat Info Content */}
       <Box
         sx={{
           flex: 1,
           overflow: "auto",
-          p: 3,
+          p: isXs ? 2 : 3,
           "&::-webkit-scrollbar": {
-            width: "6px",
+            width: isXs ? "4px" : "6px",
           },
           "&::-webkit-scrollbar-thumb": {
             backgroundColor: alpha(theme.palette.primary.main, 0.2),
@@ -244,6 +249,7 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
           isPrivateChat={isPrivateChat}
           updateChatName={updateChatName}
           updatingChatName={updatingChatName}
+          isSmallScreen={isXs}
         />
 
         {/* Tabs for Members and Banned Users */}
@@ -252,14 +258,15 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
             value={tabValue}
             onChange={handleTabChange}
             sx={{
-              mb: 2,
+              mb: isXs ? 1.5 : 2,
               "& .MuiTabs-indicator": {
                 backgroundColor: theme.palette.primary.main,
               },
               "& .MuiTab-root": {
                 textTransform: "none",
                 fontWeight: 600,
-                minWidth: 100,
+                minWidth: isXs ? 80 : 100,
+                fontSize: isXs ? "0.875rem" : "inherit",
               },
             }}>
             <Tab label="Members" />
@@ -274,9 +281,9 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
               <Tooltip title="Add Member">
                 <IconButton
                   onClick={() => setIsAddingMember((prev) => !prev)}
-                  size="small"
+                  size={isXs ? "small" : "medium"}
                   sx={{ position: "absolute", right: 0, top: 4, zIndex: 2 }}>
-                  <AddIcon />
+                  <AddIcon fontSize={isXs ? "small" : "medium"} />
                 </IconButton>
               </Tooltip>
             )}
@@ -288,6 +295,7 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
                 addingMember={addingMember}
                 onSearch={setSearchTerm}
                 onAddMember={handleAddMember}
+                isSmallScreen={isXs}
               />
             )}
 
@@ -299,6 +307,7 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
               isPrivateChat={isPrivateChat}
               onRemoveMember={openRemoveConfirm}
               onBanMember={isCreator ? openBanDialog : undefined}
+              isSmallScreen={isXs}
             />
           </Box>
         )}
@@ -309,6 +318,7 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
             bannedUsers={bannedUsers}
             isLoading={loadingBannedUsers}
             onUnban={handleUnbanUser}
+            isSmallScreen={isXs}
           />
         )}
       </Box>
@@ -316,7 +326,7 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
       {/* Action Buttons */}
       <Box
         sx={{
-          p: 3,
+          p: isXs ? 2 : 3,
           background: `linear-gradient(to top, ${alpha(
             theme.palette.background.paper,
             0.9
@@ -329,6 +339,7 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
           onClick={() =>
             isCreator ? setConfirmDeleteOpen(true) : setConfirmLeaveOpen(true)
           }
+          isSmallScreen={isXs}
         />
       </Box>
 
@@ -343,6 +354,7 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
         isLoading={removingMember}
         onClose={() => setConfirmLeaveOpen(false)}
         onConfirm={handleLeaveChat}
+        isSmallScreen={isXs}
       />
 
       {/* Delete Chat Confirmation Dialog */}
@@ -354,6 +366,7 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
         isLoading={deletingChat}
         onClose={() => setConfirmDeleteOpen(false)}
         onConfirm={handleDeleteChat}
+        isSmallScreen={isXs}
       />
 
       {/* Remove Member Confirmation Dialog */}
@@ -371,6 +384,7 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
         isLoading={removingMember}
         onClose={() => setConfirmRemoveOpen(false)}
         onConfirm={handleRemoveMember}
+        isSmallScreen={isXs}
       />
 
       {/* Ban User Dialog */}
@@ -380,6 +394,7 @@ export const ChatInfo: React.FC<ChatInfoProps> = ({
         onClose={() => setBanDialogOpen(false)}
         onBan={handleBanUser}
         isLoading={banningUser}
+        isSmallScreen={isXs}
       />
     </Paper>
   );
